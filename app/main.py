@@ -4,7 +4,7 @@ import logging
 import time
 
 from app.config import settings
-from app.routers import medicamentos, web
+from app.routers import medicamentos, analise, web
 
 logger = logging.getLogger(__name__)
 
@@ -53,7 +53,11 @@ app.include_router(
     prefix="/medicamentos",
     tags=["Medicamentos"],
 )
+app.include_router(
+    analise.router,
+    prefix="/analise",
+    tags=["Análise de Risco"],
+)
 app.include_router(web.router)
 
 # DIA 5: auth, chaves, usuario
-# DIA 4: analise

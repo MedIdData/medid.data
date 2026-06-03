@@ -10,8 +10,48 @@ from sqlalchemy.orm import Session
 from app.database import get_db
 from app.services import busca_medicamento
 
+from app.schemas.analise import AnaliseEntrada
+from app.services import analise_risco
+
 router = APIRouter(include_in_schema=False)
 templates = Jinja2Templates(directory="app/templates")
+
+
+@router.get("/analise", response_class=HTMLResponse)
+async def pagina_analise(
+    request: Request,
+    medicamento: str = Query(""),
+    preco_informado: float = Query(0),
+    tratamento: str = Query(""),
+    cid: str = Query(""),
+    procedimento: str = Query(""),
+    quantidade: int = Query(1, ge=1),
+    db: Session = Depends(get_db),
+):
+    resultado = None
+    entrada = None
+
+    if medicamento.strip() and preco_informado > 0:
+        entrada = AnaliseEntrada(
+            medicamento=medicamento,
+            preco_informado=preco_informado,
+            tratamento=tratamento,
+            cid=cid,
+            procedimento=procedimento,
+            quantidade=quantidade,
+        )
+        resultado = analise_risco.analisar(db, entrada)
+
+    return templates.TemplateResponse(
+        request,
+        "analise.html",
+        {
+            "pagina_ativa": "analise",
+            "usuario": None,
+            "entrada": entrada,
+            "resultado": resultado,
+        },
+    )
 
 
 @router.get("/buscar", response_class=HTMLResponse)

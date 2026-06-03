@@ -1,0 +1,461 @@
+{% extends "base.html" %}
+
+{% block titulo %}Análise de Risco{% endblock %}
+{% block titulo_pagina %}Análise de Risco{% endblock %}
+
+{% block estilos_extras %}
+<style>
+  /* ── Layout ─────────────────────────────────────────────────────────── */
+  .analise-grid {
+    display: grid;
+    grid-template-columns: 380px 1fr;
+    gap: 24px;
+    align-items: start;
+  }
+  @media (max-width: 900px) {
+    .analise-grid { grid-template-columns: 1fr; }
+  }
+
+  /* ── Formulário ─────────────────────────────────────────────────────── */
+  .form-card { padding: 24px; }
+  .form-titulo {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700; font-size: 1rem;
+    color: var(--azul-escuro); margin-bottom: 18px;
+  }
+  .form-grupo { margin-bottom: 14px; }
+  .form-label {
+    display: block; font-size: .8rem; font-weight: 500;
+    color: var(--texto-sec); margin-bottom: 5px;
+  }
+  .form-label span { color: var(--vermelho); margin-left: 2px; }
+  .form-hint { font-size: .7rem; color: var(--texto-ter); margin-top: 3px; }
+
+  .btn-analisar {
+    width: 100%; padding: 12px;
+    background: var(--azul); color: var(--branco);
+    border: none; border-radius: var(--r-botao);
+    font-size: .9rem; font-weight: 500; cursor: pointer;
+    transition: background .15s; margin-top: 6px;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+  }
+  .btn-analisar:hover { background: var(--azul-medio); }
+  .btn-analisar:disabled { opacity: .6; cursor: not-allowed; }
+
+  .aviso-glosa {
+    background: #FFFBEB; border: 1px solid #FDE68A; border-radius: 8px;
+    padding: 10px 12px; font-size: .72rem; color: #78350F;
+    margin-top: 14px; line-height: 1.5;
+  }
+
+  /* ── Área de resultado ──────────────────────────────────────────────── */
+  .resultado-area { display: flex; flex-direction: column; gap: 16px; }
+
+  /* ── Medidor de pontuação ───────────────────────────────────────────── */
+  .medidor-card { padding: 28px 24px 20px; text-align: center; }
+  .medidor-wrap {
+    position: relative; width: 200px; margin: 0 auto 8px;
+  }
+  .medidor-svg { width: 100%; }
+  .trilha {
+    fill: none; stroke: var(--fundo-sec); stroke-width: 14;
+    stroke-linecap: round;
+  }
+  .arco {
+    fill: none; stroke-width: 14; stroke-linecap: round;
+    stroke-dasharray: 283; stroke-dashoffset: 283;
+    transition: stroke-dashoffset 1.2s ease, stroke .4s;
+    transform-origin: center; transform: rotate(-180deg);
+  }
+  .medidor-numero {
+    position: absolute; bottom: 0; left: 50%; transform: translateX(-50%);
+    font-family: 'Syne', sans-serif; font-weight: 800;
+    font-size: 2.4rem; line-height: 1; color: var(--texto);
+  }
+  .medidor-label {
+    font-size: .75rem; font-weight: 500;
+    color: var(--texto-ter); text-transform: uppercase; letter-spacing: .06em;
+    margin-top: 6px;
+  }
+
+  .glosa-badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 6px 16px; border-radius: var(--r-etiq);
+    font-size: .8rem; font-weight: 500; margin-top: 10px;
+  }
+  .glosa-baixo  { background: #F0FDF4; color: #166534; }
+  .glosa-medio  { background: #FFFBEB; color: #92400E; }
+  .glosa-alto   { background: #FFF1F2; color: #991B1B; }
+
+  .scores-linha {
+    display: flex; gap: 12px; margin-top: 16px; justify-content: center;
+  }
+  .score-mini {
+    flex: 1; text-align: center;
+    background: var(--fundo-sec); border-radius: 8px; padding: 8px 10px;
+  }
+  .score-mini-val {
+    font-size: 1.3rem; font-weight: 700;
+    font-family: 'Syne', sans-serif;
+  }
+  .score-mini-label { font-size: .65rem; color: var(--texto-ter); margin-top: 1px; }
+
+  /* ── Motivos ──────────────────────────────────────────────────────── */
+  .motivos-card { padding: 20px 24px; }
+  .motivos-titulo {
+    font-size: .8rem; font-weight: 500; color: var(--texto-sec);
+    text-transform: uppercase; letter-spacing: .07em; margin-bottom: 12px;
+  }
+  .motivos-lista { list-style: none; }
+  .motivo-item {
+    display: flex; gap: 10px; align-items: flex-start;
+    padding: 7px 0; border-bottom: 1px solid var(--fundo-sec);
+    font-size: .85rem; color: var(--texto); line-height: 1.4;
+  }
+  .motivo-item:last-child { border-bottom: none; }
+  .motivo-icone { flex-shrink: 0; margin-top: 2px; }
+
+  /* ── Cartões por dimensão ────────────────────────────────────────── */
+  .dimensoes-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
+  }
+  @media (max-width: 640px) { .dimensoes-grid { grid-template-columns: 1fr; } }
+
+  .dim-card {
+    padding: 16px 18px;
+    border-left: 4px solid var(--borda);
+    transition: box-shadow .15s;
+  }
+  .dim-card.aderente { border-left-color: var(--teal); }
+  .dim-card.atencao  { border-left-color: var(--ambar); }
+  .dim-card.nao-aderente { border-left-color: var(--vermelho); }
+  .dim-card.nao-informado { border-left-color: var(--borda); }
+
+  .dim-header {
+    display: flex; align-items: center; gap: 8px; margin-bottom: 8px;
+  }
+  .dim-icone {
+    width: 28px; height: 28px; border-radius: 6px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0; font-size: .8rem;
+  }
+  .dim-icone.aderente     { background: #F0FDF4; color: #166534; }
+  .dim-icone.atencao      { background: #FFFBEB; color: #92400E; }
+  .dim-icone.nao-aderente { background: #FFF1F2; color: #991B1B; }
+  .dim-icone.nao-informado{ background: var(--fundo-sec); color: var(--texto-ter); }
+
+  .dim-nome {
+    font-size: .8rem; font-weight: 500; color: var(--texto-sec);
+    text-transform: uppercase; letter-spacing: .05em; flex: 1;
+  }
+  .dim-status {
+    font-size: .68rem; font-weight: 500;
+    padding: 2px 8px; border-radius: var(--r-etiq);
+  }
+  .dim-status.aderente     { background: #F0FDF4; color: #166534; }
+  .dim-status.atencao      { background: #FFFBEB; color: #92400E; }
+  .dim-status.nao-aderente { background: #FFF1F2; color: #991B1B; }
+  .dim-status.nao-informado{ background: var(--fundo-sec); color: var(--texto-ter); }
+
+  .dim-motivo {
+    font-size: .8rem; color: var(--texto-sec); line-height: 1.4;
+  }
+
+  /* Destaque de preços */
+  .preco-comparativo {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px;
+    margin-top: 8px;
+  }
+  .preco-ref {
+    background: var(--fundo-sec); border-radius: 6px;
+    padding: 5px 8px; text-align: center;
+  }
+  .preco-ref-label { font-size: .62rem; color: var(--texto-ter); font-weight: 500; }
+  .preco-ref-val { font-size: .82rem; color: var(--texto); font-weight: 500; }
+  .preco-ref-var { font-size: .7rem; margin-top: 1px; font-weight: 500; }
+  .preco-ref-var.acima { color: var(--vermelho); }
+  .preco-ref-var.ok    { color: var(--teal); }
+  .preco-ref-var.atencao { color: var(--ambar); }
+
+  /* ── Erro / sem resultado ────────────────────────────────────────── */
+  .estado-analise {
+    text-align: center; padding: 48px 24px;
+  }
+  .estado-analise svg { color: var(--texto-ter); margin-bottom: 16px; }
+  .estado-analise h3 { font-size: 1rem; color: var(--texto-sec); margin-bottom: 6px; }
+  .estado-analise p  { font-size: .875rem; color: var(--texto-ter); }
+</style>
+{% endblock %}
+
+{% block conteudo %}
+<div class="analise-grid">
+
+  <!-- ── Formulário ───────────────────────────────────────────────── -->
+  <div>
+    <div class="card form-card">
+      <div class="form-titulo">Dados para Análise</div>
+      <form method="get" action="/analise" id="form-analise">
+
+        <div class="form-grupo">
+          <label class="form-label" for="medicamento">Medicamento <span>*</span></label>
+          <input class="campo" type="text" id="medicamento" name="medicamento"
+                 value="{{ entrada.medicamento if entrada else '' }}"
+                 placeholder="Ex: Dipirona, Amoxicilina 500mg..."
+                 required>
+        </div>
+
+        <div class="form-grupo">
+          <label class="form-label" for="preco_informado">Preço Informado (R$) <span>*</span></label>
+          <input class="campo" type="number" id="preco_informado" name="preco_informado"
+                 value="{{ entrada.preco_informado if entrada else '' }}"
+                 placeholder="0,00" min="0" step="0.01" required>
+        </div>
+
+        <div class="form-grupo">
+          <label class="form-label" for="tratamento">Tratamento / Diagnóstico</label>
+          <input class="campo" type="text" id="tratamento" name="tratamento"
+                 value="{{ entrada.tratamento if entrada else '' }}"
+                 placeholder="Ex: Infecção respiratória, Hipertensão...">
+          <div class="form-hint">Descrição clínica do tratamento indicado.</div>
+        </div>
+
+        <div class="form-grupo">
+          <label class="form-label" for="cid">CID-10</label>
+          <input class="campo" type="text" id="cid" name="cid"
+                 value="{{ entrada.cid if entrada else '' }}"
+                 placeholder="Ex: J18.9, I10, E11.9..."
+                 style="text-transform:uppercase;">
+        </div>
+
+        <div class="form-grupo">
+          <label class="form-label" for="procedimento">Procedimento SIGTAP</label>
+          <input class="campo" type="text" id="procedimento" name="procedimento"
+                 value="{{ entrada.procedimento if entrada else '' }}"
+                 placeholder="Ex: 03.01.01.007-2">
+        </div>
+
+        <div class="form-grupo">
+          <label class="form-label" for="quantidade">Quantidade <span>*</span></label>
+          <input class="campo" type="number" id="quantidade" name="quantidade"
+                 value="{{ entrada.quantidade if entrada else 1 }}"
+                 min="1" required>
+        </div>
+
+        <button type="submit" class="btn-analisar" id="btn-analisar">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+          </svg>
+          Analisar Risco
+        </button>
+      </form>
+
+      <div class="aviso-glosa">
+        ⚠️ O <strong>Potencial de Glosa</strong> é um indicador preventivo, não uma glosa real
+        nem uma decisão de operadora. Baseia-se em inconsistências detectadas entre os dados
+        informados e as bases ANVISA, CMED, CID-10 e SIGTAP.
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Resultado ──────────────────────────────────────────────────── -->
+  <div class="resultado-area">
+
+    {% if resultado %}
+
+      <!-- Medidor + classificação -->
+      <div class="card medidor-card">
+        {% set cor_aderencia = '#14B8A6' if resultado.pontuacao_aderencia >= 90 else ('#F59E0B' if resultado.pontuacao_aderencia >= 70 else '#EF4444') %}
+        {% set classe_glosa = 'glosa-baixo' if resultado.potencial_glosa == 'BAIXO' else ('glosa-medio' if resultado.potencial_glosa == 'MEDIO' else 'glosa-alto') %}
+        {% set icone_glosa = '✓' if resultado.potencial_glosa == 'BAIXO' else ('⚠' if resultado.potencial_glosa == 'MEDIO' else '✕') %}
+
+        <div style="font-size:.75rem;font-weight:500;color:var(--texto-ter);text-transform:uppercase;letter-spacing:.07em;margin-bottom:12px;">
+          Pontuação de Aderência
+        </div>
+
+        <div class="medidor-wrap">
+          <svg class="medidor-svg" viewBox="0 0 200 110">
+            <path class="trilha"
+              d="M 15 105 A 85 85 0 0 1 185 105"
+              stroke-dasharray="267"
+            />
+            <path class="arco" id="arco-aderencia"
+              d="M 15 105 A 85 85 0 0 1 185 105"
+              stroke="{{ cor_aderencia }}"
+              data-valor="{{ resultado.pontuacao_aderencia }}"
+              data-total-arco="267"
+            />
+            <text x="100" y="95" text-anchor="middle"
+                  font-family="'Syne', sans-serif" font-weight="800"
+                  font-size="36" fill="{{ cor_aderencia }}"
+                  id="num-aderencia">--</text>
+          </svg>
+        </div>
+
+        <div class="medidor-label">pontuação de aderência</div>
+
+        <div class="glosa-badge {{ classe_glosa }}" style="display:flex;margin:10px auto 0;">
+          {{ icone_glosa }}
+          Potencial de Glosa: <strong>{{ resultado.potencial_glosa }}</strong>
+        </div>
+
+        <div class="scores-linha">
+          <div class="score-mini">
+            <div class="score-mini-val" style="color:{% if resultado.pontuacao_risco <= 30 %}var(--teal){% elif resultado.pontuacao_risco <= 70 %}var(--ambar){% else %}var(--vermelho){% endif %}">
+              {{ resultado.pontuacao_risco }}
+            </div>
+            <div class="score-mini-label">Risco</div>
+          </div>
+          <div class="score-mini">
+            <div class="score-mini-val" style="color:{% if resultado.aderente %}var(--teal){% else %}var(--vermelho){% endif %}">
+              {{ 'Sim' if resultado.aderente else 'Não' }}
+            </div>
+            <div class="score-mini-label">Aderente</div>
+          </div>
+        </div>
+
+        {% if resultado.medicamento_encontrado %}
+        <div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--fundo-sec);font-size:.78rem;color:var(--texto-sec);">
+          Medicamento identificado: <strong>{{ resultado.medicamento_encontrado }}</strong>
+          {% if resultado.situacao_anvisa %}
+            <span class="etiq {% if resultado.situacao_anvisa|upper == 'ATIVO' %}etiq-ativo{% else %}etiq-inativo{% endif %}" style="margin-left:6px;">
+              {{ resultado.situacao_anvisa }}
+            </span>
+          {% endif %}
+        </div>
+        {% endif %}
+      </div>
+
+      <!-- Motivos -->
+      {% if resultado.motivos %}
+      <div class="card motivos-card">
+        <div class="motivos-titulo">Motivos da Análise</div>
+        <ul class="motivos-lista">
+          {% for motivo in resultado.motivos %}
+          <li class="motivo-item">
+            <span class="motivo-icone" style="color:var(--texto-ter);">›</span>
+            {{ motivo }}
+          </li>
+          {% endfor %}
+        </ul>
+      </div>
+      {% endif %}
+
+      <!-- Dimensões -->
+      <div class="dimensoes-grid">
+
+        {% macro dim_card(nome, icone, situacao, motivo, extra="") %}
+        {% set cls = 'aderente' if situacao == 'ADERENTE' else ('atencao' if situacao == 'ATENCAO' else ('nao-aderente' if situacao == 'NAO_ADERENTE' else 'nao-informado')) %}
+        {% set label = 'Aderente' if situacao == 'ADERENTE' else ('Atenção' if situacao == 'ATENCAO' else ('Não aderente' if situacao == 'NAO_ADERENTE' else 'Não informado')) %}
+        <div class="card dim-card {{ cls }}">
+          <div class="dim-header">
+            <div class="dim-icone {{ cls }}">{{ icone }}</div>
+            <div class="dim-nome">{{ nome }}</div>
+            <span class="dim-status {{ cls }}">{{ label }}</span>
+          </div>
+          {% if motivo %}
+          <div class="dim-motivo">{{ motivo }}</div>
+          {% endif %}
+          {{ extra }}
+        </div>
+        {% endmacro %}
+
+        {{ dim_card("Tratamento", "💊", resultado.analise_tratamento.situacao.value, resultado.analise_tratamento.motivo) }}
+        {{ dim_card("CID-10", "🏥", resultado.analise_cid.situacao.value, resultado.analise_cid.motivo) }}
+        {{ dim_card("Med. × Procedimento", "⚕", resultado.analise_procedimento.situacao.value, resultado.analise_procedimento.motivo) }}
+        {{ dim_card("CID × Procedimento", "🔗", resultado.analise_cid_procedimento.situacao.value, resultado.analise_cid_procedimento.motivo) }}
+
+        <!-- Preço — card especial com comparativo -->
+        {% set ap = resultado.analise_preco %}
+        {% set cls_p = 'aderente' if ap.situacao.value == 'ADERENTE' else ('atencao' if ap.situacao.value == 'ATENCAO' else ('nao-aderente' if ap.situacao.value == 'NAO_ADERENTE' else 'nao-informado')) %}
+        {% set label_p = 'Aderente' if ap.situacao.value == 'ADERENTE' else ('Atenção' if ap.situacao.value == 'ATENCAO' else ('Não aderente' if ap.situacao.value == 'NAO_ADERENTE' else 'Não informado')) %}
+        <div class="card dim-card {{ cls_p }}">
+          <div class="dim-header">
+            <div class="dim-icone {{ cls_p }}">💲</div>
+            <div class="dim-nome">Preço</div>
+            <span class="dim-status {{ cls_p }}">{{ label_p }}</span>
+          </div>
+          {% if ap.motivo %}<div class="dim-motivo">{{ ap.motivo }}</div>{% endif %}
+          {% if ap.pf or ap.pmc or ap.pmvg %}
+          <div class="preco-comparativo">
+            {% for label_ref, val, var in [('PF', ap.pf, ap.variacao_pf_pct), ('PMC', ap.pmc, ap.variacao_pmc_pct), ('PMVG', ap.pmvg, ap.variacao_pmvg_pct)] %}
+            <div class="preco-ref">
+              <div class="preco-ref-label">{{ label_ref }}</div>
+              {% if val %}
+                <div class="preco-ref-val">R$ {{ "%.2f"|format(val) }}</div>
+                {% if var is not none %}
+                  <div class="preco-ref-var {% if var > 10 %}acima{% elif var > 5 %}atencao{% else %}ok{% endif %}">
+                    {{ "%+.1f"|format(var) }}%
+                  </div>
+                {% endif %}
+              {% else %}
+                <div class="preco-ref-val" style="color:var(--texto-ter)">—</div>
+              {% endif %}
+            </div>
+            {% endfor %}
+          </div>
+          {% endif %}
+        </div>
+
+        {{ dim_card("Quantidade", "📦", resultado.analise_quantidade.situacao.value, resultado.analise_quantidade.motivo) }}
+
+      </div>
+
+    {% else %}
+
+      <!-- Estado inicial -->
+      <div class="card">
+        <div class="estado-analise">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+          </svg>
+          <h3>Preencha o formulário para iniciar a análise</h3>
+          <p>
+            Informe o medicamento, preço e demais dados clínicos.<br>
+            O motor avaliará 9 dimensões de risco em segundos.
+          </p>
+        </div>
+      </div>
+
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts_extras %}
+<script>
+  // Animação do medidor de aderência
+  document.addEventListener('DOMContentLoaded', () => {
+    const arco = document.getElementById('arco-aderencia');
+    const num  = document.getElementById('num-aderencia');
+    if (!arco) return;
+
+    const valor     = parseInt(arco.dataset.valor, 10);
+    const totalArco = parseFloat(arco.dataset.totalArco);
+    const offset    = totalArco * (1 - valor / 100);
+
+    // Anima após 100ms para garantir render
+    setTimeout(() => {
+      arco.style.strokeDashoffset = offset;
+    }, 100);
+
+    // Anima o número
+    let atual = 0;
+    const passo = Math.max(1, Math.floor(valor / 40));
+    const timer = setInterval(() => {
+      atual = Math.min(atual + passo, valor);
+      num.textContent = atual;
+      if (atual >= valor) clearInterval(timer);
+    }, 25);
+  });
+
+  // Loading state no submit
+  document.getElementById('form-analise').addEventListener('submit', () => {
+    const btn = document.getElementById('btn-analisar');
+    btn.disabled = true;
+    btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="animation:spin 1s linear infinite"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg> Analisando...';
+  });
+</script>
+<style>
+  @keyframes spin { to { transform: rotate(360deg); } }
+</style>
+{% endblock %}
