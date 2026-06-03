@@ -1,0 +1,30 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.venv/
+venv/
+env/
+*.egg-info/
+dist/
+build/
+
+# Ambiente
+.env
+*.env.local
+
+# Dados sensíveis (commitar apenas scripts, não os arquivos de dados)
+dados/
+!dados/.gitkeep
+
+# Alembic
+*.pyc
+
+# IDE / OS
+.DS_Store
+.idea/
+.vscode/
+*.swp
+
+# Docker
+*.log
