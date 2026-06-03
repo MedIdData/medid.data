@@ -1,22 +1,28 @@
 from fastapi import FastAPI, Request
-from fastapi.staticfiles import StaticFiles
-from fastapi.templating import Jinja2Templates
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
 import logging
 import time
 
 from app.config import settings
+from app.routers import medicamentos, web
 
 logger = logging.getLogger(__name__)
 
 app = FastAPI(
     title="MedID Data",
-    description="Plataforma de Inteligência em Saúde — API de Análise de Risco",
+    description=(
+        "**Plataforma de Inteligência em Saúde**\n\n"
+        "API de análise de risco com dados ANVISA, CMED, CID-10 e SIGTAP.\n\n"
+        "Módulos disponíveis:\n"
+        "- **Base de Medicamentos** — busca fuzzy com correção ortográfica\n"
+        "- **Análise de Risco** — motor de 9 dimensões com pontuação de glosa\n"
+    ),
     version="1.0.0",
     docs_url="/docs",
     redoc_url="/redoc",
     openapi_url="/openapi.json",
+    contact={"name": "MedID Data", "url": "https://mediddata.com"},
+    license_info={"name": "Proprietário"},
 )
 
 app.add_middleware(
@@ -29,32 +35,25 @@ app.add_middleware(
 
 
 @app.middleware("http")
-async def registrar_tempo_resposta(request: Request, call_next):
+async def registrar_tempo(request: Request, call_next):
     inicio = time.time()
     response = await call_next(request)
     response.headers["X-Tempo-Resposta"] = f"{(time.time() - inicio) * 1000:.0f}ms"
     return response
 
 
-@app.get(
-    "/saude",
-    tags=["Sistema"],
-    summary="Verificação de saúde da API",
-    response_description="Status dos serviços",
-)
+@app.get("/saude", tags=["Sistema"], summary="Verificação de saúde")
 async def saude():
-    return {
-        "status": "operacional",
-        "servico": "MedID Data",
-        "versao": "1.0.0",
-        "ambiente": settings.environment,
-    }
+    return {"status": "operacional", "servico": "MedID Data", "versao": "1.0.0"}
 
 
-# Os roteadores serão registrados progressivamente nos DIAs 3-7:
-# from app.routers import medicamentos, analise, auth, usuario, web
-# app.include_router(auth.router, prefix="/auth", tags=["Autenticação"])
-# app.include_router(medicamentos.router, prefix="/medicamentos", tags=["Medicamentos"])
-# app.include_router(analise.router, prefix="/analise", tags=["Análise de Risco"])
-# app.include_router(usuario.router, prefix="/usuario", tags=["Usuário"])
-# app.include_router(web.router, tags=["Interface Web"])
+# ── Routers ────────────────────────────────────────────────────────────────
+app.include_router(
+    medicamentos.router,
+    prefix="/medicamentos",
+    tags=["Medicamentos"],
+)
+app.include_router(web.router)
+
+# DIA 5: auth, chaves, usuario
+# DIA 4: analise

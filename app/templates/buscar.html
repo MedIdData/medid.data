@@ -1,0 +1,458 @@
+{% extends "base.html" %}
+
+{% block titulo %}Base de Medicamentos{% endblock %}
+{% block titulo_pagina %}Base de Referência de Medicamentos{% endblock %}
+
+{% block estilos_extras %}
+<style>
+  /* ── Busca ──────────────────────────────────────────────────────────── */
+  .busca-hero {
+    background: linear-gradient(135deg, var(--azul-escuro) 0%, var(--azul) 100%);
+    border-radius: var(--r-card);
+    padding: 32px;
+    margin-bottom: 28px;
+    color: var(--branco);
+  }
+  .busca-hero h2 {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 1.375rem;
+    margin-bottom: 6px;
+  }
+  .busca-hero p {
+    font-size: .875rem;
+    color: rgba(255,255,255,.75);
+    margin-bottom: 20px;
+    font-weight: 300;
+  }
+  .busca-form {
+    display: flex; gap: 10px; align-items: stretch;
+  }
+  .busca-input-wrap {
+    position: relative; flex: 1;
+  }
+  .busca-input-wrap svg {
+    position: absolute; left: 14px; top: 50%;
+    transform: translateY(-50%);
+    color: var(--texto-ter); pointer-events: none;
+  }
+  .campo-busca {
+    width: 100%;
+    padding: 13px 16px 13px 44px;
+    border: 1.5px solid rgba(255,255,255,.2);
+    border-radius: var(--r-campo);
+    font-size: 1rem;
+    color: var(--texto);
+    background: var(--branco);
+    outline: none;
+    transition: border-color .15s, box-shadow .15s;
+  }
+  .campo-busca:focus {
+    border-color: var(--teal);
+    box-shadow: 0 0 0 3px rgba(20,184,166,.25);
+  }
+  .btn-buscar {
+    padding: 0 24px;
+    background: var(--teal); color: var(--branco);
+    border: none; border-radius: var(--r-botao);
+    font-size: .9rem; font-weight: 500;
+    cursor: pointer; white-space: nowrap;
+    transition: background .15s;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .btn-buscar:hover { background: var(--teal-claro); }
+
+  /* ── Filtros ────────────────────────────────────────────────────────── */
+  .busca-layout {
+    display: flex; gap: 24px; align-items: flex-start;
+  }
+  .filtros-painel {
+    width: 220px; flex-shrink: 0;
+  }
+  .filtros-card {
+    padding: 20px;
+    position: sticky; top: calc(var(--topbar-h) + 16px);
+  }
+  .filtros-titulo {
+    font-size: .8rem; font-weight: 500;
+    color: var(--texto-sec); text-transform: uppercase;
+    letter-spacing: .07em; margin-bottom: 14px;
+  }
+  .filtro-grupo { margin-bottom: 16px; }
+  .filtro-label {
+    display: block; font-size: .8rem; font-weight: 500;
+    color: var(--texto-sec); margin-bottom: 6px;
+  }
+  .filtro-check {
+    display: flex; align-items: center; gap: 8px;
+    font-size: .85rem; color: var(--texto); cursor: pointer;
+  }
+  .filtro-check input[type=checkbox] { accent-color: var(--azul); }
+  .btn-aplicar-filtros {
+    width: 100%; padding: 9px;
+    background: var(--fundo-sec); color: var(--texto-sec);
+    border: 1px solid var(--borda); border-radius: var(--r-botao);
+    font-size: .8rem; font-weight: 500; cursor: pointer;
+    transition: all .15s; margin-top: 4px;
+  }
+  .btn-aplicar-filtros:hover { background: var(--borda); }
+
+  /* ── Resultados ─────────────────────────────────────────────────────── */
+  .resultados-area { flex: 1; min-width: 0; }
+  .resultados-info {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 16px; flex-wrap: wrap; gap: 8px;
+  }
+  .resultados-contagem {
+    font-size: .875rem; color: var(--texto-sec);
+  }
+  .resultados-contagem strong { color: var(--texto); }
+
+  .resultados-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 16px;
+  }
+
+  /* ── Cartão de medicamento ──────────────────────────────────────────── */
+  .med-card {
+    padding: 18px 20px 16px;
+    display: flex; flex-direction: column; gap: 10px;
+    transition: box-shadow .15s, transform .15s;
+    cursor: pointer; text-decoration: none; color: inherit;
+  }
+  .med-card:hover {
+    box-shadow: var(--shadow-md);
+    transform: translateY(-1px);
+  }
+  .med-card-topo {
+    display: flex; align-items: flex-start;
+    justify-content: space-between; gap: 8px;
+  }
+  .med-nome {
+    font-size: .9375rem; font-weight: 500;
+    color: var(--texto); line-height: 1.3;
+    flex: 1;
+  }
+  .med-principio {
+    font-size: .8rem; color: var(--texto-sec); font-weight: 400;
+    margin-top: 2px; line-height: 1.4;
+  }
+  .med-fabricante {
+    font-size: .75rem; color: var(--texto-ter); margin-top: 4px;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .med-etiquetas {
+    display: flex; flex-wrap: wrap; gap: 5px;
+  }
+
+  /* ── Paginação ──────────────────────────────────────────────────────── */
+  .paginacao {
+    display: flex; align-items: center; justify-content: center;
+    gap: 6px; margin-top: 28px; flex-wrap: wrap;
+  }
+  .pag-btn {
+    min-width: 36px; height: 36px; padding: 0 10px;
+    display: flex; align-items: center; justify-content: center;
+    border-radius: 8px; border: 1px solid var(--borda);
+    background: var(--branco); color: var(--texto-sec);
+    font-size: .85rem; cursor: pointer; text-decoration: none;
+    transition: all .15s;
+  }
+  .pag-btn:hover { background: var(--fundo-sec); color: var(--texto); }
+  .pag-btn.atual {
+    background: var(--azul); color: var(--branco);
+    border-color: var(--azul); font-weight: 500;
+  }
+  .pag-btn.desabilitado {
+    opacity: .4; pointer-events: none;
+  }
+
+  /* ── Sugestão ortográfica ────────────────────────────────────────────── */
+  .sugestao-box {
+    background: #FFFBEB;
+    border: 1px solid #FDE68A;
+    border-radius: var(--r-card);
+    padding: 16px 20px;
+    margin-top: 16px;
+    font-size: .875rem; color: #78350F;
+  }
+  .sugestao-box a { color: var(--azul-medio); font-weight: 500; }
+
+  /* ── Estado inicial ─────────────────────────────────────────────────── */
+  .estado-inicial {
+    text-align: center; padding: 48px 20px;
+  }
+  .estado-inicial .icone {
+    width: 56px; height: 56px; border-radius: 50%;
+    background: var(--fundo-sec);
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 16px; color: var(--texto-ter);
+  }
+  .estado-inicial h3 {
+    font-size: 1rem; font-weight: 500; color: var(--texto-sec);
+    margin-bottom: 6px;
+  }
+  .estado-inicial p { font-size: .875rem; color: var(--texto-ter); }
+  .exemplos-busca {
+    display: flex; flex-wrap: wrap; gap: 8px;
+    justify-content: center; margin-top: 20px;
+  }
+  .exemplo-termo {
+    padding: 6px 14px;
+    background: var(--fundo-sec); border: 1px solid var(--borda);
+    border-radius: var(--r-etiq);
+    font-size: .8rem; color: var(--texto-sec);
+    cursor: pointer; text-decoration: none;
+    transition: all .15s;
+  }
+  .exemplo-termo:hover {
+    background: var(--azul); color: var(--branco); border-color: var(--azul);
+  }
+
+  @media (max-width: 768px) {
+    .busca-form { flex-direction: column; }
+    .btn-buscar { padding: 12px; justify-content: center; }
+    .busca-layout { flex-direction: column; }
+    .filtros-painel { width: 100%; }
+    .filtros-card { position: static; }
+    .resultados-grid { grid-template-columns: 1fr; }
+  }
+</style>
+{% endblock %}
+
+{% block conteudo %}
+<!-- Hero com busca -->
+<div class="busca-hero">
+  <h2>Busca de Medicamentos</h2>
+  <p>Encontre medicamentos por nome comercial ou princípio ativo com dados ANVISA e preços CMED atualizados.</p>
+  <form class="busca-form" method="get" action="/buscar" id="form-busca">
+    <div class="busca-input-wrap">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+      </svg>
+      <input
+        class="campo-busca"
+        type="search"
+        name="q"
+        id="campo-busca"
+        value="{{ q or '' }}"
+        placeholder="Ex: Dipirona, Amoxicilina, Omeprazol..."
+        autocomplete="off"
+        autofocus
+      >
+    </div>
+    <button type="submit" class="btn-buscar">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+      </svg>
+      Buscar
+    </button>
+    <!-- Preservar outros filtros no submit -->
+    {% if apenas_ativos %}<input type="hidden" name="apenas_ativos" value="true">{% endif %}
+  </form>
+</div>
+
+<!-- Layout de conteúdo -->
+<div class="busca-layout">
+
+  <!-- Painel de filtros -->
+  <aside class="filtros-painel">
+    <div class="card filtros-card">
+      <div class="filtros-titulo">Filtros</div>
+      <form method="get" action="/buscar" id="form-filtros">
+        <input type="hidden" name="q" value="{{ q or '' }}">
+        <div class="filtro-grupo">
+          <label class="filtro-check">
+            <input
+              type="checkbox" name="apenas_ativos" value="true"
+              {% if apenas_ativos %}checked{% endif %}
+              onchange="document.getElementById('form-filtros').submit()"
+            >
+            Somente registros ativos
+          </label>
+        </div>
+        {% if q %}
+        <div class="filtro-grupo">
+          <a href="/buscar?q={{ q }}&apenas_ativos=false"
+             class="btn-aplicar-filtros"
+             style="display:block;text-align:center;text-decoration:none;">
+            Incluir inativos
+          </a>
+        </div>
+        {% endif %}
+        <div class="filtro-grupo" style="margin-top:8px;padding-top:12px;border-top:1px solid var(--borda);">
+          <div class="filtro-label">Fontes</div>
+          <div style="font-size:.75rem;color:var(--texto-ter);line-height:1.6;">
+            ANVISA Medicamentos<br>
+            CMED PMC / PMVG<br>
+            DCB — Denominações
+          </div>
+        </div>
+      </form>
+    </div>
+  </aside>
+
+  <!-- Área de resultados -->
+  <section class="resultados-area">
+
+    {% if q %}
+      {% if resultados %}
+        <div class="resultados-info">
+          <div class="resultados-contagem">
+            <strong>{{ total }}</strong> resultado{{ 's' if total != 1 else '' }}
+            para <strong>„{{ q }}"</strong>
+            {% if not apenas_ativos %}
+              <span class="etiq etiq-atencao" style="margin-left:6px;">incluindo inativos</span>
+            {% endif %}
+          </div>
+          <div style="font-size:.75rem;color:var(--texto-ter);">
+            Página {{ pagina }} de {{ (total // limite + (1 if total % limite else 0)) }}
+          </div>
+        </div>
+
+        <div class="resultados-grid">
+          {% for med in resultados %}
+          <a href="/medicamentos/{{ med.id }}" class="card med-card">
+            <div class="med-card-topo">
+              <div>
+                <div class="med-nome">{{ med.medicamento or med.principio_ativo or '—' }}</div>
+                {% if med.principio_ativo and med.medicamento and med.principio_ativo != med.medicamento %}
+                <div class="med-principio">{{ med.principio_ativo }}</div>
+                {% endif %}
+                {% if med.fabricante %}
+                <div class="med-fabricante">{{ med.fabricante }}</div>
+                {% endif %}
+              </div>
+            </div>
+
+            <div class="med-etiquetas">
+              {% if med.situacao_anvisa %}
+                {% if med.situacao_anvisa | upper == 'ATIVO' %}
+                  <span class="etiq etiq-ativo">✓ Ativo</span>
+                {% else %}
+                  <span class="etiq etiq-inativo">Inativo</span>
+                {% endif %}
+              {% endif %}
+              {% if med.categoria_regulatoria %}
+                <span class="etiq etiq-cinza">{{ med.categoria_regulatoria }}</span>
+              {% endif %}
+              {% if med.tarja %}
+                {% if 'PRETA' in med.tarja | upper %}
+                  <span class="etiq etiq-vermelho">{{ med.tarja }}</span>
+                {% elif 'VERMELHA' in med.tarja | upper %}
+                  <span class="etiq etiq-ambar">{{ med.tarja }}</span>
+                {% else %}
+                  <span class="etiq etiq-cinza">{{ med.tarja }}</span>
+                {% endif %}
+              {% endif %}
+            </div>
+
+            <div class="preco-grid">
+              <div class="preco-item">
+                <span class="preco-label">PF</span>
+                {% if med.pf %}
+                  <span class="preco-valor">R$ {{ "%.2f"|format(med.pf) }}</span>
+                {% else %}
+                  <span class="preco-valor sem-dado">—</span>
+                {% endif %}
+              </div>
+              <div class="preco-item">
+                <span class="preco-label">PMC</span>
+                {% if med.pmc %}
+                  <span class="preco-valor">R$ {{ "%.2f"|format(med.pmc) }}</span>
+                {% else %}
+                  <span class="preco-valor sem-dado">—</span>
+                {% endif %}
+              </div>
+              <div class="preco-item">
+                <span class="preco-label">PMVG</span>
+                {% if med.pmvg %}
+                  <span class="preco-valor">R$ {{ "%.2f"|format(med.pmvg) }}</span>
+                {% else %}
+                  <span class="preco-valor sem-dado">—</span>
+                {% endif %}
+              </div>
+            </div>
+          </a>
+          {% endfor %}
+        </div>
+
+        <!-- Paginação -->
+        {% set total_paginas = (total // limite + (1 if total % limite else 0)) %}
+        {% if total_paginas > 1 %}
+        <nav class="paginacao" aria-label="Paginação">
+          {% if pagina > 1 %}
+          <a href="/buscar?q={{ q }}&apenas_ativos={{ apenas_ativos|lower }}&pagina={{ pagina - 1 }}" class="pag-btn">‹</a>
+          {% else %}
+          <span class="pag-btn desabilitado">‹</span>
+          {% endif %}
+
+          {% for p in range([1, pagina - 2]|max, [total_paginas + 1, pagina + 3]|min) %}
+            {% if p == pagina %}
+            <span class="pag-btn atual">{{ p }}</span>
+            {% else %}
+            <a href="/buscar?q={{ q }}&apenas_ativos={{ apenas_ativos|lower }}&pagina={{ p }}" class="pag-btn">{{ p }}</a>
+            {% endif %}
+          {% endfor %}
+
+          {% if pagina < total_paginas %}
+          <a href="/buscar?q={{ q }}&apenas_ativos={{ apenas_ativos|lower }}&pagina={{ pagina + 1 }}" class="pag-btn">›</a>
+          {% else %}
+          <span class="pag-btn desabilitado">›</span>
+          {% endif %}
+        </nav>
+        {% endif %}
+
+      {% else %}
+        <!-- Sem resultados -->
+        <div class="card" style="padding:40px 32px;">
+          <div class="estado-vazio">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+            </svg>
+            <h3>Nenhum resultado para <em>„{{ q }}"</em></h3>
+            <p>Verifique a grafia ou tente um termo diferente.</p>
+          </div>
+          {% if sugestao %}
+          <div class="sugestao-box">
+            Você quis dizer:
+            <a href="/buscar?q={{ sugestao }}&apenas_ativos={{ apenas_ativos|lower }}">{{ sugestao }}</a>?
+          </div>
+          {% endif %}
+        </div>
+      {% endif %}
+
+    {% else %}
+      <!-- Estado inicial — sem busca -->
+      <div class="card" style="padding:0;">
+        <div class="estado-inicial">
+          <div class="icone">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+            </svg>
+          </div>
+          <h3>Pesquise na base de medicamentos</h3>
+          <p>Digite o nome comercial ou o princípio ativo no campo acima.</p>
+          <div class="exemplos-busca">
+            {% for termo in ['Dipirona', 'Amoxicilina', 'Omeprazol', 'Losartana', 'Metformina', 'Atorvastatina'] %}
+            <a href="/buscar?q={{ termo }}&apenas_ativos=true" class="exemplo-termo">{{ termo }}</a>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+    {% endif %}
+
+  </section>
+</div>
+{% endblock %}
+
+{% block scripts_extras %}
+<script>
+  // Foco automático no campo se há resultado ou estado inicial
+  document.addEventListener('DOMContentLoaded', () => {
+    const campo = document.getElementById('campo-busca');
+    if (campo && !campo.value) campo.focus();
+  });
+</script>
+{% endblock %}

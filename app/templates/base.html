@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block titulo %}MedID Data{% endblock %} — Plataforma de Inteligência em Saúde</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    /* ── Tokens de design ────────────────────────────────────────────────── */
+    :root {
+      --azul:        #0F4C81;
+      --azul-escuro: #082D4D;
+      --azul-medio:  #1A6BB5;
+      --teal:        #14B8A6;
+      --teal-claro:  #2DD4BF;
+      --fundo:       #F8FAFC;
+      --fundo-sec:   #EFF4F9;
+      --texto:       #1E293B;
+      --texto-sec:   #475569;
+      --texto-ter:   #94A3B8;
+      --ambar:       #F59E0B;
+      --vermelho:    #EF4444;
+      --branco:      #FFFFFF;
+      --borda:       #CBD5E1;
+
+      --r-card:    12px;
+      --r-botao:   8px;
+      --r-campo:   8px;
+      --r-etiq:    20px;
+
+      --sidebar-w: 260px;
+      --topbar-h:  64px;
+      --shadow-sm: 0 1px 3px rgba(0,0,0,.08);
+      --shadow-md: 0 4px 12px rgba(0,0,0,.10);
+    }
+
+    /* ── Reset / base ────────────────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { font-size: 16px; -webkit-text-size-adjust: 100%; }
+    body {
+      font-family: 'DM Sans', system-ui, sans-serif;
+      font-weight: 400;
+      color: var(--texto);
+      background: var(--fundo);
+      min-height: 100vh;
+    }
+    a { color: var(--azul-medio); text-decoration: none; }
+    a:hover { color: var(--teal); }
+    button, input, select, textarea { font-family: inherit; }
+
+    /* ── Layout principal ────────────────────────────────────────────────── */
+    .layout {
+      display: flex;
+      min-height: 100vh;
+    }
+
+    /* ── Sidebar ─────────────────────────────────────────────────────────── */
+    .sidebar {
+      width: var(--sidebar-w);
+      background: var(--azul-escuro);
+      display: flex;
+      flex-direction: column;
+      position: fixed;
+      top: 0; left: 0; bottom: 0;
+      z-index: 100;
+      transition: transform .25s ease;
+    }
+
+    .sidebar-logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 24px 20px 20px;
+      border-bottom: 1px solid rgba(255,255,255,.08);
+    }
+    .sidebar-logo svg { flex-shrink: 0; }
+    .logo-nome {
+      display: flex;
+      flex-direction: column;
+      line-height: 1;
+    }
+    .logo-titulo {
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: 1.25rem;
+      color: var(--branco);
+      letter-spacing: -.01em;
+    }
+    .logo-titulo span { color: var(--teal); }
+    .logo-sub {
+      font-size: .6rem;
+      font-weight: 300;
+      color: var(--texto-ter);
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      margin-top: 3px;
+    }
+
+    .sidebar-nav {
+      flex: 1;
+      padding: 16px 0;
+      overflow-y: auto;
+    }
+    .nav-secao {
+      font-size: .65rem;
+      font-weight: 500;
+      color: var(--texto-ter);
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      padding: 16px 20px 6px;
+    }
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 20px;
+      color: rgba(255,255,255,.65);
+      font-size: .875rem;
+      font-weight: 400;
+      cursor: pointer;
+      transition: all .15s;
+      border-left: 3px solid transparent;
+      text-decoration: none;
+    }
+    .nav-item:hover {
+      color: var(--branco);
+      background: rgba(255,255,255,.05);
+    }
+    .nav-item.ativo {
+      color: var(--branco);
+      background: rgba(20,184,166,.1);
+      border-left-color: var(--teal);
+      font-weight: 500;
+    }
+    .nav-item svg { opacity: .8; flex-shrink: 0; }
+    .nav-item.ativo svg { opacity: 1; }
+
+    .sidebar-rodape {
+      padding: 16px 20px;
+      border-top: 1px solid rgba(255,255,255,.08);
+      font-size: .75rem;
+      color: var(--texto-ter);
+    }
+
+    /* ── Área principal ──────────────────────────────────────────────────── */
+    .main {
+      margin-left: var(--sidebar-w);
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+    }
+
+    /* ── Topbar ──────────────────────────────────────────────────────────── */
+    .topbar {
+      height: var(--topbar-h);
+      background: var(--branco);
+      border-bottom: 1px solid var(--borda);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 32px;
+      position: sticky;
+      top: 0;
+      z-index: 50;
+    }
+    .topbar-titulo {
+      font-family: 'Syne', sans-serif;
+      font-weight: 700;
+      font-size: 1.125rem;
+      color: var(--azul-escuro);
+    }
+    .topbar-acoes {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .topbar-usuario {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: .875rem;
+      color: var(--texto-sec);
+    }
+    .avatar {
+      width: 32px; height: 32px;
+      border-radius: 50%;
+      background: var(--azul);
+      color: var(--branco);
+      display: flex; align-items: center; justify-content: center;
+      font-size: .75rem; font-weight: 500;
+    }
+
+    /* ── Conteúdo ────────────────────────────────────────────────────────── */
+    .conteudo {
+      flex: 1;
+      padding: 32px;
+      max-width: 1200px;
+      width: 100%;
+    }
+
+    /* ── Hambúrguer (mobile) ─────────────────────────────────────────────── */
+    .menu-toggle { display: none; }
+    .hamburger {
+      display: none;
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 4px;
+      color: var(--azul-escuro);
+    }
+    .overlay-menu {
+      display: none;
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,.4);
+      z-index: 99;
+    }
+
+    /* ── Componentes globais ─────────────────────────────────────────────── */
+    .card {
+      background: var(--branco);
+      border: 1px solid var(--borda);
+      border-radius: var(--r-card);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .btn {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 10px 20px;
+      border-radius: var(--r-botao);
+      font-size: .875rem; font-weight: 500;
+      cursor: pointer; border: none;
+      transition: all .15s;
+      text-decoration: none;
+    }
+    .btn-primario {
+      background: var(--azul); color: var(--branco);
+    }
+    .btn-primario:hover { background: var(--azul-medio); color: var(--branco); }
+    .btn-secundario {
+      background: var(--fundo-sec); color: var(--texto-sec);
+      border: 1px solid var(--borda);
+    }
+    .btn-secundario:hover { background: var(--borda); }
+
+    .campo {
+      width: 100%;
+      padding: 10px 14px;
+      border: 1.5px solid var(--borda);
+      border-radius: var(--r-campo);
+      font-size: .875rem;
+      color: var(--texto);
+      background: var(--branco);
+      transition: border-color .15s, box-shadow .15s;
+      outline: none;
+    }
+    .campo:focus {
+      border-color: var(--azul);
+      box-shadow: 0 0 0 3px rgba(15,76,129,.1);
+    }
+    .campo::placeholder { color: var(--texto-ter); }
+
+    /* Etiquetas / badges */
+    .etiq {
+      display: inline-flex; align-items: center;
+      padding: 3px 10px;
+      border-radius: var(--r-etiq);
+      font-size: .7rem; font-weight: 500;
+      white-space: nowrap;
+    }
+    .etiq-ativo    { background: #F0FDF4; color: #166534; }
+    .etiq-inativo  { background: #FFF1F2; color: #9F1239; }
+    .etiq-atencao  { background: #FEF9C3; color: #854D0E; }
+    .etiq-teal     { background: #F0FDFA; color: #134E4A; }
+    .etiq-cinza    { background: var(--fundo-sec); color: var(--texto-sec); }
+    .etiq-vermelho { background: #FFF1F2; color: #991B1B; }
+    .etiq-ambar    { background: #FFFBEB; color: #92400E; }
+
+    /* Preços */
+    .preco-grid {
+      display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px;
+    }
+    .preco-item {
+      display: flex; flex-direction: column; align-items: flex-start;
+      background: var(--fundo-sec);
+      border: 1px solid var(--borda);
+      border-radius: 8px;
+      padding: 6px 10px;
+      min-width: 72px;
+    }
+    .preco-label {
+      font-size: .65rem; font-weight: 500;
+      color: var(--texto-ter); text-transform: uppercase; letter-spacing: .05em;
+    }
+    .preco-valor {
+      font-size: .9rem; font-weight: 500; color: var(--texto);
+      margin-top: 1px;
+    }
+    .preco-valor.sem-dado { color: var(--texto-ter); font-size: .75rem; }
+
+    /* Mensagem de estado vazio */
+    .estado-vazio {
+      text-align: center; padding: 60px 20px;
+      color: var(--texto-sec);
+    }
+    .estado-vazio svg { color: var(--texto-ter); margin-bottom: 16px; }
+    .estado-vazio h3 { font-size: 1rem; font-weight: 500; margin-bottom: 6px; }
+    .estado-vazio p { font-size: .875rem; }
+
+    /* ── Responsivo ──────────────────────────────────────────────────────── */
+    @media (max-width: 1024px) {
+      .sidebar { transform: translateX(-100%); }
+      .sidebar.aberta { transform: translateX(0); box-shadow: var(--shadow-md); }
+      .overlay-menu.visivel { display: block; }
+      .main { margin-left: 0; }
+      .hamburger { display: flex; }
+      .conteudo { padding: 20px 16px; }
+      .topbar { padding: 0 16px; }
+    }
+    @media (max-width: 640px) {
+      :root { --topbar-h: 56px; }
+      .topbar-titulo { font-size: 1rem; }
+    }
+  </style>
+  {% block estilos_extras %}{% endblock %}
+</head>
+<body>
+
+<!-- Overlay para fechar o menu no mobile -->
+<div class="overlay-menu" id="overlay" onclick="fecharMenu()"></div>
+
+<div class="layout">
+
+  <!-- ── Sidebar ───────────────────────────────────────────────────────── -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <!-- Ícone escudo com rede neural -->
+      <svg width="34" height="38" viewBox="0 0 34 38" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M17 2L3 8.5V21C3 29.5 17 36 17 36C17 36 31 29.5 31 21V8.5L17 2Z"
+              fill="#14B8A6" fill-opacity=".15" stroke="#14B8A6" stroke-width="1.5" stroke-linejoin="round"/>
+        <circle cx="17" cy="19" r="3.5" fill="#14B8A6"/>
+        <circle cx="9"  cy="13" r="2"   fill="#14B8A6" fill-opacity=".7"/>
+        <circle cx="25" cy="13" r="2"   fill="#14B8A6" fill-opacity=".7"/>
+        <circle cx="9"  cy="25" r="2"   fill="#14B8A6" fill-opacity=".7"/>
+        <circle cx="25" cy="25" r="2"   fill="#14B8A6" fill-opacity=".7"/>
+        <line x1="9"  y1="13" x2="17" y2="19" stroke="#14B8A6" stroke-width="1" stroke-opacity=".5"/>
+        <line x1="25" y1="13" x2="17" y2="19" stroke="#14B8A6" stroke-width="1" stroke-opacity=".5"/>
+        <line x1="9"  y1="25" x2="17" y2="19" stroke="#14B8A6" stroke-width="1" stroke-opacity=".5"/>
+        <line x1="25" y1="25" x2="17" y2="19" stroke="#14B8A6" stroke-width="1" stroke-opacity=".5"/>
+        <line x1="9"  y1="13" x2="9"  y2="25" stroke="#14B8A6" stroke-width="1" stroke-opacity=".4"/>
+        <line x1="25" y1="13" x2="25" y2="25" stroke="#14B8A6" stroke-width="1" stroke-opacity=".4"/>
+      </svg>
+      <div class="logo-nome">
+        <div class="logo-titulo">MedID<span> Data</span></div>
+        <div class="logo-sub">Inteligência em Saúde</div>
+      </div>
+    </div>
+
+    <nav class="sidebar-nav">
+      <div class="nav-secao">Módulos</div>
+      <a href="/buscar" class="nav-item {% if pagina_ativa == 'buscar' %}ativo{% endif %}">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+        </svg>
+        Base de Medicamentos
+      </a>
+      <a href="/analise" class="nav-item {% if pagina_ativa == 'analise' %}ativo{% endif %}">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+        </svg>
+        Análise de Risco
+      </a>
+
+      <div class="nav-secao">Conta</div>
+      <a href="/painel" class="nav-item {% if pagina_ativa == 'painel' %}ativo{% endif %}">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
+          <rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>
+        </svg>
+        Painel de Uso
+      </a>
+      <a href="/chaves" class="nav-item {% if pagina_ativa == 'chaves' %}ativo{% endif %}">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0 3 3L22 7l-3-3m-3.5 3.5L19 4"/>
+        </svg>
+        Chaves de Acesso
+      </a>
+      <a href="/consumo" class="nav-item {% if pagina_ativa == 'consumo' %}ativo{% endif %}">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+        </svg>
+        Histórico de Uso
+      </a>
+    </nav>
+
+    <div class="sidebar-rodape">
+      <div style="font-size:.7rem;color:var(--texto-ter);">v1.0.0 — mediddata.com</div>
+    </div>
+  </aside>
+
+  <!-- ── Área principal ──────────────────────────────────────────────── -->
+  <div class="main">
+    <header class="topbar">
+      <div style="display:flex;align-items:center;gap:12px;">
+        <button class="hamburger" onclick="toggleMenu()" aria-label="Menu">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="3" y1="6" x2="21" y2="6"/>
+            <line x1="3" y1="12" x2="21" y2="12"/>
+            <line x1="3" y1="18" x2="21" y2="18"/>
+          </svg>
+        </button>
+        <h1 class="topbar-titulo">{% block titulo_pagina %}MedID Data{% endblock %}</h1>
+      </div>
+      <div class="topbar-acoes">
+        {% if usuario %}
+        <div class="topbar-usuario">
+          <div class="avatar">{{ usuario.nome[:2].upper() }}</div>
+          <span>{{ usuario.nome.split()[0] }}</span>
+        </div>
+        {% else %}
+        <a href="/login" class="btn btn-primario" style="padding:7px 16px;font-size:.8rem;">Entrar</a>
+        {% endif %}
+      </div>
+    </header>
+
+    <main class="conteudo">
+      {% block conteudo %}{% endblock %}
+    </main>
+  </div>
+</div>
+
+<script>
+  function toggleMenu() {
+    document.getElementById('sidebar').classList.toggle('aberta');
+    document.getElementById('overlay').classList.toggle('visivel');
+  }
+  function fecharMenu() {
+    document.getElementById('sidebar').classList.remove('aberta');
+    document.getElementById('overlay').classList.remove('visivel');
+  }
+  // Fecha menu ao redimensionar para desktop
+  window.addEventListener('resize', () => {
+    if (window.innerWidth > 1024) fecharMenu();
+  });
+</script>
+{% block scripts_extras %}{% endblock %}
+</body>
+</html>
