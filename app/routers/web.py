@@ -63,7 +63,30 @@ async def processar_login(
     email_normalizado = email.strip().lower()
 
     usuario = usuario_repo.buscar_por_email(db, email_normalizado)
-    if not usuario or not auth_service.verificar_senha(senha, usuario.senha_hash):
+
+    print("=" * 80)
+    print("DEBUG LOGIN WEB")
+    print("EMAIL=", email)
+    print("EMAIL_NORMALIZADO=", email_normalizado)
+    print("SENHA_LEN=", len(senha))
+    print("SENHA_REPR=", repr(senha))
+    print("USUARIO=", usuario.email if usuario else None)
+    print("=" * 80)
+
+    senha_valida = False
+
+    if usuario:
+        try:
+            senha_valida = auth_service.verificar_senha(
+                senha,
+                usuario.senha_hash
+            )
+            print("SENHA_VALIDA=", senha_valida)
+        except Exception as e:
+            print("ERRO_VERIFICAR_SENHA=", repr(e))
+            raise
+
+    if not usuario or not senha_valida:
         return templates.TemplateResponse(
             request, "login.html",
             {"erro": "E-mail ou senha incorretos.", "email_preenchido": email, "proxima": proxima},
