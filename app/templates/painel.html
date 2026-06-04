@@ -1,0 +1,155 @@
+{% extends "base.html" %}
+
+{% block titulo %}Painel{% endblock %}
+{% block titulo_pagina %}Painel de Uso{% endblock %}
+
+{% block estilos_extras %}
+<style>
+  .painel-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 16px; margin-bottom: 28px;
+  }
+  .stat-card { padding: 22px 24px; }
+  .stat-label {
+    font-size: .75rem; font-weight: 500; color: var(--texto-ter);
+    text-transform: uppercase; letter-spacing: .07em; margin-bottom: 8px;
+  }
+  .stat-valor {
+    font-family: 'Syne', sans-serif; font-weight: 700;
+    font-size: 2rem; color: var(--texto); line-height: 1;
+  }
+  .stat-total { font-size: .85rem; color: var(--texto-ter); margin-top: 4px; }
+
+  .barra-wrap { margin-top: 10px; }
+  .barra-bg {
+    height: 6px; background: var(--fundo-sec);
+    border-radius: 3px; overflow: hidden;
+  }
+  .barra-fill {
+    height: 100%; border-radius: 3px;
+    transition: width .8s ease;
+    background: var(--teal);
+  }
+  .barra-fill.amarelo { background: var(--ambar); }
+  .barra-fill.vermelho { background: var(--vermelho); }
+
+  .boas-vindas {
+    background: linear-gradient(135deg, var(--azul-escuro) 0%, var(--azul) 100%);
+    border-radius: var(--r-card); padding: 28px 32px; margin-bottom: 24px;
+    color: var(--branco);
+  }
+  .boas-vindas h2 {
+    font-family: 'Syne', sans-serif; font-weight: 700;
+    font-size: 1.25rem; margin-bottom: 6px;
+  }
+  .boas-vindas p {
+    font-size: .875rem; color: rgba(255,255,255,.75); margin-bottom: 18px;
+  }
+  .bv-botoes { display: flex; gap: 10px; flex-wrap: wrap; }
+  .bv-btn {
+    padding: 9px 18px; border-radius: 8px;
+    font-size: .85rem; font-weight: 500; text-decoration: none;
+    transition: all .15s;
+  }
+  .bv-btn-prim { background: var(--teal); color: var(--branco); }
+  .bv-btn-prim:hover { background: var(--teal-claro); color: var(--branco); }
+  .bv-btn-sec { background: rgba(255,255,255,.12); color: var(--branco); }
+  .bv-btn-sec:hover { background: rgba(255,255,255,.2); }
+
+  .plano-badge {
+    display: inline-flex; align-items: center;
+    background: rgba(20,184,166,.15);
+    color: var(--teal-claro); padding: 3px 10px;
+    border-radius: var(--r-etiq); font-size: .72rem; font-weight: 500;
+    margin-bottom: 8px;
+  }
+  .modulo-lista { list-style: none; }
+  .modulo-item {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 10px 0; border-bottom: 1px solid var(--fundo-sec);
+    font-size: .875rem;
+  }
+  .modulo-item:last-child { border-bottom: none; }
+  .modulo-nome { color: var(--texto-sec); }
+  .modulo-count { font-weight: 500; color: var(--texto); }
+</style>
+{% endblock %}
+
+{% block conteudo %}
+
+<!-- Boas-vindas -->
+<div class="boas-vindas">
+  <div class="plano-badge">Plano {{ plano }}</div>
+  <h2>Olá, {{ usuario.nome.split()[0] if usuario else 'usuário' }}!</h2>
+  <p>Bem-vindo ao MedID Data. Use os módulos abaixo para análise de medicamentos e risco clínico.</p>
+  <div class="bv-botoes">
+    <a href="/buscar" class="bv-btn bv-btn-prim">Buscar Medicamentos</a>
+    <a href="/analise" class="bv-btn bv-btn-sec">Análise de Risco</a>
+  </div>
+</div>
+
+<!-- Cards de consumo -->
+<div class="painel-grid">
+
+  <div class="card stat-card">
+    <div class="stat-label">Consultas hoje</div>
+    <div class="stat-valor">{{ consumo_hoje }}</div>
+    <div class="stat-total">de {{ limite_diario }} permitidas</div>
+    <div class="barra-wrap">
+      <div class="barra-bg">
+        <div class="barra-fill {% if pct_dia >= 90 %}vermelho{% elif pct_dia >= 70 %}amarelo{% endif %}"
+             style="width: {{ [pct_dia, 100]|min }}%"></div>
+      </div>
+    </div>
+    <div style="font-size:.72rem;color:var(--texto-ter);margin-top:4px;">{{ pct_dia }}% do limite diário</div>
+  </div>
+
+  <div class="card stat-card">
+    <div class="stat-label">Consultas este mês</div>
+    <div class="stat-valor">{{ consumo_mes }}</div>
+    <div class="stat-total">de {{ limite_mensal }} permitidas</div>
+    <div class="barra-wrap">
+      <div class="barra-bg">
+        <div class="barra-fill {% if pct_mes >= 90 %}vermelho{% elif pct_mes >= 70 %}amarelo{% endif %}"
+             style="width: {{ [pct_mes, 100]|min }}%"></div>
+      </div>
+    </div>
+    <div style="font-size:.72rem;color:var(--texto-ter);margin-top:4px;">{{ pct_mes }}% do limite mensal</div>
+  </div>
+
+  <div class="card stat-card">
+    <div class="stat-label">Plano ativo</div>
+    <div class="stat-valor" style="font-size:1.3rem;padding-top:4px;">{{ plano }}</div>
+    <div class="stat-total">{{ limite_diario }}/dia · {{ limite_mensal }}/mês</div>
+    <div style="margin-top:12px;">
+      <a href="/chaves" style="font-size:.8rem;color:var(--azul-medio);font-weight:500;">
+        Gerenciar chaves de acesso →
+      </a>
+    </div>
+  </div>
+
+</div>
+
+<!-- Distribuição por módulo -->
+{% if por_modulo %}
+<div class="card" style="padding:20px 24px;">
+  <div style="font-size:.8rem;font-weight:500;color:var(--texto-sec);text-transform:uppercase;letter-spacing:.07em;margin-bottom:14px;">
+    Consultas por módulo hoje
+  </div>
+  <ul class="modulo-lista">
+    {% for item in por_modulo %}
+    <li class="modulo-item">
+      <span class="modulo-nome">{{ item.modulo | capitalize }}</span>
+      <span class="modulo-count">{{ item.total }} consulta{{ 's' if item.total != 1 }}</span>
+    </li>
+    {% endfor %}
+  </ul>
+</div>
+{% else %}
+<div class="card" style="padding:32px;text-align:center;color:var(--texto-ter);font-size:.875rem;">
+  Nenhuma consulta realizada hoje. <a href="/buscar" style="color:var(--azul-medio);">Comece agora →</a>
+</div>
+{% endif %}
+
+{% endblock %}

@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block titulo %}MedID Data{% endblock %} — Plataforma de Inteligência em Saúde</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --azul:        #0F4C81;
+      --azul-escuro: #082D4D;
+      --azul-medio:  #1A6BB5;
+      --teal:        #14B8A6;
+      --teal-claro:  #2DD4BF;
+      --fundo:       #F8FAFC;
+      --fundo-sec:   #EFF4F9;
+      --texto:       #1E293B;
+      --texto-sec:   #475569;
+      --texto-ter:   #94A3B8;
+      --vermelho:    #EF4444;
+      --branco:      #FFFFFF;
+      --borda:       #CBD5E1;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'DM Sans', system-ui, sans-serif;
+      background: var(--azul-escuro);
+      min-height: 100vh;
+      display: flex; align-items: center; justify-content: center;
+      padding: 20px;
+    }
+    .auth-container {
+      width: 100%; max-width: 420px;
+    }
+    .auth-logo {
+      display: flex; align-items: center; gap: 12px;
+      justify-content: center; margin-bottom: 32px;
+    }
+    .logo-titulo {
+      font-family: 'Syne', sans-serif; font-weight: 800;
+      font-size: 1.5rem; color: var(--branco);
+    }
+    .logo-titulo span { color: var(--teal); }
+    .logo-sub {
+      font-size: .65rem; font-weight: 300; color: var(--texto-ter);
+      letter-spacing: .1em; text-transform: uppercase; margin-top: 2px;
+    }
+    .auth-card {
+      background: var(--branco); border-radius: 16px;
+      padding: 36px 32px;
+      box-shadow: 0 20px 60px rgba(0,0,0,.25);
+    }
+    .auth-titulo {
+      font-family: 'Syne', sans-serif; font-weight: 700;
+      font-size: 1.25rem; color: var(--azul-escuro);
+      margin-bottom: 6px;
+    }
+    .auth-subtitulo {
+      font-size: .875rem; color: var(--texto-sec); margin-bottom: 24px;
+    }
+    .form-grupo { margin-bottom: 16px; }
+    .form-label {
+      display: block; font-size: .8rem; font-weight: 500;
+      color: var(--texto-sec); margin-bottom: 5px;
+    }
+    .campo {
+      width: 100%; padding: 11px 14px;
+      border: 1.5px solid var(--borda); border-radius: 8px;
+      font-size: .875rem; color: var(--texto); background: var(--branco);
+      transition: border-color .15s, box-shadow .15s; outline: none;
+      font-family: inherit;
+    }
+    .campo:focus {
+      border-color: var(--azul);
+      box-shadow: 0 0 0 3px rgba(15,76,129,.1);
+    }
+    .campo::placeholder { color: var(--texto-ter); }
+    .btn-auth {
+      width: 100%; padding: 12px;
+      background: var(--azul); color: var(--branco);
+      border: none; border-radius: 8px;
+      font-size: .9rem; font-weight: 500; cursor: pointer;
+      font-family: inherit; transition: background .15s; margin-top: 4px;
+    }
+    .btn-auth:hover { background: var(--azul-medio); }
+    .btn-auth:disabled { opacity: .6; cursor: not-allowed; }
+    .auth-link {
+      text-align: center; margin-top: 20px;
+      font-size: .85rem; color: var(--texto-sec);
+    }
+    .auth-link a { color: var(--azul-medio); font-weight: 500; text-decoration: none; }
+    .auth-link a:hover { color: var(--teal); }
+    .erro-box {
+      background: #FFF1F2; border: 1px solid #FECDD3;
+      border-radius: 8px; padding: 10px 14px;
+      font-size: .82rem; color: #9F1239; margin-bottom: 16px;
+    }
+    .sucesso-box {
+      background: #F0FDF4; border: 1px solid #BBF7D0;
+      border-radius: 8px; padding: 10px 14px;
+      font-size: .82rem; color: #166534; margin-bottom: 16px;
+    }
+    .divisor {
+      display: flex; align-items: center; gap: 12px;
+      color: var(--texto-ter); font-size: .75rem; margin: 20px 0;
+    }
+    .divisor::before, .divisor::after {
+      content: ''; flex: 1; height: 1px; background: var(--borda);
+    }
+    @media (max-width: 480px) {
+      .auth-card { padding: 28px 20px; border-radius: 12px; }
+    }
+  </style>
+  {% block estilos_extras %}{% endblock %}
+</head>
+<body>
+  <div class="auth-container">
+    <div class="auth-logo">
+      <svg width="32" height="36" viewBox="0 0 34 38" fill="none">
+        <path d="M17 2L3 8.5V21C3 29.5 17 36 17 36C17 36 31 29.5 31 21V8.5L17 2Z"
+              fill="#14B8A6" fill-opacity=".2" stroke="#14B8A6" stroke-width="1.5"/>
+        <circle cx="17" cy="19" r="3.5" fill="#14B8A6"/>
+        <circle cx="9"  cy="13" r="2" fill="#14B8A6" fill-opacity=".7"/>
+        <circle cx="25" cy="13" r="2" fill="#14B8A6" fill-opacity=".7"/>
+        <circle cx="9"  cy="25" r="2" fill="#14B8A6" fill-opacity=".7"/>
+        <circle cx="25" cy="25" r="2" fill="#14B8A6" fill-opacity=".7"/>
+        <line x1="9" y1="13" x2="17" y2="19" stroke="#14B8A6" stroke-width="1" stroke-opacity=".5"/>
+        <line x1="25" y1="13" x2="17" y2="19" stroke="#14B8A6" stroke-width="1" stroke-opacity=".5"/>
+        <line x1="9" y1="25" x2="17" y2="19" stroke="#14B8A6" stroke-width="1" stroke-opacity=".5"/>
+        <line x1="25" y1="25" x2="17" y2="19" stroke="#14B8A6" stroke-width="1" stroke-opacity=".5"/>
+      </svg>
+      <div>
+        <div class="logo-titulo">MedID<span> Data</span></div>
+        <div class="logo-sub">Inteligência em Saúde</div>
+      </div>
+    </div>
+    <div class="auth-card">
+      {% block conteudo %}{% endblock %}
+    </div>
+  </div>
+  {% block scripts_extras %}{% endblock %}
+</body>
+</html>

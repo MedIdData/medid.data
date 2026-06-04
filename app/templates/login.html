@@ -1,0 +1,48 @@
+{% extends "base_auth.html" %}
+
+{% block titulo %}Entrar{% endblock %}
+
+{% block conteudo %}
+<div class="auth-titulo">Bem-vindo de volta</div>
+<div class="auth-subtitulo">Entre com seu e-mail e senha para acessar a plataforma.</div>
+
+{% if erro %}
+<div class="erro-box">{{ erro }}</div>
+{% endif %}
+
+{% if sucesso %}
+<div class="sucesso-box">{{ sucesso }}</div>
+{% endif %}
+
+<form method="post" action="/login" id="form-login">
+  <div class="form-grupo">
+    <label class="form-label" for="email">E-mail</label>
+    <input class="campo" type="email" id="email" name="email"
+           value="{{ email_preenchido or '' }}"
+           placeholder="seu@email.com" required autocomplete="email">
+  </div>
+  <div class="form-grupo">
+    <label class="form-label" for="senha">Senha</label>
+    <input class="campo" type="password" id="senha" name="senha"
+           placeholder="••••••••" required autocomplete="current-password">
+  </div>
+  <button type="submit" class="btn-auth" id="btn-entrar">Entrar</button>
+</form>
+
+<div class="auth-link">
+  Não tem conta?
+  <a href="/cadastro">Criar conta grátis</a>
+</div>
+{% endblock %}
+
+{% block scripts_extras %}
+<script>
+  document.getElementById('form-login').addEventListener('submit', () => {
+    const btn = document.getElementById('btn-entrar');
+    btn.disabled = true;
+    btn.textContent = 'Entrando...';
+  });
+  // Foco automático
+  document.getElementById('email').focus();
+</script>
+{% endblock %}

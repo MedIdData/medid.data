@@ -1,20 +1,189 @@
 """
 Rotas da interface web (HTML/Jinja2).
-Auth será integrado no DIA 5 — por ora as páginas são acessíveis sem login.
+Auth protege /buscar, /analise, /painel, /chaves, /consumo.
 """
-from fastapi import APIRouter, Depends, Query, Request
-from fastapi.responses import HTMLResponse
+from fastapi import APIRouter, Depends, Form, Query, Request, status
+from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
+from typing import Optional
 
 from app.database import get_db
-from app.services import busca_medicamento
-
+from app.models.usuario import Usuario
 from app.schemas.analise import AnaliseEntrada
-from app.services import analise_risco
+from app.services import busca_medicamento, analise_risco
+from app.middleware.auth_middleware import (
+    get_usuario_atual,
+    requer_usuario_web,
+    RedirectParaLogin,
+)
+from app.repositories import usuario_repo
+from app.services import auth_service
+from app.config import settings
 
 router = APIRouter(include_in_schema=False)
 templates = Jinja2Templates(directory="app/templates")
+
+
+def _redir_login(proxima: str = "") -> RedirectResponse:
+    url = "/login"
+    if proxima:
+        url += f"?proxima={proxima}"
+    return RedirectResponse(url=url, status_code=status.HTTP_302_FOUND)
+
+
+# ── Páginas públicas ───────────────────────────────────────────────────────
+
+@router.get("/", response_class=HTMLResponse)
+async def raiz(request: Request):
+    return RedirectResponse("/buscar", status_code=302)
+
+
+@router.get("/login", response_class=HTMLResponse)
+async def pagina_login(
+    request: Request,
+    proxima: str = Query(""),
+    erro: str = Query(""),
+):
+    return templates.TemplateResponse(
+        request, "login.html",
+        {"erro": erro or None, "proxima": proxima, "email_preenchido": ""},
+    )
+
+
+@router.post("/login")
+async def processar_login(
+    request: Request,
+    response_out: HTMLResponse = None,
+    email: str = Form(...),
+    senha: str = Form(...),
+    proxima: str = Form(""),
+    db: Session = Depends(get_db),
+):
+    from fastapi.responses import Response as FastAPIResponse
+    usuario = usuario_repo.buscar_por_email(db, email)
+    if not usuario or not auth_service.verificar_senha(senha, usuario.senha_hash):
+        return templates.TemplateResponse(
+            request, "login.html",
+            {"erro": "E-mail ou senha incorretos.", "email_preenchido": email, "proxima": proxima},
+            status_code=401,
+        )
+    if not usuario.ativo:
+        return templates.TemplateResponse(
+            request, "login.html",
+            {"erro": "Conta desativada. Entre em contato com o suporte.", "email_preenchido": email, "proxima": proxima},
+            status_code=403,
+        )
+
+    access = auth_service.criar_access_token(usuario.id, usuario.email, usuario.perfil)
+    refresh, expira = auth_service.criar_refresh_token(usuario.id)
+    usuario_repo.salvar_refresh_token(
+        db, usuario.id, auth_service.hash_refresh_token(refresh), expira
+    )
+
+    destino = proxima if proxima else "/painel"
+    resp = RedirectResponse(url=destino, status_code=status.HTTP_302_FOUND)
+    secure = settings.is_production
+    resp.set_cookie("access_token", access, httponly=True, samesite="lax", secure=secure,
+                    max_age=settings.access_token_expire_minutes * 60)
+    resp.set_cookie("refresh_token", refresh, httponly=True, samesite="lax", secure=secure,
+                    max_age=settings.refresh_token_expire_days * 86400, path="/auth/refresh")
+    return resp
+
+
+@router.get("/cadastro", response_class=HTMLResponse)
+async def pagina_cadastro(request: Request, erro: str = Query("")):
+    return templates.TemplateResponse(
+        request, "cadastro.html",
+        {"erro": erro or None, "nome_preenchido": "", "email_preenchido": ""},
+    )
+
+
+@router.post("/cadastro")
+async def processar_cadastro(
+    request: Request,
+    nome: str = Form(...),
+    email: str = Form(...),
+    senha: str = Form(...),
+    senha_confirmar: str = Form(...),
+    db: Session = Depends(get_db),
+):
+    if senha != senha_confirmar:
+        return templates.TemplateResponse(
+            request, "cadastro.html",
+            {"erro": "As senhas não coincidem.", "nome_preenchido": nome, "email_preenchido": email},
+            status_code=400,
+        )
+    if len(senha) < 6:
+        return templates.TemplateResponse(
+            request, "cadastro.html",
+            {"erro": "A senha deve ter pelo menos 6 caracteres.", "nome_preenchido": nome, "email_preenchido": email},
+            status_code=400,
+        )
+    if usuario_repo.buscar_por_email(db, email):
+        return templates.TemplateResponse(
+            request, "cadastro.html",
+            {"erro": "E-mail já cadastrado. Faça login.", "nome_preenchido": nome, "email_preenchido": email},
+            status_code=400,
+        )
+
+    usuario = usuario_repo.criar_usuario(db, nome, email, auth_service.hash_senha(senha))
+
+    access = auth_service.criar_access_token(usuario.id, usuario.email, usuario.perfil)
+    refresh, expira = auth_service.criar_refresh_token(usuario.id)
+    usuario_repo.salvar_refresh_token(
+        db, usuario.id, auth_service.hash_refresh_token(refresh), expira
+    )
+
+    resp = RedirectResponse(url="/painel", status_code=status.HTTP_302_FOUND)
+    secure = settings.is_production
+    resp.set_cookie("access_token", access, httponly=True, samesite="lax", secure=secure,
+                    max_age=settings.access_token_expire_minutes * 60)
+    resp.set_cookie("refresh_token", refresh, httponly=True, samesite="lax", secure=secure,
+                    max_age=settings.refresh_token_expire_days * 86400, path="/auth/refresh")
+    return resp
+
+
+@router.post("/sair")
+async def sair():
+    resp = RedirectResponse(url="/login", status_code=status.HTTP_302_FOUND)
+    resp.delete_cookie("access_token")
+    resp.delete_cookie("refresh_token", path="/auth/refresh")
+    return resp
+
+
+# ── Páginas autenticadas ───────────────────────────────────────────────────
+
+@router.get("/painel", response_class=HTMLResponse)
+async def pagina_painel(
+    request: Request,
+    usuario: Usuario = Depends(requer_usuario_web),
+    db: Session = Depends(get_db),
+):
+    from datetime import date
+    hoje = date.today()
+    plano = usuario_repo.obter_plano_usuario(db, usuario)
+    consumo_hoje = usuario_repo.obter_consumo_total_dia(db, usuario.id, hoje)
+    consumo_mes = usuario_repo.obter_consumo_mensal(db, usuario.id, hoje.year, hoje.month)
+    por_modulo = usuario_repo.obter_consumo_por_modulo(db, usuario.id, hoje)
+    limite_diario = plano.limite_diario if plano else 100
+    limite_mensal = plano.limite_mensal if plano else 2000
+
+    return templates.TemplateResponse(
+        request, "painel.html",
+        {
+            "pagina_ativa": "painel",
+            "usuario": usuario,
+            "plano": plano.nome if plano else "Gratuito",
+            "consumo_hoje": consumo_hoje,
+            "consumo_mes": consumo_mes,
+            "limite_diario": limite_diario,
+            "limite_mensal": limite_mensal,
+            "pct_dia": round(consumo_hoje / limite_diario * 100, 1) if limite_diario else 0,
+            "pct_mes": round(consumo_mes / limite_mensal * 100, 1) if limite_mensal else 0,
+            "por_modulo": por_modulo,
+        },
+    )
 
 
 @router.get("/analise", response_class=HTMLResponse)
@@ -26,11 +195,14 @@ async def pagina_analise(
     cid: str = Query(""),
     procedimento: str = Query(""),
     quantidade: int = Query(1, ge=1),
+    usuario: Optional[Usuario] = Depends(get_usuario_atual),
     db: Session = Depends(get_db),
 ):
+    if not usuario:
+        return _redir_login("/analise")
+
     resultado = None
     entrada = None
-
     if medicamento.strip() and preco_informado > 0:
         entrada = AnaliseEntrada(
             medicamento=medicamento,
@@ -42,12 +214,15 @@ async def pagina_analise(
         )
         resultado = analise_risco.analisar(db, entrada)
 
+        # Registra consumo
+        from datetime import date
+        usuario_repo.incrementar_consumo(db, usuario.id, date.today(), "ANALISE")
+
     return templates.TemplateResponse(
-        request,
-        "analise.html",
+        request, "analise.html",
         {
             "pagina_ativa": "analise",
-            "usuario": None,
+            "usuario": usuario,
             "entrada": entrada,
             "resultado": resultado,
         },
@@ -61,8 +236,12 @@ async def pagina_buscar(
     apenas_ativos: bool = Query(True),
     pagina: int = Query(1, ge=1),
     limite: int = Query(20, ge=1, le=100),
+    usuario: Optional[Usuario] = Depends(get_usuario_atual),
     db: Session = Depends(get_db),
 ):
+    if not usuario:
+        return _redir_login("/buscar")
+
     resultados = []
     total = 0
     sugestao = None
@@ -73,12 +252,15 @@ async def pagina_buscar(
         total = resposta.total
         sugestao = resposta.sugestao
 
+        # Registra consumo
+        from datetime import date
+        usuario_repo.incrementar_consumo(db, usuario.id, date.today(), "MEDICAMENTOS")
+
     return templates.TemplateResponse(
-        request,
-        "buscar.html",
+        request, "buscar.html",
         {
             "pagina_ativa": "buscar",
-            "usuario": None,      # DIA 5: substituir pelo usuário autenticado
+            "usuario": usuario,
             "q": q.strip(),
             "apenas_ativos": apenas_ativos,
             "pagina": pagina,
@@ -86,24 +268,5 @@ async def pagina_buscar(
             "resultados": resultados,
             "total": total,
             "sugestao": sugestao,
-        },
-    )
-
-
-@router.get("/", response_class=HTMLResponse)
-async def pagina_raiz(request: Request):
-    return templates.TemplateResponse(
-        request,
-        "buscar.html",
-        {
-            "pagina_ativa": "buscar",
-            "usuario": None,
-            "q": "",
-            "apenas_ativos": True,
-            "pagina": 1,
-            "limite": 20,
-            "resultados": [],
-            "total": 0,
-            "sugestao": None,
         },
     )

@@ -1,0 +1,75 @@
+{% extends "base_auth.html" %}
+
+{% block titulo %}Criar Conta{% endblock %}
+
+{% block conteudo %}
+<div class="auth-titulo">Criar conta</div>
+<div class="auth-subtitulo">Preencha os dados abaixo para começar a usar o MedID Data.</div>
+
+{% if erro %}
+<div class="erro-box">{{ erro }}</div>
+{% endif %}
+
+<form method="post" action="/cadastro" id="form-cadastro">
+  <div class="form-grupo">
+    <label class="form-label" for="nome">Nome completo</label>
+    <input class="campo" type="text" id="nome" name="nome"
+           value="{{ nome_preenchido or '' }}"
+           placeholder="Seu nome" required autocomplete="name">
+  </div>
+  <div class="form-grupo">
+    <label class="form-label" for="email">E-mail</label>
+    <input class="campo" type="email" id="email" name="email"
+           value="{{ email_preenchido or '' }}"
+           placeholder="seu@email.com" required autocomplete="email">
+  </div>
+  <div class="form-grupo">
+    <label class="form-label" for="senha">Senha</label>
+    <input class="campo" type="password" id="senha" name="senha"
+           placeholder="Mínimo 6 caracteres" required minlength="6"
+           autocomplete="new-password">
+  </div>
+  <div class="form-grupo">
+    <label class="form-label" for="senha_confirmar">Confirmar senha</label>
+    <input class="campo" type="password" id="senha_confirmar" name="senha_confirmar"
+           placeholder="Repita a senha" required
+           autocomplete="new-password">
+    <div id="erro-senha" style="font-size:.75rem;color:var(--vermelho);margin-top:4px;display:none;">
+      As senhas não coincidem.
+    </div>
+  </div>
+  <button type="submit" class="btn-auth" id="btn-criar">Criar conta</button>
+</form>
+
+<div class="auth-link">
+  Já tem conta?
+  <a href="/login">Entrar</a>
+</div>
+{% endblock %}
+
+{% block scripts_extras %}
+<script>
+  const form = document.getElementById('form-cadastro');
+  const senha = document.getElementById('senha');
+  const confirmar = document.getElementById('senha_confirmar');
+  const erroDivSenha = document.getElementById('erro-senha');
+
+  confirmar.addEventListener('input', () => {
+    erroDivSenha.style.display = senha.value !== confirmar.value ? 'block' : 'none';
+  });
+
+  form.addEventListener('submit', (e) => {
+    if (senha.value !== confirmar.value) {
+      e.preventDefault();
+      erroDivSenha.style.display = 'block';
+      confirmar.focus();
+      return;
+    }
+    const btn = document.getElementById('btn-criar');
+    btn.disabled = true;
+    btn.textContent = 'Criando conta...';
+  });
+
+  document.getElementById('nome').focus();
+</script>
+{% endblock %}

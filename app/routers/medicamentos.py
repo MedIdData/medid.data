@@ -2,8 +2,10 @@ from fastapi import APIRouter, Depends, Query, HTTPException, status
 from sqlalchemy.orm import Session
 
 from app.database import get_db
+from app.models.usuario import Usuario
 from app.schemas.medicamento import MedicamentoBuscaResposta, MedicamentoDetalhe
 from app.services import busca_medicamento
+from app.middleware.auth_middleware import requer_acesso
 
 router = APIRouter()
 
@@ -14,14 +16,16 @@ router = APIRouter()
     summary="Busca inteligente de medicamentos",
     description=(
         "Busca medicamentos por nome comercial ou princípio ativo usando similaridade textual "
-        "com correção ortográfica. Retorna dados ANVISA e preços CMED (PF, PMC, PMVG)."
+        "com correção ortográfica. Retorna dados ANVISA e preços CMED (PF, PMC, PMVG).\n\n"
+        "**Requer autenticação** — JWT Bearer ou chave de acesso."
     ),
 )
 def buscar_medicamentos(
-    q: str = Query(..., min_length=2, description="Termo de busca (nome ou princípio ativo)"),
-    apenas_ativos: bool = Query(True, description="Retornar somente medicamentos com registro ativo"),
-    pagina: int = Query(1, ge=1, description="Número da página"),
-    limite: int = Query(20, ge=1, le=100, description="Resultados por página (máx. 100)"),
+    q: str = Query(..., min_length=2, description="Termo de busca"),
+    apenas_ativos: bool = Query(True, description="Somente registros ativos ANVISA"),
+    pagina: int = Query(1, ge=1),
+    limite: int = Query(20, ge=1, le=100),
+    usuario: Usuario = Depends(requer_acesso("MEDICAMENTOS")),
     db: Session = Depends(get_db),
 ):
     return busca_medicamento.buscar(db, q, apenas_ativos, pagina, limite)
@@ -31,10 +35,10 @@ def buscar_medicamentos(
     "/{medicamento_id}",
     response_model=MedicamentoDetalhe,
     summary="Detalhes de um medicamento",
-    description="Retorna todos os dados ANVISA e preços CMED para um medicamento específico.",
 )
 def obter_medicamento(
     medicamento_id: int,
+    usuario: Usuario = Depends(requer_acesso("MEDICAMENTOS")),
     db: Session = Depends(get_db),
 ):
     resultado = busca_medicamento.obter_por_id(db, medicamento_id)
