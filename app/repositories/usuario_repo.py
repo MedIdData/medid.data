@@ -179,10 +179,69 @@ def registrar_auditoria(
     db.commit()
 
 
-# ── Chave de Acesso (lookup por hash) ─────────────────────────────────────
+# ── Chave de Acesso ───────────────────────────────────────────────────────
 
 def buscar_chave_ativa(db: Session, chave_hash: str) -> Optional[ChaveAcesso]:
     return db.query(ChaveAcesso).filter(
         ChaveAcesso.chave_hash == chave_hash,
         ChaveAcesso.ativa == True,
     ).first()
+
+
+def listar_chaves_usuario(db: Session, usuario_id: int) -> list[ChaveAcesso]:
+    return db.query(ChaveAcesso).filter(
+        ChaveAcesso.usuario_id == usuario_id,
+        ChaveAcesso.ativa == True,
+    ).order_by(ChaveAcesso.criado_em.desc()).all()
+
+
+def criar_chave_acesso(
+    db: Session,
+    usuario_id: int,
+    nome: str,
+    prefixo: str,
+    chave_hash: str,
+) -> ChaveAcesso:
+    chave = ChaveAcesso(
+        usuario_id=usuario_id,
+        nome=nome,
+        prefixo=prefixo,
+        chave_hash=chave_hash,
+        ativa=True,
+    )
+    db.add(chave)
+    db.commit()
+    db.refresh(chave)
+    return chave
+
+
+def revogar_chave_acesso(db: Session, chave_id: int, usuario_id: int) -> bool:
+    chave = db.query(ChaveAcesso).filter(
+        ChaveAcesso.id == chave_id,
+        ChaveAcesso.usuario_id == usuario_id,
+    ).first()
+    if not chave:
+        return False
+    chave.ativa = False
+    chave.revogada_em = datetime.now(timezone.utc)
+    db.commit()
+    return True
+
+
+def buscar_chave_por_id(db: Session, chave_id: int, usuario_id: int) -> Optional[ChaveAcesso]:
+    return db.query(ChaveAcesso).filter(
+        ChaveAcesso.id == chave_id,
+        ChaveAcesso.usuario_id == usuario_id,
+    ).first()
+
+
+# ── Atualização de Perfil ──────────────────────────────────────────────────
+
+def atualizar_nome_usuario(db: Session, usuario_id: int, nome: str) -> None:
+    db.query(Usuario).filter(Usuario.id == usuario_id).update({"nome": nome})
+    db.commit()
+
+
+def atualizar_senha_usuario(db: Session, usuario_id: int, senha_hash: str) -> None:
+    db.query(Usuario).filter(Usuario.id == usuario_id).update({"senha_hash": senha_hash})
+    db.commit()

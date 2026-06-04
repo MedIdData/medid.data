@@ -1,0 +1,388 @@
+{% extends "base.html" %}
+
+{% block titulo %}Chaves de Acesso{% endblock %}
+
+{% block conteudo %}
+<div class="pagina-header">
+  <div>
+    <h1 class="pagina-titulo">Chaves de Acesso</h1>
+    <p class="pagina-descricao">Gerencie chaves API para integrar o MedID Data em suas aplicações</p>
+  </div>
+  <button class="btn btn-primario" onclick="abrirModalNovaChave()">
+    <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+      <path d="M12 5v14M5 12h14"/>
+    </svg>
+    Nova Chave
+  </button>
+</div>
+
+{% if chave_criada %}
+<div class="alerta alerta-sucesso">
+  <div class="alerta-icone">
+    <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+      <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+    </svg>
+  </div>
+  <div class="alerta-conteudo">
+    <div class="alerta-titulo">Chave criada com sucesso!</div>
+    <div class="alerta-texto">
+      Copie e guarde esta chave em local seguro. Ela não será exibida novamente.
+    </div>
+    <div class="chave-completa-box">
+      <code id="chaveCompleta">{{ chave_criada }}</code>
+      <button class="btn-copiar" onclick="copiarChave()">
+        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+        </svg>
+        Copiar
+      </button>
+    </div>
+  </div>
+</div>
+{% endif %}
+
+<div class="card">
+  <div class="card-header">
+    <h2 class="card-titulo">Chaves Ativas</h2>
+    <span class="badge badge-info">{{ chaves|length }} chave{% if chaves|length != 1 %}s{% endif %}</span>
+  </div>
+
+  {% if chaves %}
+  <div class="tabela-wrapper">
+    <table class="tabela">
+      <thead>
+        <tr>
+          <th>Nome</th>
+          <th>Prefixo</th>
+          <th>Criada em</th>
+          <th>Último uso</th>
+          <th style="text-align: right;">Ações</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for chave in chaves %}
+        <tr>
+          <td>
+            <div class="chave-nome">{{ chave.nome }}</div>
+          </td>
+          <td>
+            <code class="chave-prefixo">{{ chave.prefixo }}</code>
+          </td>
+          <td>{{ chave.criado_em.strftime('%d/%m/%Y às %H:%M') }}</td>
+          <td>
+            {% if chave.ultimo_uso_em %}
+              {{ chave.ultimo_uso_em.strftime('%d/%m/%Y às %H:%M') }}
+            {% else %}
+              <span class="texto-muted">Nunca usada</span>
+            {% endif %}
+          </td>
+          <td style="text-align: right;">
+            <button class="btn-icone btn-perigo" onclick="confirmarRevogar({{ chave.id }}, '{{ chave.nome }}')" title="Revogar chave">
+              <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+              </svg>
+            </button>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="vazio">
+    <svg width="64" height="64" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+      <path d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"/>
+    </svg>
+    <h3>Nenhuma chave de acesso</h3>
+    <p>Crie sua primeira chave API para começar a integrar o MedID Data</p>
+  </div>
+  {% endif %}
+</div>
+
+<div class="card">
+  <div class="card-header">
+    <h2 class="card-titulo">Como usar</h2>
+  </div>
+  <div class="card-body">
+    <div class="docs-secao">
+      <h3 class="docs-titulo">Autenticação via Header</h3>
+      <pre class="codigo-exemplo">Authorization: Bearer med_abc123...</pre>
+      <p class="docs-texto">Ou usando o header alternativo:</p>
+      <pre class="codigo-exemplo">X-API-Key: med_abc123...</pre>
+    </div>
+
+    <div class="docs-secao">
+      <h3 class="docs-titulo">Exemplo de requisição</h3>
+      <pre class="codigo-exemplo">curl https://mediddata.com/medicamentos/buscar?q=dipirona \
+  -H "Authorization: Bearer med_abc123..."</pre>
+    </div>
+
+    <div class="docs-secao">
+      <h3 class="docs-titulo">Segurança</h3>
+      <ul class="docs-lista">
+        <li>Nunca compartilhe suas chaves de acesso</li>
+        <li>Revogue imediatamente chaves comprometidas</li>
+        <li>Use chaves diferentes para ambientes dev/prod</li>
+        <li>As chaves respeitam os limites do seu plano</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Nova Chave -->
+<div id="modalNovaChave" class="modal">
+  <div class="modal-overlay" onclick="fecharModalNovaChave()"></div>
+  <div class="modal-conteudo">
+    <div class="modal-header">
+      <h2 class="modal-titulo">Criar Nova Chave</h2>
+      <button class="btn-fechar" onclick="fecharModalNovaChave()">×</button>
+    </div>
+    <form method="POST" action="/chaves/criar">
+      <div class="modal-body">
+        <div class="form-group">
+          <label for="nome">Nome descritivo</label>
+          <input type="text" id="nome" name="nome" required maxlength="100"
+                 placeholder="Ex: Servidor de produção, App mobile, etc."
+                 class="form-input">
+          <small class="form-ajuda">Ajuda a identificar onde a chave está sendo usada</small>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secundario" onclick="fecharModalNovaChave()">Cancelar</button>
+        <button type="submit" class="btn btn-primario">Criar Chave</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Modal Confirmar Revogação -->
+<div id="modalRevogar" class="modal">
+  <div class="modal-overlay" onclick="fecharModalRevogar()"></div>
+  <div class="modal-conteudo modal-sm">
+    <div class="modal-header">
+      <h2 class="modal-titulo">Confirmar Revogação</h2>
+      <button class="btn-fechar" onclick="fecharModalRevogar()">×</button>
+    </div>
+    <form method="POST" id="formRevogar">
+      <div class="modal-body">
+        <p>Tem certeza que deseja revogar a chave <strong id="nomeChaveRevogar"></strong>?</p>
+        <p class="texto-alerta">Esta ação não pode ser desfeita. Aplicações usando esta chave deixarão de funcionar.</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secundario" onclick="fecharModalRevogar()">Cancelar</button>
+        <button type="submit" class="btn btn-perigo">Revogar Chave</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<style>
+.chave-completa-box {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 12px;
+  padding: 12px 16px;
+  background: rgba(20, 184, 166, 0.05);
+  border: 1px solid var(--teal);
+  border-radius: var(--r-campo);
+}
+.chave-completa-box code {
+  flex: 1;
+  font-family: 'Monaco', 'Menlo', monospace;
+  font-size: 14px;
+  color: var(--azul-escuro);
+  word-break: break-all;
+}
+.btn-copiar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  background: var(--teal);
+  color: white;
+  border: none;
+  border-radius: var(--r-botao);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all .2s;
+}
+.btn-copiar:hover {
+  background: var(--teal-claro);
+  transform: translateY(-1px);
+}
+
+.chave-nome {
+  font-weight: 500;
+  color: var(--texto);
+}
+.chave-prefixo {
+  font-family: 'Monaco', 'Menlo', monospace;
+  font-size: 13px;
+  padding: 4px 8px;
+  background: var(--fundo-sec);
+  border-radius: 4px;
+  color: var(--azul);
+}
+
+.docs-secao {
+  margin-bottom: 24px;
+}
+.docs-secao:last-child {
+  margin-bottom: 0;
+}
+.docs-titulo {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--texto);
+  margin-bottom: 8px;
+}
+.docs-texto {
+  font-size: 14px;
+  color: var(--texto-sec);
+  margin: 8px 0;
+}
+.codigo-exemplo {
+  padding: 12px 16px;
+  background: var(--azul-escuro);
+  color: var(--teal-claro);
+  border-radius: var(--r-campo);
+  font-family: 'Monaco', 'Menlo', monospace;
+  font-size: 13px;
+  overflow-x: auto;
+  margin: 8px 0;
+}
+.docs-lista {
+  list-style: none;
+  padding: 0;
+}
+.docs-lista li {
+  padding: 8px 0;
+  padding-left: 24px;
+  position: relative;
+  font-size: 14px;
+  color: var(--texto-sec);
+}
+.docs-lista li::before {
+  content: '•';
+  position: absolute;
+  left: 8px;
+  color: var(--teal);
+  font-weight: 700;
+}
+
+.texto-alerta {
+  font-size: 14px;
+  color: var(--vermelho);
+  margin-top: 12px;
+}
+
+.modal {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1000;
+  align-items: center;
+  justify-content: center;
+}
+.modal.ativo {
+  display: flex;
+}
+.modal-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+}
+.modal-conteudo {
+  position: relative;
+  background: white;
+  border-radius: var(--r-card);
+  width: 90%;
+  max-width: 600px;
+  max-height: 90vh;
+  overflow: auto;
+  box-shadow: var(--shadow-md);
+}
+.modal-sm {
+  max-width: 440px;
+}
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 24px;
+  border-bottom: 1px solid var(--borda);
+}
+.modal-titulo {
+  font-family: 'Syne', sans-serif;
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--azul-escuro);
+}
+.btn-fechar {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  font-size: 28px;
+  color: var(--texto-ter);
+  cursor: pointer;
+  border-radius: 4px;
+  transition: all .2s;
+}
+.btn-fechar:hover {
+  background: var(--fundo);
+  color: var(--texto);
+}
+.modal-body {
+  padding: 24px;
+}
+.modal-footer {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  padding: 16px 24px;
+  border-top: 1px solid var(--borda);
+}
+</style>
+
+<script>
+function abrirModalNovaChave() {
+  document.getElementById('modalNovaChave').classList.add('ativo');
+}
+function fecharModalNovaChave() {
+  document.getElementById('modalNovaChave').classList.remove('ativo');
+}
+
+function confirmarRevogar(chaveId, nomeChave) {
+  document.getElementById('nomeChaveRevogar').textContent = nomeChave;
+  document.getElementById('formRevogar').action = '/chaves/revogar/' + chaveId;
+  document.getElementById('modalRevogar').classList.add('ativo');
+}
+function fecharModalRevogar() {
+  document.getElementById('modalRevogar').classList.remove('ativo');
+}
+
+function copiarChave() {
+  const chave = document.getElementById('chaveCompleta').textContent;
+  navigator.clipboard.writeText(chave).then(() => {
+    const btn = event.target.closest('.btn-copiar');
+    const textoOriginal = btn.innerHTML;
+    btn.innerHTML = '<svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"/></svg> Copiado!';
+    setTimeout(() => {
+      btn.innerHTML = textoOriginal;
+    }, 2000);
+  });
+}
+</script>
+{% endblock %}
