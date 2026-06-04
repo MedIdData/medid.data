@@ -100,13 +100,20 @@ createdb mediddata
 export DATABASE_URL="postgresql://usuario:senha@localhost:5432/mediddata"
 ```
 
-### 5. Executar migrações
+### 5. Setup inicial (criar tabelas e dados básicos)
 
 ```bash
-alembic upgrade head
+# Criar todas as tabelas + plano Gratuito + usuário admin
+python setup_prod.py
 ```
 
-### 6. Importar dados
+**Credenciais padrão criadas:**
+- E-mail: `admin@mediddata.com`
+- Senha: `medid@2026`
+
+⚠️ **IMPORTANTE**: Altere a senha após o primeiro login!
+
+### 6. Importar dados (opcional)
 
 ```bash
 # Baixar arquivos de dados em dados/
