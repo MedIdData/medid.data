@@ -54,14 +54,15 @@ async def pagina_login(
 @router.post("/login")
 async def processar_login(
     request: Request,
-    response_out: HTMLResponse = None,
     email: str = Form(...),
     senha: str = Form(...),
     proxima: str = Form(""),
     db: Session = Depends(get_db),
 ):
-    from fastapi.responses import Response as FastAPIResponse
-    usuario = usuario_repo.buscar_por_email(db, email)
+    # Normalizar email antes de buscar (mesmo que em criar_usuario)
+    email_normalizado = email.strip().lower()
+
+    usuario = usuario_repo.buscar_por_email(db, email_normalizado)
     if not usuario or not auth_service.verificar_senha(senha, usuario.senha_hash):
         return templates.TemplateResponse(
             request, "login.html",
@@ -75,19 +76,37 @@ async def processar_login(
             status_code=403,
         )
 
+    # Criar tokens
     access = auth_service.criar_access_token(usuario.id, usuario.email, usuario.perfil)
     refresh, expira = auth_service.criar_refresh_token(usuario.id)
     usuario_repo.salvar_refresh_token(
         db, usuario.id, auth_service.hash_refresh_token(refresh), expira
     )
 
+    # Redirecionar e setar cookies
     destino = proxima if proxima else "/painel"
     resp = RedirectResponse(url=destino, status_code=status.HTTP_302_FOUND)
+
+    # Configurar cookies (mesmo que auth.py)
     secure = settings.is_production
-    resp.set_cookie("access_token", access, httponly=True, samesite="lax", secure=secure,
-                    max_age=settings.access_token_expire_minutes * 60)
-    resp.set_cookie("refresh_token", refresh, httponly=True, samesite="lax", secure=secure,
-                    max_age=settings.refresh_token_expire_days * 86400, path="/auth/refresh")
+    resp.set_cookie(
+        "access_token",
+        access,
+        httponly=True,
+        samesite="lax",
+        secure=secure,
+        max_age=settings.access_token_expire_minutes * 60,
+    )
+    resp.set_cookie(
+        "refresh_token",
+        refresh,
+        httponly=True,
+        samesite="lax",
+        secure=secure,
+        max_age=settings.refresh_token_expire_days * 86400,
+        path="/auth/refresh",
+    )
+
     return resp
 
 
@@ -108,6 +127,9 @@ async def processar_cadastro(
     senha_confirmar: str = Form(...),
     db: Session = Depends(get_db),
 ):
+    # Normalizar email
+    email_normalizado = email.strip().lower()
+
     if senha != senha_confirmar:
         return templates.TemplateResponse(
             request, "cadastro.html",
@@ -120,27 +142,46 @@ async def processar_cadastro(
             {"erro": "A senha deve ter pelo menos 6 caracteres.", "nome_preenchido": nome, "email_preenchido": email},
             status_code=400,
         )
-    if usuario_repo.buscar_por_email(db, email):
+    if usuario_repo.buscar_por_email(db, email_normalizado):
         return templates.TemplateResponse(
             request, "cadastro.html",
             {"erro": "E-mail já cadastrado. Faça login.", "nome_preenchido": nome, "email_preenchido": email},
             status_code=400,
         )
 
-    usuario = usuario_repo.criar_usuario(db, nome, email, auth_service.hash_senha(senha))
+    # Criar usuário (criar_usuario já normaliza email internamente)
+    usuario = usuario_repo.criar_usuario(db, nome, email_normalizado, auth_service.hash_senha(senha))
 
+    # Criar tokens
     access = auth_service.criar_access_token(usuario.id, usuario.email, usuario.perfil)
     refresh, expira = auth_service.criar_refresh_token(usuario.id)
     usuario_repo.salvar_refresh_token(
         db, usuario.id, auth_service.hash_refresh_token(refresh), expira
     )
 
+    # Redirecionar e setar cookies
     resp = RedirectResponse(url="/painel", status_code=status.HTTP_302_FOUND)
+
+    # Configurar cookies (mesmo que login)
     secure = settings.is_production
-    resp.set_cookie("access_token", access, httponly=True, samesite="lax", secure=secure,
-                    max_age=settings.access_token_expire_minutes * 60)
-    resp.set_cookie("refresh_token", refresh, httponly=True, samesite="lax", secure=secure,
-                    max_age=settings.refresh_token_expire_days * 86400, path="/auth/refresh")
+    resp.set_cookie(
+        "access_token",
+        access,
+        httponly=True,
+        samesite="lax",
+        secure=secure,
+        max_age=settings.access_token_expire_minutes * 60,
+    )
+    resp.set_cookie(
+        "refresh_token",
+        refresh,
+        httponly=True,
+        samesite="lax",
+        secure=secure,
+        max_age=settings.refresh_token_expire_days * 86400,
+        path="/auth/refresh",
+    )
+
     return resp
 
 
