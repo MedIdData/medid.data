@@ -17,11 +17,23 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 # ── Senha ─────────────────────────────────────────────────────────────────
 
 def hash_senha(senha: str) -> str:
-    return pwd_context.hash(senha)
+    return pwd_context.hash(str(senha).strip())
 
 
 def verificar_senha(senha: str, hash: str) -> bool:
-    return pwd_context.verify(senha, hash)
+    print("=" * 80)
+    print("DEBUG LOGIN")
+    print("SENHA_LEN =", len(str(senha)))
+    print("SENHA_REPR =", repr(senha))
+    print("HASH_LEN =", len(str(hash)))
+    print("HASH_PREFIX =", str(hash)[:30])
+    print("=" * 80)
+
+    try:
+        return pwd_context.verify(str(senha).strip(), hash)
+    except Exception as e:
+        print("ERRO VERIFY =", str(e))
+        raise
 
 
 # ── JWT ───────────────────────────────────────────────────────────────────
