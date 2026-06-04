@@ -3,7 +3,7 @@ builder = "DOCKERFILE"
 dockerfilePath = "Dockerfile"
 
 [deploy]
-startCommand = "uvicorn app.main:app --host 0.0.0.0 --port $PORT --workers 2"
+startCommand = "./start.sh"
 healthcheckPath = "/saude"
 healthcheckTimeout = 30
 restartPolicyType = "ON_FAILURE"
@@ -14,3 +14,4 @@ restartPolicyMaxRetries = 3
 # DATABASE_URL = "postgresql://..."
 # SECRET_KEY = "..."
 # ENVIRONMENT = "production"
+# PORT é injetado automaticamente pelo Railway
