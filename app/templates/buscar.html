@@ -237,7 +237,7 @@
         name="q"
         id="campo-busca"
         value="{{ q or '' }}"
-        placeholder="Ex: Dipirona, Amoxicilina, Omeprazol..."
+        placeholder="Digite para buscar em tempo real..."
         autocomplete="off"
         autofocus
       >
@@ -449,10 +449,42 @@
 
 {% block scripts_extras %}
 <script>
-  // Foco automático no campo se há resultado ou estado inicial
+  // Foco automático e busca em tempo real
   document.addEventListener('DOMContentLoaded', () => {
     const campo = document.getElementById('campo-busca');
-    if (campo && !campo.value) campo.focus();
+    const form = document.getElementById('form-busca');
+    if (!campo) return;
+
+    if (!campo.value) campo.focus();
+
+    // Busca em tempo real com debounce
+    let timeoutId;
+    campo.addEventListener('input', (e) => {
+      clearTimeout(timeoutId);
+      const termo = e.target.value.trim();
+
+      // Se vazio, carregar página sem query
+      if (!termo) {
+        timeoutId = setTimeout(() => {
+          window.location.href = '/buscar';
+        }, 500);
+        return;
+      }
+
+      // Se >= 2 caracteres, buscar automaticamente
+      if (termo.length >= 2) {
+        timeoutId = setTimeout(() => {
+          form.submit();
+        }, 600); // 600ms de debounce
+      }
+    });
+
+    // Carregar primeiros resultados ao abrir a página (se não houver query)
+    const urlParams = new URLSearchParams(window.location.search);
+    if (!urlParams.get('q')) {
+      // Auto-buscar primeiros medicamentos
+      window.location.href = '/buscar?q=A&apenas_ativos=true';
+    }
   });
 </script>
 {% endblock %}

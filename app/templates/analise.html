@@ -194,6 +194,14 @@
   <div>
     <div class="card form-card">
       <div class="form-titulo">Dados para Análise</div>
+
+      {% if erro %}
+      <div style="background:#FFF1F2;border-left:4px solid #991B1B;padding:12px 16px;margin-bottom:16px;border-radius:8px;">
+        <strong style="color:#991B1B;">Erro:</strong>
+        <span style="color:#7C2D12;font-size:0.875rem;">{{ erro }}</span>
+      </div>
+      {% endif %}
+
       <form method="get" action="/analise" id="form-analise">
 
         <div class="form-grupo">
@@ -201,6 +209,7 @@
           <input class="campo" type="text" id="medicamento" name="medicamento"
                  value="{{ entrada.medicamento if entrada else '' }}"
                  placeholder="Ex: Dipirona, Amoxicilina 500mg..."
+                 maxlength="300"
                  required>
         </div>
 
@@ -208,14 +217,15 @@
           <label class="form-label" for="preco_informado">Preço Informado (R$) <span>*</span></label>
           <input class="campo" type="number" id="preco_informado" name="preco_informado"
                  value="{{ entrada.preco_informado if entrada else '' }}"
-                 placeholder="0,00" min="0" step="0.01" required>
+                 placeholder="0,00" min="0" max="999999.99" step="0.01" required>
         </div>
 
         <div class="form-grupo">
           <label class="form-label" for="tratamento">Tratamento / Diagnóstico</label>
           <input class="campo" type="text" id="tratamento" name="tratamento"
                  value="{{ entrada.tratamento if entrada else '' }}"
-                 placeholder="Ex: Infecção respiratória, Hipertensão...">
+                 placeholder="Ex: Infecção respiratória, Hipertensão..."
+                 maxlength="500">
           <div class="form-hint">Descrição clínica do tratamento indicado.</div>
         </div>
 
@@ -224,6 +234,9 @@
           <input class="campo" type="text" id="cid" name="cid"
                  value="{{ entrada.cid if entrada else '' }}"
                  placeholder="Ex: J18.9, I10, E11.9..."
+                 maxlength="10"
+                 pattern="[A-Za-z]\d{2}(\.\d{1,2})?"
+                 title="Formato válido: J18.9, A00, B20.1"
                  style="text-transform:uppercase;">
         </div>
 
@@ -231,14 +244,17 @@
           <label class="form-label" for="procedimento">Procedimento SIGTAP</label>
           <input class="campo" type="text" id="procedimento" name="procedimento"
                  value="{{ entrada.procedimento if entrada else '' }}"
-                 placeholder="Ex: 03.01.01.007-2">
+                 placeholder="Ex: 03.01.01.007-2"
+                 maxlength="20"
+                 pattern="\d{2}\.\d{2}\.\d{2}\.\d{3}-\d"
+                 title="Formato válido: 03.01.01.007-2">
         </div>
 
         <div class="form-grupo">
           <label class="form-label" for="quantidade">Quantidade <span>*</span></label>
           <input class="campo" type="number" id="quantidade" name="quantidade"
                  value="{{ entrada.quantidade if entrada else 1 }}"
-                 min="1" required>
+                 min="1" max="9999" required>
         </div>
 
         <button type="submit" class="btn-analisar" id="btn-analisar">
@@ -431,7 +447,8 @@
 
     const valor     = parseInt(arco.dataset.valor, 10);
     const totalArco = parseFloat(arco.dataset.totalArco);
-    const offset    = totalArco * (1 - valor / 100);
+    // CORREÇÃO: gauge invertido - offset deve crescer conforme valor diminui
+    const offset    = totalArco * (valor / 100);
 
     // Anima após 100ms para garantir render
     setTimeout(() => {

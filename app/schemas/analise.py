@@ -1,6 +1,7 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 from typing import Optional
 from enum import Enum
+import re
 
 
 class Situacao(str, Enum):
@@ -11,12 +12,39 @@ class Situacao(str, Enum):
 
 
 class AnaliseEntrada(BaseModel):
-    medicamento: str = Field(..., min_length=2, description="Nome comercial ou princípio ativo")
-    preco_informado: float = Field(..., ge=0, description="Preço informado na guia (R$)")
-    tratamento: str = Field("", description="Descrição do tratamento ou diagnóstico clínico")
-    cid: str = Field("", description="Código CID-10 (ex: J18.9)")
-    procedimento: str = Field("", description="Código SIGTAP (ex: 03.01.01.007-2)")
-    quantidade: int = Field(1, ge=1, description="Quantidade prescrita")
+    medicamento: str = Field(..., min_length=2, max_length=300, description="Nome comercial ou princípio ativo")
+    preco_informado: float = Field(..., ge=0, le=999999.99, description="Preço informado na guia (R$)")
+    tratamento: str = Field("", max_length=500, description="Descrição do tratamento ou diagnóstico clínico")
+    cid: str = Field("", max_length=10, description="Código CID-10 (ex: J18.9)")
+    procedimento: str = Field("", max_length=20, description="Código SIGTAP (ex: 03.01.01.007-2)")
+    quantidade: int = Field(1, ge=1, le=9999, description="Quantidade prescrita")
+
+    @field_validator('medicamento')
+    @classmethod
+    def validar_medicamento(cls, v: str) -> str:
+        v = v.strip()
+        if not v:
+            raise ValueError('Medicamento não pode ser vazio')
+        # Deve conter pelo menos uma letra
+        if not any(c.isalpha() for c in v):
+            raise ValueError('Medicamento deve conter texto, não apenas números')
+        return v
+
+    @field_validator('cid')
+    @classmethod
+    def validar_cid(cls, v: str) -> str:
+        v = v.strip().upper()
+        if v and not re.match(r'^[A-Z]\d{2}(\.\d{1,2})?$', v):
+            raise ValueError('CID-10 deve estar no formato válido (ex: J18.9, A00, B20.1)')
+        return v
+
+    @field_validator('procedimento')
+    @classmethod
+    def validar_procedimento(cls, v: str) -> str:
+        v = v.strip()
+        if v and not re.match(r'^\d{2}\.\d{2}\.\d{2}\.\d{3}-\d$', v):
+            raise ValueError('Procedimento SIGTAP deve estar no formato válido (ex: 03.01.01.007-2)')
+        return v
 
 
 class AnaliseTratamento(BaseModel):

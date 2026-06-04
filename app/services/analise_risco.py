@@ -447,8 +447,10 @@ def _d9_inconsistencias(
 ) -> tuple[Situacao, list[str]]:
     problemas = []
 
+    # CORREÇÃO CRÍTICA: Medicamento não encontrado = RISCO ALTO
+    # Sem base de referência, não é possível validar preço, classe, registro
     if med_row is None:
-        problemas.append("Medicamento não localizado na base ANVISA  -  verifique o nome informado.")
+        problemas.append("⚠️ RISCO ALTO: Medicamento não localizado na base ANVISA. Sem referência para validação de preço, classe terapêutica ou situação de registro.")
 
     if med_row and med_row.get("situacao_registro", "").upper() not in ("ATIVO",):
         problemas.append("Registro ANVISA do medicamento não está ativo.")
@@ -461,6 +463,10 @@ def _d9_inconsistencias(
 
     if codigo_proc.strip() and not proc_row:
         problemas.append(f'Procedimento "{codigo_proc}" não encontrado no SIGTAP  -  verifique o código.')
+
+    # CORREÇÃO: Medicamento não encontrado deve sempre ser NAO_ADERENTE (risco alto)
+    if med_row is None:
+        return Situacao.NAO_ADERENTE, problemas
 
     if not problemas:
         return Situacao.ADERENTE, []

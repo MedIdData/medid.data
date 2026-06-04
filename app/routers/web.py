@@ -64,27 +64,13 @@ async def processar_login(
 
     usuario = usuario_repo.buscar_por_email(db, email_normalizado)
 
-    print("=" * 80)
-    print("DEBUG LOGIN WEB")
-    print("EMAIL=", email)
-    print("EMAIL_NORMALIZADO=", email_normalizado)
-    print("SENHA_LEN=", len(senha))
-    print("SENHA_REPR=", repr(senha))
-    print("USUARIO=", usuario.email if usuario else None)
-    print("=" * 80)
-
     senha_valida = False
 
     if usuario:
-        try:
-            senha_valida = auth_service.verificar_senha(
-                senha,
-                usuario.senha_hash
-            )
-            print("SENHA_VALIDA=", senha_valida)
-        except Exception as e:
-            print("ERRO_VERIFICAR_SENHA=", repr(e))
-            raise
+        senha_valida = auth_service.verificar_senha(
+            senha,
+            usuario.senha_hash
+        )
 
     if not usuario or not senha_valida:
         return templates.TemplateResponse(
@@ -267,20 +253,28 @@ async def pagina_analise(
 
     resultado = None
     entrada = None
-    if medicamento.strip() and preco_informado > 0:
-        entrada = AnaliseEntrada(
-            medicamento=medicamento,
-            preco_informado=preco_informado,
-            tratamento=tratamento,
-            cid=cid,
-            procedimento=procedimento,
-            quantidade=quantidade,
-        )
-        resultado = analise_risco.analisar(db, entrada)
+    erro = None
 
-        # Registra consumo
-        from datetime import date
-        usuario_repo.incrementar_consumo(db, usuario.id, date.today(), "ANALISE")
+    if medicamento.strip() and preco_informado > 0:
+        try:
+            entrada = AnaliseEntrada(
+                medicamento=medicamento,
+                preco_informado=preco_informado,
+                tratamento=tratamento,
+                cid=cid,
+                procedimento=procedimento,
+                quantidade=quantidade,
+            )
+            resultado = analise_risco.analisar(db, entrada)
+
+            # Registra consumo
+            from datetime import date
+            usuario_repo.incrementar_consumo(db, usuario.id, date.today(), "ANALISE")
+        except Exception as e:
+            # Pydantic ValidationError ou erro de negócio
+            erro = str(e)
+            if "validation error" in str(e).lower():
+                erro = "Dados inválidos. Verifique os campos e tente novamente."
 
     return templates.TemplateResponse(
         request, "analise.html",
@@ -289,6 +283,7 @@ async def pagina_analise(
             "usuario": usuario,
             "entrada": entrada,
             "resultado": resultado,
+            "erro": erro,
         },
     )
 
@@ -451,4 +446,76 @@ async def pagina_consumo(
             "por_modulo_mes": por_modulo_mes,
             "historico_json": json.dumps(historico),
         },
+    )
+
+
+@router.get("/perfil", response_class=HTMLResponse)
+async def pagina_perfil(
+    request: Request,
+    usuario: Usuario = Depends(requer_usuario_web),
+    db: Session = Depends(get_db),
+):
+    plano = usuario_repo.obter_plano_usuario(db, usuario)
+    return templates.TemplateResponse(
+        request, "perfil.html",
+        {
+            "pagina_ativa": "perfil",
+            "usuario": usuario,
+            "plano": plano.nome if plano else "Gratuito",
+        },
+    )
+
+
+@router.get("/alterar-senha", response_class=HTMLResponse)
+async def pagina_alterar_senha(
+    request: Request,
+    sucesso: str = Query(""),
+    erro: str = Query(""),
+    usuario: Usuario = Depends(requer_usuario_web),
+):
+    return templates.TemplateResponse(
+        request, "alterar_senha.html",
+        {
+            "pagina_ativa": "alterar_senha",
+            "usuario": usuario,
+            "sucesso": sucesso,
+            "erro": erro,
+        },
+    )
+
+
+@router.post("/alterar-senha")
+async def processar_alterar_senha(
+    request: Request,
+    senha_atual: str = Form(...),
+    senha_nova: str = Form(...),
+    senha_confirmar: str = Form(...),
+    usuario: Usuario = Depends(requer_usuario_web),
+    db: Session = Depends(get_db),
+):
+    # Validações
+    if senha_nova != senha_confirmar:
+        return RedirectResponse(
+            url="/alterar-senha?erro=As senhas não coincidem",
+            status_code=status.HTTP_302_FOUND
+        )
+    if len(senha_nova) < 6:
+        return RedirectResponse(
+            url="/alterar-senha?erro=A senha deve ter pelo menos 6 caracteres",
+            status_code=status.HTTP_302_FOUND
+        )
+    if not auth_service.verificar_senha(senha_atual, usuario.senha_hash):
+        return RedirectResponse(
+            url="/alterar-senha?erro=Senha atual incorreta",
+            status_code=status.HTTP_302_FOUND
+        )
+
+    # Atualizar senha
+    nova_senha_hash = auth_service.hash_senha(senha_nova)
+    usuario_repo.atualizar_senha_usuario(db, usuario.id, nova_senha_hash)
+    usuario_repo.revogar_refresh_tokens_usuario(db, usuario.id)
+
+    return RedirectResponse(
+        url="/alterar-senha?sucesso=Senha alterada com sucesso",
+        status_code=status.HTTP_302_FOUND
     )

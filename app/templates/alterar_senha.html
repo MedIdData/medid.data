@@ -1,0 +1,200 @@
+{% extends "base.html" %}
+
+{% block titulo %}Alterar Senha{% endblock %}
+
+{% block conteudo %}
+<div class="pagina-header">
+  <div>
+    <h1 class="pagina-titulo">Alterar Senha</h1>
+    <p class="pagina-descricao">Atualize sua senha de acesso</p>
+  </div>
+</div>
+
+{% if sucesso %}
+<div class="alerta alerta-sucesso">
+  <div class="alerta-icone">
+    <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+      <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+    </svg>
+  </div>
+  <div class="alerta-conteudo">
+    <div class="alerta-titulo">{{ sucesso }}</div>
+  </div>
+</div>
+{% endif %}
+
+{% if erro %}
+<div class="alerta alerta-erro">
+  <div class="alerta-icone">
+    <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+      <circle cx="12" cy="12" r="10"/>
+      <line x1="12" y1="8" x2="12" y2="12"/>
+      <line x1="12" y1="16" x2="12.01" y2="16"/>
+    </svg>
+  </div>
+  <div class="alerta-conteudo">
+    <div class="alerta-titulo">{{ erro }}</div>
+  </div>
+</div>
+{% endif %}
+
+<div class="card" style="max-width:600px;">
+  <div class="card-header">
+    <h2 class="card-titulo">Nova Senha</h2>
+  </div>
+  <div class="card-body">
+    <form method="POST" action="/alterar-senha">
+      <div class="form-group">
+        <label for="senha_atual">Senha Atual <span style="color:var(--vermelho);">*</span></label>
+        <input
+          type="password"
+          id="senha_atual"
+          name="senha_atual"
+          required
+          class="form-input"
+          placeholder="Digite sua senha atual"
+        >
+      </div>
+
+      <div class="form-group">
+        <label for="senha_nova">Nova Senha <span style="color:var(--vermelho);">*</span></label>
+        <input
+          type="password"
+          id="senha_nova"
+          name="senha_nova"
+          required
+          minlength="6"
+          class="form-input"
+          placeholder="Mínimo de 6 caracteres"
+        >
+        <small class="form-ajuda">Escolha uma senha forte com pelo menos 6 caracteres</small>
+      </div>
+
+      <div class="form-group">
+        <label for="senha_confirmar">Confirmar Nova Senha <span style="color:var(--vermelho);">*</span></label>
+        <input
+          type="password"
+          id="senha_confirmar"
+          name="senha_confirmar"
+          required
+          minlength="6"
+          class="form-input"
+          placeholder="Digite a nova senha novamente"
+        >
+      </div>
+
+      <div style="display:flex;gap:12px;margin-top:24px;">
+        <button type="submit" class="btn btn-primario">Alterar Senha</button>
+        <a href="/perfil" class="btn btn-secundario">Cancelar</a>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="card" style="max-width:600px;margin-top:20px;">
+  <div class="card-body">
+    <h3 style="font-size:0.9rem;font-weight:500;margin-bottom:12px;">Dicas de Segurança</h3>
+    <ul style="font-size:0.875rem;color:var(--texto-sec);line-height:1.8;margin-left:20px;">
+      <li>Use uma senha única que você não utiliza em outros sites</li>
+      <li>Combine letras maiúsculas, minúsculas, números e símbolos</li>
+      <li>Evite informações pessoais óbvias (nome, data de nascimento)</li>
+      <li>Considere usar um gerenciador de senhas</li>
+    </ul>
+  </div>
+</div>
+
+<style>
+  .form-group {
+    margin-bottom: 20px;
+  }
+  .form-group label {
+    display: block;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--texto-sec);
+    margin-bottom: 6px;
+  }
+  .form-input {
+    width: 100%;
+    padding: 10px 14px;
+    border: 1px solid var(--borda);
+    border-radius: var(--r-campo);
+    font-size: 0.95rem;
+    color: var(--texto);
+    outline: none;
+    transition: border-color 0.15s, box-shadow 0.15s;
+  }
+  .form-input:focus {
+    border-color: var(--azul);
+    box-shadow: 0 0 0 3px rgba(15, 76, 129, 0.1);
+  }
+  .form-ajuda {
+    display: block;
+    font-size: 0.75rem;
+    color: var(--texto-ter);
+    margin-top: 4px;
+  }
+  .btn {
+    padding: 10px 20px;
+    border: none;
+    border-radius: var(--r-botao);
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-block;
+    transition: all 0.15s;
+  }
+  .btn-primario {
+    background: var(--azul);
+    color: var(--branco);
+  }
+  .btn-primario:hover {
+    background: var(--azul-escuro);
+  }
+  .btn-secundario {
+    background: var(--fundo-sec);
+    color: var(--texto-sec);
+    border: 1px solid var(--borda);
+  }
+  .btn-secundario:hover {
+    background: var(--borda);
+    color: var(--texto);
+  }
+
+  .alerta {
+    display: flex;
+    gap: 12px;
+    padding: 16px;
+    border-radius: var(--r-card);
+    margin-bottom: 20px;
+  }
+  .alerta-sucesso {
+    background: #F0FDF4;
+    border: 1px solid #86EFAC;
+  }
+  .alerta-erro {
+    background: #FFF1F2;
+    border: 1px solid #FCA5A5;
+  }
+  .alerta-icone {
+    flex-shrink: 0;
+  }
+  .alerta-sucesso .alerta-icone {
+    color: #166534;
+  }
+  .alerta-erro .alerta-icone {
+    color: #991B1B;
+  }
+  .alerta-titulo {
+    font-weight: 500;
+    font-size: 0.9rem;
+  }
+  .alerta-sucesso .alerta-titulo {
+    color: #166534;
+  }
+  .alerta-erro .alerta-titulo {
+    color: #991B1B;
+  }
+</style>
+{% endblock %}

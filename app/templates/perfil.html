@@ -1,0 +1,136 @@
+{% extends "base.html" %}
+
+{% block titulo %}Meu Perfil{% endblock %}
+
+{% block conteudo %}
+<div class="pagina-header">
+  <div>
+    <h1 class="pagina-titulo">Meu Perfil</h1>
+    <p class="pagina-descricao">Informações da sua conta MedID Data</p>
+  </div>
+</div>
+
+<div class="grid-2">
+  <div class="card">
+    <div class="card-header">
+      <h2 class="card-titulo">Dados Pessoais</h2>
+    </div>
+    <div class="card-body">
+      <div class="perfil-campo">
+        <div class="perfil-label">Nome Completo</div>
+        <div class="perfil-valor">{{ usuario.nome }}</div>
+      </div>
+      <div class="perfil-campo">
+        <div class="perfil-label">E-mail</div>
+        <div class="perfil-valor">{{ usuario.email }}</div>
+      </div>
+      <div class="perfil-campo">
+        <div class="perfil-label">Perfil</div>
+        <div class="perfil-valor">
+          <span class="badge badge-{{ 'success' if usuario.perfil == 'ADMINISTRADOR' else 'neutral' }}">
+            {{ usuario.perfil }}
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <h2 class="card-titulo">Plano e Acesso</h2>
+    </div>
+    <div class="card-body">
+      <div class="perfil-campo">
+        <div class="perfil-label">Plano Atual</div>
+        <div class="perfil-valor">
+          <strong>{{ plano }}</strong>
+        </div>
+      </div>
+      <div class="perfil-campo">
+        <div class="perfil-label">Data de Cadastro</div>
+        <div class="perfil-valor">{{ usuario.criado_em.strftime('%d/%m/%Y às %H:%M') }}</div>
+      </div>
+      <div class="perfil-campo">
+        <div class="perfil-label">Último Acesso</div>
+        <div class="perfil-valor">
+          {% if usuario.ultimo_acesso_em %}
+            {{ usuario.ultimo_acesso_em.strftime('%d/%m/%Y às %H:%M') }}
+          {% else %}
+            <span class="texto-muted">Primeiro acesso</span>
+          {% endif %}
+        </div>
+      </div>
+      <div class="perfil-campo">
+        <div class="perfil-label">Status da Conta</div>
+        <div class="perfil-valor">
+          <span class="badge badge-{{ 'success' if usuario.ativo else 'danger' }}">
+            {{ 'Ativa' if usuario.ativo else 'Desativada' }}
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-header">
+    <h2 class="card-titulo">Segurança</h2>
+  </div>
+  <div class="card-body">
+    <div style="display:flex;justify-content:space-between;align-items:center;">
+      <div>
+        <strong>Senha</strong>
+        <p style="font-size:0.875rem;color:var(--texto-ter);margin-top:4px;">
+          Última alteração: nunca registrada
+        </p>
+      </div>
+      <a href="/alterar-senha" class="btn btn-secundario">Alterar Senha</a>
+    </div>
+  </div>
+</div>
+
+<style>
+  .perfil-campo {
+    padding: 12px 0;
+    border-bottom: 1px solid var(--borda);
+  }
+  .perfil-campo:last-child {
+    border-bottom: none;
+  }
+  .perfil-label {
+    font-size: 0.75rem;
+    color: var(--texto-ter);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 6px;
+  }
+  .perfil-valor {
+    font-size: 0.9rem;
+    color: var(--texto);
+  }
+  .badge-success {
+    background: #F0FDF4;
+    color: #166534;
+  }
+  .badge-danger {
+    background: #FFF1F2;
+    color: #991B1B;
+  }
+  .btn-secundario {
+    padding: 8px 16px;
+    background: var(--fundo-sec);
+    color: var(--texto-sec);
+    border: 1px solid var(--borda);
+    border-radius: var(--r-botao);
+    font-size: 0.85rem;
+    font-weight: 500;
+    cursor: pointer;
+    text-decoration: none;
+    transition: all 0.15s;
+  }
+  .btn-secundario:hover {
+    background: var(--borda);
+    color: var(--texto);
+  }
+</style>
+{% endblock %}
