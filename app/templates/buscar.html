@@ -346,7 +346,7 @@
             {% endif %}
           </div>
           <div style="font-size:.7rem;color:var(--texto-ter);max-width:700px;line-height:1.5;">
-            Base oficial ANVISA ({{ total|default(0):,d }} registros totais) sem remoção de similares ·
+            Base oficial ANVISA ({{ "{:,}".format(total) }} registros totais) sem remoção de similares ·
             Passe o mouse sobre um medicamento para ver mais detalhes ·
             Use o campo de busca para filtrar
           </div>
