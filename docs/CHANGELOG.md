@@ -10,9 +10,13 @@
 - **Debug removido**: Prints de debug retirados do fluxo de login (web.py)
 - **Menu dropdown**: Implementado menu de usuário (Perfil, Alterar Senha, Chaves, Consumo, Admin, Sair)
 - **Rotas de perfil**: Criadas rotas /perfil e /alterar-senha com validações
-- **M1 - Busca travada**: Letra "A" removida, cursor não volta ao início, lista inicial carregada (commit 1bac73d)
-- **M2.1 - Gauge invertido**: Fórmula stroke-dashoffset corrigida (commit eafae63)
-- **M2.3 - Regras de glosa**: Ausência de dados agora gera risco ALTO (commit f8eb672)
+- **M1 - Busca travada**: Lista inicial, cursor, letra A (commit 1bac73d + hotfix c679f66)
+- **M2.1 - Gauge invertido**: Removida rotação CSS, fórmula alinhada (commits eafae63 + 3 hotfixes)
+- **M2.3 - Regras de glosa**: Ausência de dados = risco ALTO (commit f8eb672)
+
+#### 🎉 Marcos Alcançados
+- ✅ **100% dos módulos CRÍTICOS resolvidos**
+- ✅ Sistema funcionalmente correto nas funcionalidades principais
 
 #### ⚠️ Problemas Identificados (não corrigidos ainda)
 - **M2.2 - Validação de campos**: Alguns valores numéricos geram erro 500
