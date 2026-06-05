@@ -102,11 +102,27 @@
 ---
 
 ### M5 - Autocomplete na Busca
-**Status**: 🔴 PENDENTE (relacionado a M1)  
-- [ ] Auto-carregar primeiros resultados
-- [ ] Filtro incremental em tempo real
-- [ ] Debounce 600ms
-- [ ] Sem necessidade de clicar "Buscar"
+**Status**: ✅ CONCLUÍDO
+**Prioridade**: ALTO
+
+- [x] Auto-carregar primeiros resultados (já feito em M1)
+- [x] Filtro incremental em tempo real → Busca automática com debounce
+- [x] Debounce 600ms → Evita sobrecarga de requests
+- [x] Sem necessidade de clicar "Buscar" → Submit automático após digitar
+
+**Implementação**:
+- JavaScript: 100 linhas de lógica de autocomplete
+- Debounce 600ms, mínimo 2 caracteres
+- 3 estados visuais: hint, aguardando, buscando
+- Loading spinner animado
+- Badge "Digite mais X caractere(s)" quando < 2 chars
+- Preserva filtro "apenas ativos"
+- Graceful degradation (submit manual funciona)
+
+**Arquivos modificados**:
+- `app/templates/buscar.html` (+139 linhas)
+
+**Commit**: `d20a862`
 
 ---
 
@@ -234,10 +250,10 @@
 | Prioridade | Total | Concluídos | Pendentes | % |
 |------------|-------|------------|-----------|---|
 | 🔴 CRÍTICO | 3     | 3          | 0         | 100% ✅ |
-| 🟡 ALTO    | 3     | 2          | 1         | 67% ✅ |
+| 🟡 ALTO    | 3     | 3          | 0         | 100% ✅ |
 | 🟢 MÉDIO   | 4     | 0          | 4         | 0% |
 | 🔵 BAIXO   | 4     | 0          | 4         | 0% |
-| **TOTAL**  | **14**| **5**      | **9**     | **36%** |
+| **TOTAL**  | **14**| **6**      | **8**     | **43%** |
 
 ---
 

@@ -46,9 +46,10 @@ python setup_prod.py
 
 #### 🎉 Marcos Alcançados
 - ✅ **100% dos módulos CRÍTICOS resolvidos**
-- ✅ **67% dos módulos ALTO resolvidos** (M3, M2.2)
+- ✅ **100% dos módulos ALTO resolvidos** (M3, M2.2, M5)
 - ✅ Sistema funcionalmente correto nas funcionalidades principais
 - ✅ Zero erros 500 por validação de campos
+- ✅ UX de busca otimizada com autocomplete em tempo real
 
 #### ✅ Completado (Módulo 2 - Análise de Risco)
 - **M2.2 - Validação de campos**: Tratamento robusto de erros numéricos (commit f491f73)
@@ -56,6 +57,15 @@ python setup_prod.py
   - Mensagens de erro amigáveis (tradução de ValidationError)
   - JavaScript: validação em tempo real, auto-limpeza, vírgula→ponto
   - Validators Pydantic expandidos (preço, quantidade, tratamento)
+
+#### ✅ Completado (Módulo 5 - Autocomplete)
+- **M5 - Autocomplete na Busca**: Busca incremental em tempo real (commit d20a862)
+  - Debounce 600ms, mínimo 2 caracteres
+  - 3 estados visuais: hint, aguardando, buscando
+  - Loading spinner animado
+  - Badge "Digite mais X caractere(s)"
+  - Preserva filtro "apenas ativos"
+  - Submit manual continua funcionando (graceful degradation)
 
 ---
 
