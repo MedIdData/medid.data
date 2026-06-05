@@ -1,0 +1,324 @@
+###############################################################################
+# MedID Data - Testes de API
+# Instruções:
+# - Clique em "Send Request" acima de cada requisição
+# - Ou use: Cmd+Alt+R (Mac) / Ctrl+Alt+R (Windows)
+# - Troque @baseUrl para testar local ou produção
+###############################################################################
+
+### VARIÁVEIS
+@baseUrl = https://mediddata.com
+# @baseUrl = https://mediddata-production.up.railway.app
+# @baseUrl = http://localhost:8000
+
+@email = teste2@mediddata.com
+@senha = teste123
+
+
+###############################################################################
+# 1. AUTENTICAÇÃO
+###############################################################################
+
+### 1.1 Cadastro de novo usuário
+POST {{baseUrl}}/auth/cadastro
+Content-Type: application/json
+
+{
+  "nome": "Usuário API Teste",
+  "email": "{{email}}",
+  "senha": "{{senha}}"
+}
+
+### 1.2 Login (guarde o access_token da resposta)
+# @name login
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "{{email}}",
+  "senha": "{{senha}}"
+}
+
+### 1.3 Login Admin
+# @name loginAdmin
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "admin@mediddata.com",
+  "senha": "medid@2026"
+}
+
+### EXTRAIR TOKEN (automaticamente após login)
+@token = {{login.response.body.access_token}}
+@adminToken = {{loginAdmin.response.body.access_token}}
+
+
+###############################################################################
+# 2. MEDICAMENTOS
+###############################################################################
+
+### 2.1 Buscar medicamento (requer auth)
+GET {{baseUrl}}/medicamentos/buscar?termo=dipirona&limite=5
+Authorization: Bearer {{token}}
+
+### 2.2 Buscar com paginação
+GET {{baseUrl}}/medicamentos/buscar?termo=paracetamol&limite=10&offset=0
+Authorization: Bearer {{token}}
+
+### 2.3 Detalhes de um medicamento específico
+GET {{baseUrl}}/medicamentos/12345
+Authorization: Bearer {{token}}
+
+
+###############################################################################
+# 3. ANÁLISE DE RISCO
+###############################################################################
+
+### 3.1 Analisar prescrição simples
+POST {{baseUrl}}/analise/analisar
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "medicamentos": [
+    {
+      "principio_ativo": "DIPIRONA SÓDICA",
+      "concentracao": "500MG",
+      "forma_farmaceutica": "COMPRIMIDO",
+      "quantidade_prescrita": 20,
+      "posologia": "1 comprimido de 6/6h"
+    }
+  ],
+  "diagnostico_cid": "R51",
+  "paciente_idade": 35,
+  "paciente_peso": 70.0
+}
+
+### 3.2 Analisar com múltiplos medicamentos
+POST {{baseUrl}}/analise/analisar
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "medicamentos": [
+    {
+      "principio_ativo": "DIPIRONA SÓDICA",
+      "concentracao": "500MG",
+      "forma_farmaceutica": "COMPRIMIDO",
+      "quantidade_prescrita": 20,
+      "posologia": "1 comprimido de 6/6h"
+    },
+    {
+      "principio_ativo": "PARACETAMOL",
+      "concentracao": "750MG",
+      "forma_farmaceutica": "COMPRIMIDO",
+      "quantidade_prescrita": 10,
+      "posologia": "1 comprimido de 8/8h"
+    }
+  ],
+  "diagnostico_cid": "R51",
+  "paciente_idade": 35,
+  "paciente_peso": 70.0
+}
+
+
+###############################################################################
+# 4. USUÁRIO - PERFIL
+###############################################################################
+
+### 4.1 Ver meu perfil
+GET {{baseUrl}}/usuario/perfil
+Authorization: Bearer {{token}}
+
+### 4.2 Atualizar nome
+PUT {{baseUrl}}/usuario/perfil
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "nome": "Nome Atualizado via API"
+}
+
+### 4.3 Alterar senha
+PUT {{baseUrl}}/usuario/senha
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "senha_atual": "{{senha}}",
+  "senha_nova": "novaSenha123"
+}
+
+
+###############################################################################
+# 5. CHAVES DE ACESSO (API Keys)
+###############################################################################
+
+### 5.1 Listar minhas chaves
+GET {{baseUrl}}/usuario/chaves
+Authorization: Bearer {{token}}
+
+### 5.2 Criar nova chave
+# @name criarChave
+POST {{baseUrl}}/usuario/chaves
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "nome": "Chave API Teste",
+  "limite_diario_override": 50,
+  "limite_mensal_override": 1000
+}
+
+### EXTRAIR API KEY
+@apiKey = {{criarChave.response.body.chave}}
+
+### 5.3 Testar com API Key (em vez de Bearer token)
+GET {{baseUrl}}/medicamentos/buscar?termo=dipirona&limite=5
+X-API-Key: {{apiKey}}
+
+### 5.4 Revogar chave
+DELETE {{baseUrl}}/usuario/chaves/1
+Authorization: Bearer {{token}}
+
+
+###############################################################################
+# 6. CONSUMO
+###############################################################################
+
+### 6.1 Ver consumo hoje
+GET {{baseUrl}}/usuario/consumo/hoje
+Authorization: Bearer {{token}}
+
+### 6.2 Ver consumo do mês
+GET {{baseUrl}}/usuario/consumo/mes
+Authorization: Bearer {{token}}
+
+### 6.3 Ver histórico completo
+GET {{baseUrl}}/usuario/consumo/historico
+Authorization: Bearer {{token}}
+
+
+###############################################################################
+# 7. ADMIN - GESTÃO DE USUÁRIOS (requer admin)
+###############################################################################
+
+### 7.1 Listar todos os usuários
+GET {{baseUrl}}/admin/api/usuarios
+Authorization: Bearer {{adminToken}}
+
+### 7.2 Criar novo usuário (admin)
+POST {{baseUrl}}/admin/api/usuarios
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "nome": "Novo Usuario Admin API",
+  "email": "novousuario@teste.com",
+  "senha": "senha123",
+  "perfil": "CLIENTE",
+  "limite_diario": 100,
+  "limite_mensal": 2000
+}
+
+### 7.3 Ver detalhes de um usuário
+GET {{baseUrl}}/admin/api/usuarios/2
+Authorization: Bearer {{adminToken}}
+
+### 7.4 Atualizar usuário
+PUT {{baseUrl}}/admin/api/usuarios/2
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "nome": "Nome Atualizado Admin",
+  "email": "novousuario@teste.com",
+  "perfil": "CLIENTE",
+  "ativo": true,
+  "limite_diario": 200,
+  "limite_mensal": 5000
+}
+
+### 7.5 Desativar/Ativar usuário
+PATCH {{baseUrl}}/admin/api/usuarios/2/toggle-status
+Authorization: Bearer {{adminToken}}
+
+### 7.6 Resetar senha de usuário
+PUT {{baseUrl}}/admin/api/usuarios/2/resetar-senha
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "senha_nova": "novaSenha456"
+}
+
+
+###############################################################################
+# 8. ADMIN - ESTATÍSTICAS
+###############################################################################
+
+### 8.1 Estatísticas gerais do sistema
+GET {{baseUrl}}/admin/api/estatisticas
+Authorization: Bearer {{adminToken}}
+
+### 8.2 Consumo total do sistema hoje
+GET {{baseUrl}}/admin/api/consumo/hoje
+Authorization: Bearer {{adminToken}}
+
+### 8.3 Listar todas as chaves do sistema
+GET {{baseUrl}}/admin/api/chaves
+Authorization: Bearer {{adminToken}}
+
+
+###############################################################################
+# 9. HEALTH CHECK
+###############################################################################
+
+### 9.1 Verificar se API está online
+GET {{baseUrl}}/saude
+
+### 9.2 Ver documentação OpenAPI
+GET {{baseUrl}}/docs
+
+
+###############################################################################
+# 10. TESTES DE ERRO
+###############################################################################
+
+### 10.1 Tentar acessar sem autenticação (deve dar 401)
+GET {{baseUrl}}/medicamentos/buscar?termo=dipirona
+
+### 10.2 Token inválido (deve dar 401)
+GET {{baseUrl}}/usuario/perfil
+Authorization: Bearer token_invalido_123
+
+### 10.3 Tentar criar usuário com email duplicado (deve dar 400)
+POST {{baseUrl}}/auth/cadastro
+Content-Type: application/json
+
+{
+  "nome": "Teste Duplicado",
+  "email": "{{email}}",
+  "senha": "senha123"
+}
+
+### 10.4 Senha muito curta (deve dar 400)
+POST {{baseUrl}}/auth/cadastro
+Content-Type: application/json
+
+{
+  "nome": "Teste Senha Curta",
+  "email": "senhacurta@teste.com",
+  "senha": "123"
+}
+
+
+###############################################################################
+# NOTAS:
+# - Sempre rode "Login" primeiro para pegar o token
+# - O token é salvo automaticamente em @token
+# - Use {{token}} em todas as requisições autenticadas
+# - Para testar em produção, mude @baseUrl no topo
+# - Resultados aparecem no painel direito do VSCode
+###############################################################################

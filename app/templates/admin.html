@@ -427,6 +427,12 @@
           </td>
           <td>
             <div class="acoes" style="justify-content:flex-end;">
+              <a href="/admin/usuarios/{{ u.id }}/detalhes" class="btn-icon" title="Ver detalhes" style="text-decoration: none;">
+                <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                  <circle cx="12" cy="12" r="3"/>
+                </svg>
+              </a>
               <button class="btn-icon" onclick="abrirModalEditar({{ u.id }}, '{{ u.nome }}', '{{ u.email }}', '{{ u.perfil }}', {{ 'true' if u.ativo else 'false' }}, {{ u.limite_diario or 'null' }}, {{ u.limite_mensal or 'null' }})" title="Editar">
                 <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                   <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>

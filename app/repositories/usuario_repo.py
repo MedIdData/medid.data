@@ -326,3 +326,107 @@ def toggle_status_usuario(db: Session, usuario_id: int) -> None:
     if usuario:
         usuario.ativo = not usuario.ativo
         db.commit()
+
+
+# ── Detalhes Completos de Usuário (Admin) ─────────────────────────────────
+
+def obter_estatisticas_usuario(db: Session, usuario_id: int) -> dict:
+    """Obtém estatísticas completas de um usuário."""
+    from datetime import date, timedelta
+    
+    hoje = date.today()
+    semana_passada = hoje - timedelta(days=7)
+    inicio_mes = date(hoje.year, hoje.month, 1)
+    
+    # Consumo hoje
+    consumo_hoje = obter_consumo_total_dia(db, usuario_id, hoje)
+    
+    # Consumo semana
+    sql_semana = text("""
+        SELECT COALESCE(SUM(total_consultas), 0)
+        FROM consumo_diario
+        WHERE usuario_id = :uid AND data_referencia >= :inicio
+    """)
+    consumo_semana = db.execute(sql_semana, {"uid": usuario_id, "inicio": semana_passada}).scalar_one()
+    
+    # Consumo mês
+    consumo_mes = obter_consumo_mensal(db, usuario_id, hoje.year, hoje.month)
+    
+    # Consumo total
+    sql_total = text("""
+        SELECT COALESCE(SUM(total_consultas), 0)
+        FROM consumo_diario
+        WHERE usuario_id = :uid
+    """)
+    consumo_total = db.execute(sql_total, {"uid": usuario_id}).scalar_one()
+    
+    # Consumo por módulo (mês atual)
+    consumo_modulos = obter_consumo_por_modulo_mes(db, usuario_id, hoje.year, hoje.month)
+    
+    return {
+        "consumo_hoje": consumo_hoje,
+        "consumo_semana": consumo_semana,
+        "consumo_mes": consumo_mes,
+        "consumo_total": consumo_total,
+        "consumo_por_modulo": consumo_modulos,
+    }
+
+
+def obter_historico_consumo_usuario(db: Session, usuario_id: int, limite: int = 50) -> list[dict]:
+    """Obtém histórico detalhado de consumo."""
+    sql = text("""
+        SELECT 
+            cd.data_referencia,
+            cd.modulo,
+            cd.total_consultas,
+            'WEB' as origem
+        FROM consumo_diario cd
+        WHERE cd.usuario_id = :uid
+        ORDER BY cd.data_referencia DESC, cd.modulo
+        LIMIT :limite
+    """)
+    
+    rows = db.execute(sql, {"uid": usuario_id, "limite": limite}).mappings().fetchall()
+    return [dict(r) for r in rows]
+
+
+def obter_auditoria_usuario(db: Session, usuario_id: int, limite: int = 50) -> list[dict]:
+    """Obtém histórico de auditoria do usuário."""
+    sql = text("""
+        SELECT 
+            ar.criado_em,
+            ar.canal,
+            ar.modulo,
+            ar.endpoint,
+            ar.metodo,
+            ar.parametros_json
+        FROM auditoria_requisicoes ar
+        WHERE ar.usuario_id = :uid
+        ORDER BY ar.criado_em DESC
+        LIMIT :limite
+    """)
+    
+    rows = db.execute(sql, {"uid": usuario_id, "limite": limite}).mappings().fetchall()
+    return [dict(r) for r in rows]
+
+
+def obter_ultimo_login(db: Session, usuario_id: int) -> Optional[datetime]:
+    """Obtém data do último login do usuário."""
+    sql = text("""
+        SELECT MAX(criado_em) as ultimo_login
+        FROM refresh_tokens
+        WHERE usuario_id = :uid
+    """)
+    result = db.execute(sql, {"uid": usuario_id}).scalar_one()
+    return result
+
+
+def obter_ultimo_uso_api(db: Session, usuario_id: int) -> Optional[datetime]:
+    """Obtém data do último uso via API."""
+    sql = text("""
+        SELECT MAX(ultimo_uso_em) as ultimo_uso
+        FROM chaves_acesso
+        WHERE usuario_id = :uid AND ultimo_uso_em IS NOT NULL
+    """)
+    result = db.execute(sql, {"uid": usuario_id}).scalar_one()
+    return result

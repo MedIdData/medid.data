@@ -1,0 +1,675 @@
+{% extends "base.html" %}
+
+{% block titulo %}Detalhes do Usuário - {{ usuario.nome }}{% endblock %}
+{% block titulo_pagina %}Administração{% endblock %}
+
+{% block estilos_extras %}
+<style>
+  /* ── Hero ────────────────────────────────────────────────────────────── */
+  .usuario-hero {
+    background: linear-gradient(135deg, #0F4C81 0%, #14B8A6 100%);
+    border-radius: var(--r-card);
+    padding: 32px;
+    margin-bottom: 28px;
+    color: var(--branco);
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+  }
+
+  .usuario-info h1 {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 1.75rem;
+    margin-bottom: 8px;
+  }
+
+  .usuario-meta {
+    display: flex;
+    gap: 24px;
+    margin-top: 12px;
+    flex-wrap: wrap;
+  }
+
+  .usuario-meta-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: .875rem;
+    opacity: .9;
+  }
+
+  .usuario-acoes {
+    display: flex;
+    gap: 8px;
+  }
+
+  .btn-acao {
+    padding: 10px 16px;
+    background: rgba(255,255,255,.15);
+    border: 1px solid rgba(255,255,255,.3);
+    border-radius: var(--r-botao);
+    color: var(--branco);
+    font-size: .875rem;
+    cursor: pointer;
+    transition: all .15s;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .btn-acao:hover {
+    background: rgba(255,255,255,.25);
+  }
+
+  .btn-acao.perigo {
+    background: rgba(239, 68, 68, .2);
+    border-color: rgba(239, 68, 68, .4);
+  }
+
+  .btn-acao.perigo:hover {
+    background: rgba(239, 68, 68, .3);
+  }
+
+  /* ── Grid Layout ─────────────────────────────────────────────────────── */
+  .detalhes-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 20px;
+    margin-bottom: 24px;
+  }
+
+  .secao-card {
+    background: var(--branco);
+    border-radius: var(--r-card);
+    border: 1px solid var(--borda);
+    overflow: hidden;
+  }
+
+  .secao-header {
+    padding: 16px 20px;
+    background: var(--fundo-sec);
+    border-bottom: 1px solid var(--borda);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .secao-header h3 {
+    font-family: 'Syne', sans-serif;
+    font-size: .95rem;
+    font-weight: 700;
+    color: var(--azul-escuro);
+    margin: 0;
+  }
+
+  .secao-body {
+    padding: 20px;
+  }
+
+  /* ── Info List ───────────────────────────────────────────────────────── */
+  .info-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .info-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--fundo);
+  }
+
+  .info-item:last-child {
+    border-bottom: none;
+  }
+
+  .info-label {
+    font-size: .85rem;
+    color: var(--texto-sec);
+    font-weight: 500;
+  }
+
+  .info-value {
+    font-size: .9rem;
+    color: var(--texto);
+    font-weight: 500;
+    text-align: right;
+  }
+
+  /* ── Stats Cards ─────────────────────────────────────────────────────── */
+  .stats-mini {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+
+  .stat-mini {
+    background: var(--fundo);
+    padding: 16px;
+    border-radius: 8px;
+    border: 1px solid var(--borda);
+  }
+
+  .stat-mini-label {
+    font-size: .75rem;
+    color: var(--texto-ter);
+    text-transform: uppercase;
+    letter-spacing: .05em;
+    margin-bottom: 6px;
+  }
+
+  .stat-mini-value {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--azul-escuro);
+  }
+
+  /* ── Progress Bar ────────────────────────────────────────────────────── */
+  .progresso {
+    margin-top: 8px;
+  }
+
+  .progresso-label {
+    display: flex;
+    justify-content: space-between;
+    font-size: .8rem;
+    color: var(--texto-sec);
+    margin-bottom: 6px;
+  }
+
+  .progresso-barra {
+    width: 100%;
+    height: 8px;
+    background: var(--fundo);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+
+  .progresso-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--azul) 0%, var(--teal) 100%);
+    border-radius: 4px;
+    transition: width .3s ease;
+  }
+
+  .progresso-fill.alerta {
+    background: linear-gradient(90deg, #F59E0B 0%, #EF4444 100%);
+  }
+
+  /* ── Table ───────────────────────────────────────────────────────────── */
+  .tabela-mini {
+    width: 100%;
+    font-size: .85rem;
+  }
+
+  .tabela-mini th {
+    text-align: left;
+    padding: 8px 0;
+    font-size: .75rem;
+    font-weight: 600;
+    color: var(--texto-sec);
+    text-transform: uppercase;
+    letter-spacing: .05em;
+    border-bottom: 1px solid var(--borda);
+  }
+
+  .tabela-mini td {
+    padding: 10px 0;
+    border-bottom: 1px solid var(--fundo);
+  }
+
+  .tabela-mini tbody tr:hover {
+    background: var(--fundo);
+  }
+
+  /* ── Badges ──────────────────────────────────────────────────────────── */
+  .badge {
+    display: inline-flex;
+    padding: 4px 10px;
+    border-radius: var(--r-etiq);
+    font-size: .75rem;
+    font-weight: 500;
+  }
+
+  .badge-ativo {
+    background: #D1FAE5;
+    color: #065F46;
+  }
+
+  .badge-inativo {
+    background: #FEE2E2;
+    color: #991B1B;
+  }
+
+  .badge-admin {
+    background: #FEF3C7;
+    color: #92400E;
+  }
+
+  .badge-usuario {
+    background: #DBEAFE;
+    color: #1E40AF;
+  }
+
+  .badge-web {
+    background: #E0E7FF;
+    color: #3730A3;
+  }
+
+  .badge-api {
+    background: #F3E8FF;
+    color: #6B21A8;
+  }
+
+  /* ── Empty State ─────────────────────────────────────────────────────── */
+  .empty-state {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--texto-ter);
+  }
+
+  .empty-state svg {
+    margin-bottom: 12px;
+    opacity: .3;
+  }
+
+  /* ── Modulos Grid ────────────────────────────────────────────────────── */
+  .modulos-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+
+  .modulo-card {
+    background: var(--fundo);
+    padding: 14px;
+    border-radius: 8px;
+    border: 1px solid var(--borda);
+  }
+
+  .modulo-nome {
+    font-size: .8rem;
+    color: var(--texto-sec);
+    margin-bottom: 6px;
+  }
+
+  .modulo-valor {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--azul-escuro);
+  }
+
+  /* ── Chaves Lista ────────────────────────────────────────────────────── */
+  .chave-item {
+    padding: 12px;
+    background: var(--fundo);
+    border-radius: 8px;
+    margin-bottom: 8px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .chave-info code {
+    background: var(--branco);
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: .8rem;
+    color: var(--azul);
+  }
+
+  .chave-meta {
+    font-size: .75rem;
+    color: var(--texto-ter);
+    margin-top: 4px;
+  }
+
+  .btn-revogar {
+    padding: 6px 12px;
+    background: var(--vermelho);
+    color: var(--branco);
+    border: none;
+    border-radius: var(--r-botao);
+    font-size: .75rem;
+    cursor: pointer;
+  }
+
+  .btn-revogar:hover {
+    background: #DC2626;
+  }
+
+  /* ── Full Width Sections ─────────────────────────────────────────────── */
+  .secao-full {
+    grid-column: 1 / -1;
+  }
+</style>
+{% endblock %}
+
+{% block conteudo %}
+<!-- Hero com informações do usuário -->
+<div class="usuario-hero">
+  <div class="usuario-info">
+    <h1>{{ usuario.nome }}</h1>
+    <div class="usuario-meta">
+      <div class="usuario-meta-item">
+        <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
+          <path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/>
+        </svg>
+        {{ usuario.email }}
+      </div>
+      <div class="usuario-meta-item">
+        <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
+          <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/>
+        </svg>
+        ID: {{ usuario.id }}
+      </div>
+      <div class="usuario-meta-item">
+        <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
+          <path d="M9 11H7v2h2v-2zm4 0h-2v2h2v-2zm4 0h-2v2h2v-2zm2-7h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V9h14v11z"/>
+        </svg>
+        Cadastro: {{ usuario.criado_em.strftime('%d/%m/%Y') if usuario.criado_em else '-' }}
+      </div>
+    </div>
+  </div>
+
+  <div class="usuario-acoes">
+    <a href="/admin" class="btn-acao">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <path d="M19 12H5M12 19l-7-7 7-7"/>
+      </svg>
+      Voltar
+    </a>
+    <button class="btn-acao" onclick="abrirModalEditar()">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+      </svg>
+      Editar
+    </button>
+    <button class="btn-acao perigo" onclick="confirmarDesativar()">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <circle cx="12" cy="12" r="10"/>
+        <line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/>
+      </svg>
+      {{ 'Ativar' if not usuario.ativo else 'Desativar' }}
+    </button>
+  </div>
+</div>
+
+<!-- Grid de Seções -->
+<div class="detalhes-grid">
+
+  <!-- Dados Gerais -->
+  <div class="secao-card">
+    <div class="secao-header">
+      <svg width="18" height="18" fill="currentColor" viewBox="0 0 24 24">
+        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/>
+      </svg>
+      <h3>Dados Gerais</h3>
+    </div>
+    <div class="secao-body">
+      <div class="info-list">
+        <div class="info-item">
+          <span class="info-label">Perfil</span>
+          <span class="info-value">
+            <span class="badge {% if usuario.perfil == 'ADMINISTRADOR' %}badge-admin{% else %}badge-usuario{% endif %}">
+              {{ usuario.perfil }}
+            </span>
+          </span>
+        </div>
+        <div class="info-item">
+          <span class="info-label">Status</span>
+          <span class="info-value">
+            <span class="badge {% if usuario.ativo %}badge-ativo{% else %}badge-inativo{% endif %}">
+              {{ 'Ativo' if usuario.ativo else 'Inativo' }}
+            </span>
+          </span>
+        </div>
+        <div class="info-item">
+          <span class="info-label">Plano</span>
+          <span class="info-value">{{ plano.nome if plano else 'Gratuito' }}</span>
+        </div>
+        <div class="info-item">
+          <span class="info-label">Último Login</span>
+          <span class="info-value">{{ ultimo_login.strftime('%d/%m/%Y %H:%M') if ultimo_login else 'Nunca' }}</span>
+        </div>
+        <div class="info-item">
+          <span class="info-label">Último Uso API</span>
+          <span class="info-value">{{ ultimo_uso_api.strftime('%d/%m/%Y %H:%M') if ultimo_uso_api else 'Nunca' }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Consumo -->
+  <div class="secao-card">
+    <div class="secao-header">
+      <svg width="18" height="18" fill="currentColor" viewBox="0 0 24 24">
+        <path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/>
+      </svg>
+      <h3>Consumo</h3>
+    </div>
+    <div class="secao-body">
+      <div class="stats-mini">
+        <div class="stat-mini">
+          <div class="stat-mini-label">Hoje</div>
+          <div class="stat-mini-value">{{ stats.consumo_hoje }}</div>
+        </div>
+        <div class="stat-mini">
+          <div class="stat-mini-label">Semana</div>
+          <div class="stat-mini-value">{{ stats.consumo_semana }}</div>
+        </div>
+        <div class="stat-mini">
+          <div class="stat-mini-label">Mês</div>
+          <div class="stat-mini-value">{{ stats.consumo_mes }}</div>
+        </div>
+        <div class="stat-mini">
+          <div class="stat-mini-label">Total</div>
+          <div class="stat-mini-value">{{ stats.consumo_total }}</div>
+        </div>
+      </div>
+
+      <!-- Progresso dos Limites -->
+      <div class="progresso">
+        <div class="progresso-label">
+          <span>Limite Diário</span>
+          <span>{{ stats.consumo_hoje }} / {{ usuario.limite_diario if usuario.limite_diario else '∞' }}</span>
+        </div>
+        <div class="progresso-barra">
+          {% if usuario.limite_diario %}
+            {% set percentual = (stats.consumo_hoje / usuario.limite_diario * 100) if usuario.limite_diario > 0 else 0 %}
+            <div class="progresso-fill {% if percentual > 80 %}alerta{% endif %}" style="width: {{ [percentual, 100]|min }}%"></div>
+          {% else %}
+            <div class="progresso-fill" style="width: 0%"></div>
+          {% endif %}
+        </div>
+      </div>
+
+      <div class="progresso">
+        <div class="progresso-label">
+          <span>Limite Mensal</span>
+          <span>{{ stats.consumo_mes }} / {{ usuario.limite_mensal if usuario.limite_mensal else '∞' }}</span>
+        </div>
+        <div class="progresso-barra">
+          {% if usuario.limite_mensal %}
+            {% set percentual_mes = (stats.consumo_mes / usuario.limite_mensal * 100) if usuario.limite_mensal > 0 else 0 %}
+            <div class="progresso-fill {% if percentual_mes > 80 %}alerta{% endif %}" style="width: {{ [percentual_mes, 100]|min }}%"></div>
+          {% else %}
+            <div class="progresso-fill" style="width: 0%"></div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Consumo por Módulo -->
+  <div class="secao-card">
+    <div class="secao-header">
+      <svg width="18" height="18" fill="currentColor" viewBox="0 0 24 24">
+        <path d="M9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4zm2.5 2.1h-15V5h15v14.1zm0-16.1h-15c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h15c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2z"/>
+      </svg>
+      <h3>Consumo por Módulo</h3>
+    </div>
+    <div class="secao-body">
+      {% if stats.consumo_por_modulo %}
+      <div class="modulos-grid">
+        {% for item in stats.consumo_por_modulo %}
+        <div class="modulo-card">
+          <div class="modulo-nome">{{ item.modulo }}</div>
+          <div class="modulo-valor">{{ item.total }}</div>
+        </div>
+        {% endfor %}
+      </div>
+      {% else %}
+      <div class="empty-state">
+        <p>Nenhum consumo registrado este mês</p>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Chaves API -->
+  <div class="secao-card">
+    <div class="secao-header">
+      <svg width="18" height="18" fill="currentColor" viewBox="0 0 24 24">
+        <path d="M12.65 10C11.83 7.67 9.61 6 7 6c-3.31 0-6 2.69-6 6s2.69 6 6 6c2.61 0 4.83-1.67 5.65-4H17v4h4v-4h2v-4H12.65zM7 14c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2z"/>
+      </svg>
+      <h3>Chaves API ({{ chaves|length }})</h3>
+    </div>
+    <div class="secao-body">
+      {% if chaves %}
+        {% for chave in chaves %}
+        <div class="chave-item">
+          <div class="chave-info">
+            <div><strong>{{ chave.nome }}</strong></div>
+            <code>{{ chave.prefixo }}...</code>
+            <div class="chave-meta">
+              Criada em {{ chave.criado_em.strftime('%d/%m/%Y') }}
+              {% if chave.ultimo_uso_em %}
+              · Último uso: {{ chave.ultimo_uso_em.strftime('%d/%m/%Y %H:%M') }}
+              {% endif %}
+            </div>
+          </div>
+          <form method="POST" action="/admin/api/usuarios/{{ usuario.id }}/revogar-chave/{{ chave.id }}" style="margin: 0;">
+            <button type="submit" class="btn-revogar" onclick="return confirm('Revogar esta chave?')">
+              Revogar
+            </button>
+          </form>
+        </div>
+        {% endfor %}
+      {% else %}
+      <div class="empty-state">
+        <svg width="48" height="48" fill="currentColor" viewBox="0 0 24 24">
+          <path d="M12.65 10C11.83 7.67 9.61 6 7 6c-3.31 0-6 2.69-6 6s2.69 6 6 6c2.61 0 4.83-1.67 5.65-4H17v4h4v-4h2v-4H12.65zM7 14c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2z"/>
+        </svg>
+        <p>Nenhuma chave API criada</p>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Histórico de Consumo (Full Width) -->
+  <div class="secao-card secao-full">
+    <div class="secao-header">
+      <svg width="18" height="18" fill="currentColor" viewBox="0 0 24 24">
+        <path d="M13 3c-4.97 0-9 4.03-9 9H1l3.89 3.89.07.14L9 12H6c0-3.87 3.13-7 7-7s7 3.13 7 7-3.13 7-7 7c-1.93 0-3.68-.79-4.94-2.06l-1.42 1.42C8.27 19.99 10.51 21 13 21c4.97 0 9-4.03 9-9s-4.03-9-9-9zm-1 5v5l4.28 2.54.72-1.21-3.5-2.08V8H12z"/>
+      </svg>
+      <h3>Histórico de Consumo (últimos 30 registros)</h3>
+    </div>
+    <div class="secao-body">
+      {% if historico %}
+      <table class="tabela-mini">
+        <thead>
+          <tr>
+            <th>Data</th>
+            <th>Módulo</th>
+            <th>Quantidade</th>
+            <th>Origem</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for item in historico %}
+          <tr>
+            <td>{{ item.data_referencia.strftime('%d/%m/%Y') }}</td>
+            <td>{{ item.modulo }}</td>
+            <td><strong>{{ item.total_consultas }}</strong></td>
+            <td>
+              <span class="badge {% if item.origem == 'API' %}badge-api{% else %}badge-web{% endif %}">
+                {{ item.origem }}
+              </span>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% else %}
+      <div class="empty-state">
+        <p>Nenhum histórico disponível</p>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Auditoria (Full Width) -->
+  <div class="secao-card secao-full">
+    <div class="secao-header">
+      <svg width="18" height="18" fill="currentColor" viewBox="0 0 24 24">
+        <path d="M19 3h-4.18C14.4 1.84 13.3 1 12 1c-1.3 0-2.4.84-2.82 2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 0c.55 0 1 .45 1 1s-.45 1-1 1-1-.45-1-1 .45-1 1-1zm0 4c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm6 12H6v-1.4c0-2 4-3.1 6-3.1s6 1.1 6 3.1V19z"/>
+      </svg>
+      <h3>Auditoria (últimas 20 ações)</h3>
+    </div>
+    <div class="secao-body">
+      {% if auditoria %}
+      <table class="tabela-mini">
+        <thead>
+          <tr>
+            <th>Data/Hora</th>
+            <th>Canal</th>
+            <th>Módulo</th>
+            <th>Endpoint</th>
+            <th>Método</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for item in auditoria %}
+          <tr>
+            <td>{{ item.criado_em.strftime('%d/%m/%Y %H:%M') if item.criado_em else '-' }}</td>
+            <td><span class="badge badge-web">{{ item.canal or 'WEB' }}</span></td>
+            <td>{{ item.modulo or '-' }}</td>
+            <td style="font-family: monospace; font-size: .8rem;">{{ item.endpoint or '-' }}</td>
+            <td><code>{{ item.metodo or '-' }}</code></td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% else %}
+      <div class="empty-state">
+        <p>Nenhuma auditoria disponível</p>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+</div>
+{% endblock %}
+
+{% block scripts_extras %}
+<script>
+function abrirModalEditar() {
+  alert('Modal de edição em desenvolvimento');
+  // TODO: implementar modal
+}
+
+function confirmarDesativar() {
+  if (confirm('{{ "Ativar" if not usuario.ativo else "Desativar" }} este usuário?')) {
+    window.location.href = '/admin/usuarios/{{ usuario.id }}/toggle-status';
+  }
+}
+</script>
+{% endblock %}

@@ -853,3 +853,64 @@ async def preview_convite(
             "request": request,
         },
     )
+
+
+@router.get("/admin/usuarios/{usuario_id}/detalhes", response_class=HTMLResponse)
+async def admin_usuario_detalhes(
+    request: Request,
+    usuario_id: int,
+    admin: Usuario = Depends(requer_admin),
+    db: Session = Depends(get_db),
+):
+    """Página completa de detalhes do usuário."""
+    # Buscar usuário
+    usuario = usuario_repo.buscar_por_id(db, usuario_id)
+    if not usuario:
+        return RedirectResponse(url="/admin?erro=Usuário não encontrado", status_code=status.HTTP_302_FOUND)
+    
+    # Dados gerais
+    plano = usuario_repo.obter_plano_usuario(db, usuario)
+    ultimo_login = usuario_repo.obter_ultimo_login(db, usuario_id)
+    ultimo_uso_api = usuario_repo.obter_ultimo_uso_api(db, usuario_id)
+    
+    # Estatísticas
+    stats = usuario_repo.obter_estatisticas_usuario(db, usuario_id)
+    
+    # Chaves API
+    chaves = usuario_repo.listar_chaves_usuario(db, usuario_id)
+    
+    # Histórico
+    historico = usuario_repo.obter_historico_consumo_usuario(db, usuario_id, limite=30)
+    
+    # Auditoria
+    auditoria = usuario_repo.obter_auditoria_usuario(db, usuario_id, limite=20)
+    
+    return templates.TemplateResponse(
+        request, "admin_usuario_detalhes.html",
+        {
+            "pagina_ativa": "admin",
+            "usuario": usuario,
+            "plano": plano,
+            "ultimo_login": ultimo_login,
+            "ultimo_uso_api": ultimo_uso_api,
+            "stats": stats,
+            "chaves": chaves,
+            "historico": historico,
+            "auditoria": auditoria,
+        },
+    )
+
+
+@router.post("/admin/api/usuarios/{usuario_id}/revogar-chave/{chave_id}")
+async def admin_revogar_chave(
+    usuario_id: int,
+    chave_id: int,
+    admin: Usuario = Depends(requer_admin),
+    db: Session = Depends(get_db),
+):
+    """Revogar uma chave API específica."""
+    usuario_repo.revogar_chave_acesso(db, chave_id, usuario_id)
+    return RedirectResponse(
+        url=f"/admin/usuarios/{usuario_id}/detalhes",
+        status_code=status.HTTP_302_FOUND
+    )
