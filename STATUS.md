@@ -52,10 +52,11 @@
 - **Status:** ✅ Concluído - Commit 80f2257
 
 ### CORRECAO_06 - Histórico de Consumo
-- [ ] Padronizar layout
-- [ ] Dashboard moderno
-- [ ] Melhor visualização dos gráficos
-- [ ] Consistência com o restante do sistema
+- [x] Padronizar layout
+- [x] Dashboard moderno
+- [x] Melhor visualização dos gráficos (Chart.js)
+- [x] Consistência com o restante do sistema
+- **Status:** ✅ Concluído - Commit 575d338
 
 ### CORRECAO_07 - Menu Usuário
 - [ ] Nome do usuário clicável no canto superior direito
