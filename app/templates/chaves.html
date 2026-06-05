@@ -513,19 +513,159 @@
     </div>
 
     <div class="docs-secao">
-      <h3 class="docs-titulo">Exemplo de requisição</h3>
-      <pre class="codigo-exemplo">curl https://mediddata.com/api/medicamentos?q=dipirona \
+      <h3 class="docs-titulo">📦 1. Buscar Medicamentos</h3>
+      <p class="docs-texto">Busca medicamentos por nome comercial ou princípio ativo com fuzzy matching:</p>
+      <pre class="codigo-exemplo">GET https://mediddata.com/medicamentos/buscar?q=dipirona
+
+curl "https://mediddata.com/medicamentos/buscar?q=dipirona" \
   -H "Authorization: Bearer med_abc123..."</pre>
+      <p class="docs-texto"><strong>Resposta:</strong> Lista de medicamentos com nome, fabricante, registro ANVISA, preços (PMC/PF/PMVG) e status.</p>
     </div>
 
     <div class="docs-secao">
-      <h3 class="docs-titulo">Boas práticas de segurança</h3>
+      <h3 class="docs-titulo">🔍 2. Detalhes de Medicamento</h3>
+      <p class="docs-texto">Recupera informações completas de um medicamento específico:</p>
+      <pre class="codigo-exemplo">GET https://mediddata.com/medicamentos/{id}
+
+curl "https://mediddata.com/medicamentos/12345" \
+  -H "Authorization: Bearer med_abc123..."</pre>
+      <p class="docs-texto"><strong>Resposta:</strong> Dados detalhados incluindo apresentação, via de administração, classe terapêutica, restrições e preços atualizados.</p>
+    </div>
+
+    <div class="docs-secao">
+      <h3 class="docs-titulo">⚠️ 3. Análise de Risco de Prescrição</h3>
+      <p class="docs-texto">Valida prescrição médica e detecta riscos de glosa em 9 dimensões:</p>
+      <pre class="codigo-exemplo">POST https://mediddata.com/analise/risco
+Content-Type: application/json
+
+{
+  "paciente": {
+    "idade_anos": 65,
+    "sexo": "M",
+    "peso_kg": 75.5
+  },
+  "medicamentos": [
+    {
+      "id": 12345,
+      "quantidade": 2,
+      "via_administracao": "ORAL"
+    }
+  ],
+  "diagnostico_cid10": "I10",
+  "procedimento_sigtap": "0301060029"
+}
+
+curl -X POST "https://mediddata.com/analise/risco" \
+  -H "Authorization: Bearer med_abc123..." \
+  -H "Content-Type: application/json" \
+  -d '{...}'</pre>
+      <p class="docs-texto"><strong>Dimensões analisadas:</strong> Registro ANVISA, compatibilidade com CID-10, compatibilidade com SIGTAP, dose por idade/peso, contraindicações, interações medicamentosas, via de administração, custo-efetividade, disponibilidade no mercado.</p>
+      <p class="docs-texto"><strong>Resposta:</strong> Score de risco (0-100), alertas por dimensão, recomendações e justificativas técnicas.</p>
+    </div>
+
+    <div class="docs-secao">
+      <h3 class="docs-titulo">📊 4. Consultar Consumo</h3>
+      <p class="docs-texto">Verifica quanto você já consumiu do seu plano:</p>
+      <pre class="codigo-exemplo">GET https://mediddata.com/usuario/consumo
+
+curl "https://mediddata.com/usuario/consumo" \
+  -H "Authorization: Bearer med_abc123..."</pre>
+      <p class="docs-texto"><strong>Resposta:</strong> Consumo diário, semanal, mensal e total + limites do plano.</p>
+    </div>
+
+    <div class="docs-secao">
+      <h3 class="docs-titulo">💡 Exemplos de Integração</h3>
+
+      <p class="docs-texto"><strong>Python:</strong></p>
+      <pre class="codigo-exemplo">import requests
+
+API_KEY = "med_abc123..."
+BASE_URL = "https://mediddata.com"
+
+headers = {"Authorization": f"Bearer {API_KEY}"}
+
+# Buscar medicamento
+resp = requests.get(
+    f"{BASE_URL}/medicamentos/buscar",
+    params={"q": "dipirona"},
+    headers=headers
+)
+medicamentos = resp.json()
+
+# Análise de risco
+analise = requests.post(
+    f"{BASE_URL}/analise/risco",
+    json={
+        "paciente": {"idade_anos": 65, "sexo": "M"},
+        "medicamentos": [{"id": 12345, "quantidade": 1}],
+        "diagnostico_cid10": "I10"
+    },
+    headers=headers
+).json()</pre>
+
+      <p class="docs-texto"><strong>JavaScript:</strong></p>
+      <pre class="codigo-exemplo">const API_KEY = "med_abc123...";
+const BASE_URL = "https://mediddata.com";
+
+// Buscar medicamento
+const response = await fetch(
+  `${BASE_URL}/medicamentos/buscar?q=dipirona`,
+  {
+    headers: { "Authorization": `Bearer ${API_KEY}` }
+  }
+);
+const medicamentos = await response.json();
+
+// Análise de risco
+const analise = await fetch(`${BASE_URL}/analise/risco`, {
+  method: "POST",
+  headers: {
+    "Authorization": `Bearer ${API_KEY}`,
+    "Content-Type": "application/json"
+  },
+  body: JSON.stringify({
+    paciente: { idade_anos: 65, sexo: "M" },
+    medicamentos: [{ id: 12345, quantidade: 1 }],
+    diagnostico_cid10: "I10"
+  })
+}).then(r => r.json());</pre>
+
+      <p class="docs-texto"><strong>PHP:</strong></p>
+      <pre class="codigo-exemplo">$apiKey = "med_abc123...";
+$baseUrl = "https://mediddata.com";
+
+$headers = [
+    "Authorization: Bearer " . $apiKey,
+    "Content-Type: application/json"
+];
+
+// Buscar medicamento
+$ch = curl_init("$baseUrl/medicamentos/buscar?q=dipirona");
+curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+$medicamentos = json_decode(curl_exec($ch), true);</pre>
+    </div>
+
+    <div class="docs-secao">
+      <h3 class="docs-titulo">🔒 Boas práticas de segurança</h3>
       <ul class="docs-lista">
-        <li>Nunca compartilhe suas chaves de acesso</li>
-        <li>Revogue imediatamente chaves comprometidas</li>
-        <li>Use chaves diferentes para ambientes dev/prod</li>
-        <li>As chaves respeitam os limites do seu plano</li>
+        <li><strong>Nunca compartilhe suas chaves de acesso</strong> (nem por e-mail, chat ou repositório público)</li>
+        <li><strong>Revogue imediatamente chaves comprometidas</strong> e crie novas</li>
+        <li><strong>Use chaves diferentes para cada ambiente</strong> (desenvolvimento, homologação, produção)</li>
+        <li><strong>Armazene chaves em variáveis de ambiente</strong>, nunca no código-fonte</li>
+        <li><strong>As chaves respeitam os limites do seu plano</strong> - monitore seu consumo regularmente</li>
+        <li><strong>Implemente tratamento de erros</strong> para códigos 429 (limite excedido) e 401 (chave inválida)</li>
       </ul>
+    </div>
+
+    <div class="docs-secao">
+      <h3 class="docs-titulo">📖 Documentação Completa</h3>
+      <p class="docs-texto">Para documentação técnica detalhada com todos os endpoints, parâmetros e respostas, acesse:</p>
+      <p class="docs-texto">
+        <a href="/docs" target="_blank" style="color: var(--azul); font-weight: 500; text-decoration: underline;">
+          https://mediddata.com/docs
+        </a> (OpenAPI/Swagger)
+      </p>
     </div>
   </div>
 </div>
