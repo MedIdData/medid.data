@@ -143,6 +143,8 @@ def buscar_medicamentos(
         limite = min(limite, 1000)  # Permite até 1000 para filtro client-side
         offset = (pagina - 1) * limite
 
+        # RÁPIDO: Sem JOIN LATERAL (carrega só ANVISA)
+        # Preços podem ser buscados depois por demanda ou via cache
         sql_listar = text("""
             SELECT
                 a.id,
@@ -158,29 +160,13 @@ def buscar_medicamentos(
                 a.indicacoes,
                 a.sinonimos,
                 a.codigo_atc,
-                c.pf_sem_impostos as pf,
-                c.pmc_0 as pmc,
-                c.pmvg_0 as pmvg,
-                c.tarja as cmed_tarja,
-                c.apresentacao,
-                c.laboratorio
+                NULL::numeric as pf,
+                NULL::numeric as pmc,
+                NULL::numeric as pmvg,
+                NULL as cmed_tarja,
+                NULL as apresentacao,
+                NULL as laboratorio
             FROM medicamentos_anvisa a
-            LEFT JOIN LATERAL (
-                SELECT
-                    mc.pf_sem_impostos,
-                    mc.pmc_0,
-                    mc.pmvg_0,
-                    mc.tarja,
-                    mc.apresentacao,
-                    mc.laboratorio
-                FROM medicamentos_cmed mc
-                WHERE
-                    upper(trim(mc.substancia)) = upper(trim(split_part(coalesce(a.principio_ativo, ''), ',', 1)))
-                    OR mc.substancia ILIKE '%' || trim(split_part(coalesce(a.principio_ativo, ''), ',', 1)) || '%'
-                    OR similarity(upper(mc.produto), upper(a.nome_produto)) > 0.6
-                ORDER BY mc.pmc_0 ASC NULLS LAST
-                LIMIT 1
-            ) c ON TRUE
             WHERE (:apenas_ativos = FALSE OR upper(a.situacao_registro) = 'ATIVO')
             ORDER BY a.nome_produto ASC
             LIMIT :limite OFFSET :offset

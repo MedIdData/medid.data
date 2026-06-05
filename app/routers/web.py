@@ -351,7 +351,7 @@ async def pagina_buscar(
     q: str = Query("", alias="q"),
     apenas_ativos: bool = Query(True),
     pagina: int = Query(1, ge=1),
-    limite: int = Query(500, ge=1, le=1000),  # Carrega 500 por padrão para filtro client-side
+    limite: int = Query(500, ge=1, le=1000),  # Carrega 500 (rápido sem JOIN LATERAL)
     usuario: Optional[Usuario] = Depends(get_usuario_atual),
     db: Session = Depends(get_db),
 ):
