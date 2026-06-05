@@ -23,8 +23,8 @@
     <meta property="og:site_name" content="MedID Data">
     <meta property="og:locale" content="pt_BR">
 
-    <!-- Auto redirect após 2 segundos -->
-    <meta http-equiv="refresh" content="2;url=/ativar-conta/{{ token }}">
+    <!-- Auto redirect desabilitado para teste -->
+    <!-- <meta http-equiv="refresh" content="2;url=/ativar-conta/{{ token }}"> -->
 
     <style>
         * {
@@ -108,8 +108,11 @@
         <p>Redirecionando para ativação da sua conta...</p>
         <div class="spinner"></div>
         <a href="/ativar-conta/{{ token }}" class="link">
-            Ou clique aqui para continuar
+            ← Clique aqui para ativar sua conta
         </a>
+        <p style="margin-top: 20px; font-size: 0.85rem; color: #94A3B8;">
+            Link de ativação válido por 72 horas
+        </p>
     </div>
 </body>
 </html>
