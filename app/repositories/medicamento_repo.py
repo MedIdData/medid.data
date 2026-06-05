@@ -140,7 +140,7 @@ def buscar_medicamentos(
 
     # Se query vazia, listar primeiros medicamentos (ordem alfabética)
     if len(q) < 2:
-        limite = min(limite, 100)
+        limite = min(limite, 1000)  # Permite até 1000 para filtro client-side
         offset = (pagina - 1) * limite
 
         sql_listar = text("""

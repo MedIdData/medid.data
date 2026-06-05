@@ -26,10 +26,10 @@
     font-weight: 300;
   }
   .busca-form {
-    display: flex; gap: 10px; align-items: stretch;
+    max-width: 100%;
   }
   .busca-input-wrap {
-    position: relative; flex: 1;
+    position: relative; width: 100%;
   }
   .busca-input-wrap svg {
     position: absolute; left: 14px; top: 50%;
@@ -51,16 +51,6 @@
     border-color: var(--teal);
     box-shadow: 0 0 0 3px rgba(20,184,166,.25);
   }
-  .btn-buscar {
-    padding: 0 24px;
-    background: var(--teal); color: var(--branco);
-    border: none; border-radius: var(--r-botao);
-    font-size: .9rem; font-weight: 500;
-    cursor: pointer; white-space: nowrap;
-    transition: background .15s;
-    display: flex; align-items: center; gap: 8px;
-  }
-  .btn-buscar:hover { background: var(--teal-claro); }
 
   /* ── Filtros ────────────────────────────────────────────────────────── */
   .busca-layout {
@@ -226,7 +216,7 @@
 <div class="busca-hero">
   <h2>Busca de Medicamentos</h2>
   <p>Encontre medicamentos por nome comercial ou princípio ativo com dados ANVISA e preços CMED atualizados.</p>
-  <form class="busca-form" method="get" action="/buscar" id="form-busca">
+  <div class="busca-form">
     <div class="busca-input-wrap">
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
         <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
@@ -243,15 +233,7 @@
         spellcheck="false"
       >
     </div>
-    <button type="submit" class="btn-buscar">
-      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
-      </svg>
-      Buscar
-    </button>
-    <!-- Preservar outros filtros no submit -->
-    {% if apenas_ativos %}<input type="hidden" name="apenas_ativos" value="true">{% endif %}
-  </form>
+  </div>
 </div>
 
 <!-- Layout de conteúdo -->
@@ -457,15 +439,6 @@
 
     // Event listener - filtro instantâneo
     campo.addEventListener('input', filtrar);
-
-    // Previne submit do form (não queremos reload)
-    const form = document.getElementById('form-busca');
-    if (form) {
-      form.addEventListener('submit', (e) => {
-        e.preventDefault();
-        filtrar();
-      });
-    }
 
     // Contagem inicial
     atualizarContagem(medicamentos.length);
