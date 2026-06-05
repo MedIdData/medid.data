@@ -278,14 +278,14 @@
 
     {% if resultado %}
 
-      <!-- Medidor + classificação -->
+      <!-- SCORE DE RISCO DE GLOSA -->
       <div class="card medidor-card">
-        {% set cor_aderencia = '#14B8A6' if resultado.pontuacao_aderencia >= 90 else ('#F59E0B' if resultado.pontuacao_aderencia >= 70 else '#EF4444') %}
-        {% set classe_glosa = 'glosa-baixo' if resultado.potencial_glosa == 'BAIXO' else ('glosa-medio' if resultado.potencial_glosa == 'MEDIO' else 'glosa-alto') %}
-        {% set icone_glosa = '✓' if resultado.potencial_glosa == 'BAIXO' else ('⚠' if resultado.potencial_glosa == 'MEDIO' else '✕') %}
+        {% set score_risco = resultado.pontuacao_risco %}
+        {% set cor_risco = '#14B8A6' if score_risco <= 20 else ('#10B981' if score_risco <= 40 else ('#F59E0B' if score_risco <= 60 else ('#FB923C' if score_risco <= 80 else '#EF4444'))) %}
+        {% set classificacao = resultado.classificacao_risco %}
 
-        <div style="font-size:.75rem;font-weight:500;color:var(--texto-ter);text-transform:uppercase;letter-spacing:.07em;margin-bottom:12px;">
-          Pontuação de Aderência
+        <div style="font-size:.75rem;font-weight:500;color:var(--texto-ter);text-transform:uppercase;letter-spacing:.07em;margin-bottom:12px;text-align:center;">
+          Score de Risco de Glosa
         </div>
 
         <div class="medidor-wrap">
@@ -294,44 +294,32 @@
               d="M 15 105 A 85 85 0 0 1 185 105"
               stroke-dasharray="267"
             />
-            <path class="arco" id="arco-aderencia"
+            <path class="arco" id="arco-risco"
               d="M 15 105 A 85 85 0 0 1 185 105"
-              stroke="{{ cor_aderencia }}"
-              data-valor="{{ resultado.pontuacao_aderencia }}"
+              stroke="{{ cor_risco }}"
+              data-valor="{{ score_risco }}"
               data-total-arco="267"
             />
             <text x="100" y="95" text-anchor="middle"
                   font-family="'Syne', sans-serif" font-weight="800"
-                  font-size="36" fill="{{ cor_aderencia }}"
-                  id="num-aderencia">--</text>
+                  font-size="36" fill="{{ cor_risco }}"
+                  id="num-risco">--</text>
           </svg>
         </div>
 
-        <div class="medidor-label">pontuação de aderência</div>
+        <div class="medidor-label">score de risco (0-100)</div>
 
-        <div class="glosa-badge {{ classe_glosa }}" style="display:flex;margin:10px auto 0;">
-          {{ icone_glosa }}
-          Potencial de Glosa: <strong>{{ resultado.potencial_glosa }}</strong>
+        <div class="classificacao-badge" style="text-align:center;margin-top:16px;font-size:1.1rem;font-weight:600;color:{{ cor_risco }};">
+          {{ classificacao }}
         </div>
 
-        <div class="scores-linha">
-          <div class="score-mini">
-            <div class="score-mini-val" style="color:{% if resultado.pontuacao_risco <= 30 %}var(--teal){% elif resultado.pontuacao_risco <= 70 %}var(--ambar){% else %}var(--vermelho){% endif %}">
-              {{ resultado.pontuacao_risco }}
-            </div>
-            <div class="score-mini-label">Risco</div>
-          </div>
-          <div class="score-mini">
-            <div class="score-mini-val" style="color:{% if resultado.aderente %}var(--teal){% else %}var(--vermelho){% endif %}">
-              {{ 'Sim' if resultado.aderente else 'Não' }}
-            </div>
-            <div class="score-mini-label">Aderente</div>
-          </div>
+        <div style="text-align:center;margin-top:8px;font-size:.7rem;color:var(--texto-ter);">
+          Quanto maior o score, maior o risco de glosa
         </div>
 
         {% if resultado.medicamento_encontrado %}
-        <div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--fundo-sec);font-size:.78rem;color:var(--texto-sec);">
-          Medicamento identificado: <strong>{{ resultado.medicamento_encontrado }}</strong>
+        <div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--fundo-sec);font-size:.78rem;color:var(--texto-sec);text-align:center;">
+          Medicamento: <strong>{{ resultado.medicamento_encontrado }}</strong>
           {% if resultado.situacao_anvisa %}
             <span class="etiq {% if resultado.situacao_anvisa|upper == 'ATIVO' %}etiq-ativo{% else %}etiq-inativo{% endif %}" style="margin-left:6px;">
               {{ resultado.situacao_anvisa }}
@@ -356,65 +344,6 @@
       </div>
       {% endif %}
 
-      <!-- Dimensões -->
-      <div class="dimensoes-grid">
-
-        {% macro dim_card(nome, icone, situacao, motivo, extra="") %}
-        {% set cls = 'aderente' if situacao == 'ADERENTE' else ('atencao' if situacao == 'ATENCAO' else ('nao-aderente' if situacao == 'NAO_ADERENTE' else 'nao-informado')) %}
-        {% set label = 'Aderente' if situacao == 'ADERENTE' else ('Atenção' if situacao == 'ATENCAO' else ('Não aderente' if situacao == 'NAO_ADERENTE' else 'Não informado')) %}
-        <div class="card dim-card {{ cls }}">
-          <div class="dim-header">
-            <div class="dim-icone {{ cls }}">{{ icone }}</div>
-            <div class="dim-nome">{{ nome }}</div>
-            <span class="dim-status {{ cls }}">{{ label }}</span>
-          </div>
-          {% if motivo %}
-          <div class="dim-motivo">{{ motivo }}</div>
-          {% endif %}
-          {{ extra }}
-        </div>
-        {% endmacro %}
-
-        {{ dim_card("Tratamento", "💊", resultado.analise_tratamento.situacao.value, resultado.analise_tratamento.motivo) }}
-        {{ dim_card("CID-10", "🏥", resultado.analise_cid.situacao.value, resultado.analise_cid.motivo) }}
-        {{ dim_card("Med. × Procedimento", "⚕", resultado.analise_procedimento.situacao.value, resultado.analise_procedimento.motivo) }}
-        {{ dim_card("CID × Procedimento", "🔗", resultado.analise_cid_procedimento.situacao.value, resultado.analise_cid_procedimento.motivo) }}
-
-        <!-- Preço — card especial com comparativo -->
-        {% set ap = resultado.analise_preco %}
-        {% set cls_p = 'aderente' if ap.situacao.value == 'ADERENTE' else ('atencao' if ap.situacao.value == 'ATENCAO' else ('nao-aderente' if ap.situacao.value == 'NAO_ADERENTE' else 'nao-informado')) %}
-        {% set label_p = 'Aderente' if ap.situacao.value == 'ADERENTE' else ('Atenção' if ap.situacao.value == 'ATENCAO' else ('Não aderente' if ap.situacao.value == 'NAO_ADERENTE' else 'Não informado')) %}
-        <div class="card dim-card {{ cls_p }}">
-          <div class="dim-header">
-            <div class="dim-icone {{ cls_p }}">💲</div>
-            <div class="dim-nome">Preço</div>
-            <span class="dim-status {{ cls_p }}">{{ label_p }}</span>
-          </div>
-          {% if ap.motivo %}<div class="dim-motivo">{{ ap.motivo }}</div>{% endif %}
-          {% if ap.pf or ap.pmc or ap.pmvg %}
-          <div class="preco-comparativo">
-            {% for label_ref, val, var in [('PF', ap.pf, ap.variacao_pf_pct), ('PMC', ap.pmc, ap.variacao_pmc_pct), ('PMVG', ap.pmvg, ap.variacao_pmvg_pct)] %}
-            <div class="preco-ref">
-              <div class="preco-ref-label">{{ label_ref }}</div>
-              {% if val %}
-                <div class="preco-ref-val">R$ {{ "%.2f"|format(val) }}</div>
-                {% if var is not none %}
-                  <div class="preco-ref-var {% if var > 10 %}acima{% elif var > 5 %}atencao{% else %}ok{% endif %}">
-                    {{ "%+.1f"|format(var) }}%
-                  </div>
-                {% endif %}
-              {% else %}
-                <div class="preco-ref-val" style="color:var(--texto-ter)">—</div>
-              {% endif %}
-            </div>
-            {% endfor %}
-          </div>
-          {% endif %}
-        </div>
-
-        {{ dim_card("Quantidade", "📦", resultado.analise_quantidade.situacao.value, resultado.analise_quantidade.motivo) }}
-
-      </div>
 
     {% else %}
 
@@ -439,17 +368,17 @@
 
 {% block scripts_extras %}
 <script>
-  // Animação do medidor de aderência
+  // Animação do medidor de RISCO
   document.addEventListener('DOMContentLoaded', () => {
-    const arco = document.getElementById('arco-aderencia');
-    const num  = document.getElementById('num-aderencia');
+    const arco = document.getElementById('arco-risco');
+    const num  = document.getElementById('num-risco');
     if (!arco) return;
 
     const valor     = parseInt(arco.dataset.valor, 10);
     const totalArco = parseFloat(arco.dataset.totalArco);
     // SEM rotação: offset alto = vazio, offset baixo = preenchido
-    // Valor 92 → offset 21.36 (267 - 92%) → arco 92% preenchido da ESQUERDA
-    // Valor 8  → offset 245.64 (267 - 8%) → arco 8% preenchido da ESQUERDA
+    // Score 0 (sem risco) → arco vazio
+    // Score 100 (máximo risco) → arco cheio
     const offset    = totalArco * (1 - valor / 100);
 
     // Anima após 100ms para garantir render
