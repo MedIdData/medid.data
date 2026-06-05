@@ -146,20 +146,26 @@ def buscar_medicamentos(
         sql_listar = text("""
             SELECT
                 a.id,
-                a.nome_produto as medicamento,
-                a.principio_ativo,
                 a.numero_registro,
-                a.classe_terapeutica,
-                a.apresentacao,
-                a.empresa_detentora as empresa,
-                a.tarja,
+                a.nome_produto,
+                a.principio_ativo,
+                a.empresa_detentora,
                 a.situacao_registro,
-                a.venda_generico,
-                c.pf,
-                c.pmc,
-                c.pmvg
+                a.categoria_regulatoria,
+                a.classe_terapeutica,
+                a.tarja,
+                a.forma_fisica,
+                a.indicacoes,
+                a.sinonimos,
+                a.codigo_atc,
+                c.pf_sem_impostos as pf,
+                c.pmc_0 as pmc,
+                c.pmvg_0 as pmvg,
+                c.tarja as cmed_tarja,
+                c.apresentacao,
+                c.laboratorio
             FROM medicamentos_anvisa a
-            LEFT JOIN medicamentos_cmed c ON a.numero_registro = c.numero_registro
+            LEFT JOIN medicamentos_cmed c ON a.numero_registro = c.registro
             WHERE (:apenas_ativos = FALSE OR upper(a.situacao_registro) = 'ATIVO')
             ORDER BY a.nome_produto ASC
             LIMIT :limite OFFSET :offset
