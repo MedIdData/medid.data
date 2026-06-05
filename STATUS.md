@@ -79,8 +79,13 @@
 - **Status:** ✅ Concluído - Commit 8c6768f
 
 ### CORRECAO_10 - Testes
-- [ ] Autenticação, busca, análise
-- [ ] Consumo, admin, API, chaves
+- [x] Autenticação (7 testes)
+- [x] Busca de medicamentos (5 testes)
+- [x] Análise de risco (7 testes)
+- [x] Gestão de usuário (8 testes)
+- [x] Administração (10 testes)
+- **Total:** 37 testes automatizados com pytest
+- **Status:** ✅ Concluído - Commit 5be8750
 
 ### CORRECAO_11 - Documentação
 - [x] CLAUDE.md, STATUS.md, FILE_MAP.md, CHANGELOG.md, ROADMAP.md
