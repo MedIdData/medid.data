@@ -351,7 +351,7 @@ async def pagina_buscar(
     q: str = Query("", alias="q"),
     apenas_ativos: bool = Query(True),
     pagina: int = Query(1, ge=1),
-    limite: int = Query(500, ge=1, le=1000),  # Carrega 500 (rápido sem JOIN LATERAL)
+    limite: int = Query(50, ge=1, le=100),  # 50 por página (performance)
     usuario: Optional[Usuario] = Depends(get_usuario_atual),
     db: Session = Depends(get_db),
 ):
@@ -363,7 +363,7 @@ async def pagina_buscar(
     sugestao = None
     termo_busca = q.strip() if q else ""
 
-    # Sempre carrega lista (vazia = lista inicial, com termo = busca fuzzy)
+    # Busca na BASE COMPLETA (não apenas primeiros 500)
     resposta = busca_medicamento.buscar(db, termo_busca, apenas_ativos, pagina, limite)
     resultados = resposta.resultados
     total = resposta.total
@@ -373,6 +373,9 @@ async def pagina_buscar(
     if resultados:
         from datetime import date
         usuario_repo.incrementar_consumo(db, usuario.id, date.today(), "MEDICAMENTOS")
+
+    # Calcula paginação
+    total_paginas = (total + limite - 1) // limite if total > 0 else 0
 
     return templates.TemplateResponse(
         request, "buscar.html",
@@ -385,6 +388,7 @@ async def pagina_buscar(
             "limite": limite,
             "resultados": resultados,
             "total": total,
+            "total_paginas": total_paginas,
             "sugestao": sugestao,
         },
     )

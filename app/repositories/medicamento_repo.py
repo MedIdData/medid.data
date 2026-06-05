@@ -11,7 +11,7 @@ from sqlalchemy import text
 from typing import Optional
 
 
-LIMIAR_SIMILARIDADE = 0.25
+LIMIAR_SIMILARIDADE = 0.3  # Similaridade para busca geral (0.7 para análise de risco)
 
 
 def _params(q: str, apenas_ativos: bool, limite: int, offset: int) -> dict:
@@ -134,17 +134,15 @@ def buscar_medicamentos(
 ) -> tuple[list[dict], int, str | None]:
     """
     Retorna (resultados, total, sugestao_ortografica).
+    Busca SEMPRE na base completa (~10 mil medicamentos).
     sugestao é None quando há resultados, ou o nome mais próximo quando zero.
     """
     q = q.strip()
+    offset = (pagina - 1) * limite
 
     # Se query vazia, listar primeiros medicamentos (ordem alfabética)
     if len(q) < 2:
-        limite = min(limite, 1000)  # Permite até 1000 para filtro client-side
-        offset = (pagina - 1) * limite
-
         # RÁPIDO: Sem JOIN LATERAL (carrega só ANVISA)
-        # Preços podem ser buscados depois por demanda ou via cache
         sql_listar = text("""
             SELECT
                 a.id,
@@ -184,9 +182,7 @@ def buscar_medicamentos(
 
         return [dict(r) for r in rows], total, None
 
-    # Query com termo >= 2 caracteres: busca com fuzzy matching
-    limite = min(limite, 100)
-    offset = (pagina - 1) * limite
+    # Query com termo >= 2 caracteres: busca FUZZY na BASE COMPLETA
     params = _params(q, apenas_ativos, limite, offset)
 
     total: int = db.execute(_SQL_TOTAL, params).scalar_one()
