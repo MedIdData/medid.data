@@ -447,10 +447,10 @@
 
     const valor     = parseInt(arco.dataset.valor, 10);
     const totalArco = parseFloat(arco.dataset.totalArco);
-    // Cálculo correto do offset para stroke-dashoffset com rotate(-180deg)
-    // valor 100 → offset 0 (arco completo)
-    // valor 0   → offset 283 (arco vazio)
-    const offset    = totalArco * (1 - valor / 100);
+    // Com rotate(-180deg), a direção do preenchimento é invertida
+    // valor 100 → offset 283 (preenchimento completo visualmente)
+    // valor 0   → offset 0 (vazio visualmente)
+    const offset    = totalArco * (valor / 100);
 
     // Anima após 100ms para garantir render
     setTimeout(() => {
