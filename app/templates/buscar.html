@@ -109,11 +109,17 @@
     padding: 18px 20px 16px;
     display: flex; flex-direction: column; gap: 10px;
     transition: box-shadow .15s, transform .15s;
-    cursor: pointer; text-decoration: none; color: inherit;
+    cursor: pointer;
+    position: relative;
   }
   .med-card:hover {
     box-shadow: var(--shadow-md);
     transform: translateY(-1px);
+  }
+  .med-card:hover .med-tooltip {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
   }
   .med-card-topo {
     display: flex; align-items: flex-start;
@@ -156,6 +162,52 @@
   }
   .pag-btn.desabilitado {
     opacity: .4; pointer-events: none;
+  }
+
+  /* ── Tooltip de detalhes ─────────────────────────────────────────────── */
+  .med-tooltip {
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%) translateY(10px);
+    width: 320px;
+    background: var(--branco);
+    border: 1px solid var(--borda);
+    border-radius: var(--r-card);
+    box-shadow: 0 8px 24px rgba(0,0,0,.12);
+    padding: 16px;
+    z-index: 100;
+    opacity: 0;
+    visibility: hidden;
+    transition: all .2s ease;
+    pointer-events: none;
+    margin-bottom: 12px;
+  }
+  .tooltip-titulo {
+    font-size: .8rem;
+    font-weight: 600;
+    color: var(--texto);
+    margin-bottom: 12px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--borda);
+  }
+  .tooltip-linha {
+    font-size: .75rem;
+    line-height: 1.5;
+    margin-bottom: 8px;
+    color: var(--texto-sec);
+  }
+  .tooltip-linha strong {
+    color: var(--texto);
+    font-weight: 500;
+  }
+  .tooltip-hint {
+    font-size: .7rem;
+    color: var(--texto-ter);
+    text-align: center;
+    margin-top: 12px;
+    padding-top: 8px;
+    border-top: 1px solid var(--borda);
   }
 
   /* ── Sugestão ortográfica ────────────────────────────────────────────── */
@@ -288,13 +340,13 @@
             {% endif %}
           </div>
           <div style="font-size:.7rem;color:var(--texto-ter);max-width:600px;">
-            Base oficial ANVISA sem remoção de similares · Clique em um medicamento para ver detalhes e preços
+            Base oficial ANVISA sem remoção de similares · Passe o mouse sobre um medicamento para ver mais detalhes
           </div>
         </div>
 
         <div class="resultados-grid">
           {% for med in resultados %}
-          <a href="/medicamentos/{{ med.id }}" class="card med-card">
+          <div class="card med-card" data-med-id="{{ med.id }}">
             <div class="med-card-topo">
               <div>
                 <div class="med-nome">{{ med.medicamento or med.principio_ativo or '—' }}</div>
@@ -316,7 +368,40 @@
                 {% endif %}
               {% endif %}
             </div>
-          </a>
+
+            <!-- Tooltip com detalhes (aparece no hover) -->
+            <div class="med-tooltip">
+              <div class="tooltip-titulo">Detalhes do Medicamento</div>
+
+              {% if med.numero_registro %}
+              <div class="tooltip-linha">
+                <strong>Registro ANVISA:</strong> {{ med.numero_registro }}
+              </div>
+              {% endif %}
+
+              {% if med.categoria_regulatoria %}
+              <div class="tooltip-linha">
+                <strong>Categoria:</strong> {{ med.categoria_regulatoria }}
+              </div>
+              {% endif %}
+
+              {% if med.classe_terapeutica %}
+              <div class="tooltip-linha">
+                <strong>Classe Terapêutica:</strong> {{ med.classe_terapeutica }}
+              </div>
+              {% endif %}
+
+              {% if med.apresentacao %}
+              <div class="tooltip-linha">
+                <strong>Apresentação:</strong> {{ med.apresentacao }}
+              </div>
+              {% endif %}
+
+              <div class="tooltip-hint">
+                Informações da base oficial ANVISA
+              </div>
+            </div>
+          </div>
           {% endfor %}
         </div>
 
