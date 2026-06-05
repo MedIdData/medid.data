@@ -577,6 +577,20 @@
     </div>
   </div>
 
+  <!-- Tendência de Uso (Últimos 30 Dias) -->
+  <div class="secao-card secao-full">
+    <div class="secao-header">
+      <svg width="18" height="18" fill="currentColor" viewBox="0 0 24 24">
+        <path d="M3 3v18h18"/>
+        <path d="M18 17l-4-4-3 3-4-4"/>
+      </svg>
+      <h3>Tendência de Uso (Últimos 30 Dias)</h3>
+    </div>
+    <div class="secao-body">
+      <canvas id="graficoTendencia" style="max-height: 250px;"></canvas>
+    </div>
+  </div>
+
   <!-- Chaves API -->
   <div class="secao-card">
     <div class="secao-header">
@@ -941,5 +955,88 @@ function confirmarDesativar() {
     window.location.href = '/admin/usuarios/{{ usuario_detalhes.id }}/toggle-status';
   }
 }
+
+// Gráfico de Tendência de Uso
+(function() {
+  const dados = {{ tendencia_json|safe }};
+
+  if (dados.length === 0) {
+    document.getElementById('graficoTendencia').outerHTML = '<div style="text-align:center;padding:40px;color:var(--texto-ter);">Nenhum dado disponível para os últimos 30 dias</div>';
+    return;
+  }
+
+  // Preparar dados
+  const labels = dados.map(d => {
+    const [ano, mes, dia] = d.data.split('-');
+    return `${dia}/${mes}`;
+  });
+  const valores = dados.map(d => d.total);
+
+  // Configurar gráfico
+  const ctx = document.getElementById('graficoTendencia').getContext('2d');
+
+  new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: labels,
+      datasets: [{
+        label: 'Requisições',
+        data: valores,
+        borderColor: '#0F4C81',
+        backgroundColor: 'rgba(15, 76, 129, 0.1)',
+        tension: 0.3,
+        fill: true,
+        pointRadius: 3,
+        pointHoverRadius: 5
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: true,
+      plugins: {
+        legend: {
+          display: false
+        },
+        tooltip: {
+          backgroundColor: '#1E293B',
+          padding: 12,
+          titleColor: '#F8FAFC',
+          bodyColor: '#F8FAFC',
+          borderColor: '#475569',
+          borderWidth: 1,
+          callbacks: {
+            title: (items) => `Data: ${items[0].label}`,
+            label: (item) => `Requisições: ${item.parsed.y}`
+          }
+        }
+      },
+      scales: {
+        y: {
+          beginAtZero: true,
+          ticks: {
+            precision: 0,
+            color: '#64748B'
+          },
+          grid: {
+            color: '#E2E8F0'
+          }
+        },
+        x: {
+          ticks: {
+            color: '#64748B',
+            maxRotation: 45,
+            minRotation: 45
+          },
+          grid: {
+            display: false
+          }
+        }
+      }
+    }
+  });
+})();
 </script>
+
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 {% endblock %}

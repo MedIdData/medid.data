@@ -460,15 +460,16 @@
               {{ u.perfil }}
             </span>
           </td>
-          <td style="font-size:.85rem;color:var(--texto-sec);">
-            {% if u.limite_diario or u.limite_mensal %}
-              <div style="font-weight:500;color:var(--texto);">Custom</div>
-              <div style="font-size:.75rem;color:var(--texto-ter);">
-                {{ u.limite_diario or '∞' }}/dia · {{ u.limite_mensal or '∞' }}/mês
-              </div>
-            {% else %}
-              Gratuito
-            {% endif %}
+          <td style="font-size:.85rem;">
+            {% set nome_plano = plano_por_usuario.get(u.id, 'Gratuito') %}
+            <div style="font-weight:500;color:var(--texto);">{{ nome_plano }}</div>
+            <div style="font-size:.75rem;color:var(--texto-ter);">
+              {% if u.limite_diario == 0 and u.limite_mensal == 0 %}
+                ∞/dia · ∞/mês
+              {% else %}
+                {{ "{:,}".format(u.limite_diario) if u.limite_diario else '50' }}/dia · {{ "{:,}".format(u.limite_mensal) if u.limite_mensal else '1.000' }}/mês
+              {% endif %}
+            </div>
           </td>
           <td>
             <span class="badge {% if u.ativo %}badge-ativo{% else %}badge-inativo{% endif %}">

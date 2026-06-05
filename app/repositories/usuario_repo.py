@@ -471,3 +471,27 @@ def obter_consumo_por_tipo(db: Session, usuario_id: int) -> dict:
     else:
         # Tem chave mas não usou este mês = 100% WEB
         return {"WEB": consumo_mes, "API": 0}
+
+
+def obter_tendencia_uso(db: Session, usuario_id: int, dias: int = 30) -> list[dict]:
+    """
+    Obtém tendência de uso agregada por dia nos últimos N dias.
+    Retorna lista com data e total de consultas por dia.
+    """
+    from datetime import date, timedelta
+    
+    data_inicial = date.today() - timedelta(days=dias - 1)
+    
+    sql = text("""
+        SELECT 
+            cd.data_referencia as data,
+            SUM(cd.total_consultas) as total
+        FROM consumo_diario cd
+        WHERE cd.usuario_id = :uid
+          AND cd.data_referencia >= :data_inicial
+        GROUP BY cd.data_referencia
+        ORDER BY cd.data_referencia ASC
+    """)
+    
+    rows = db.execute(sql, {"uid": usuario_id, "data_inicial": data_inicial}).mappings().fetchall()
+    return [dict(r) for r in rows]

@@ -222,8 +222,8 @@ async def pagina_painel(
     consumo_hoje = usuario_repo.obter_consumo_total_dia(db, usuario.id, hoje)
     consumo_mes = usuario_repo.obter_consumo_mensal(db, usuario.id, hoje.year, hoje.month)
     por_modulo = usuario_repo.obter_consumo_por_modulo(db, usuario.id, hoje)
-    limite_diario = plano.limite_diario if plano else 100
-    limite_mensal = plano.limite_mensal if plano else 2000
+    limite_diario = plano.limite_diario if plano else 50
+    limite_mensal = plano.limite_mensal if plano else 1000
 
     return templates.TemplateResponse(
         request, "painel.html",
@@ -463,8 +463,8 @@ async def pagina_consumo(
 
     hoje = date.today()
     plano = usuario_repo.obter_plano_usuario(db, usuario)
-    limite_diario = plano.limite_diario if plano else 100
-    limite_mensal = plano.limite_mensal if plano else 2000
+    limite_diario = plano.limite_diario if plano else 50
+    limite_mensal = plano.limite_mensal if plano else 1000
     nome_plano = plano.nome if plano else "Gratuito"
 
     consumo_hoje = usuario_repo.obter_consumo_total_dia(db, usuario.id, hoje)
@@ -619,9 +619,15 @@ async def pagina_admin(
     # Lista de usuários com suas chaves
     usuarios = usuario_repo.listar_todos_usuarios(db)
 
-    # Mapear chaves e consumo por usuário
+    # Buscar todos os planos
+    from app.repositories import plano_repo
+    todos_planos = plano_repo.listar_todos(db)
+    planos_dict = {p.id: p for p in todos_planos}
+
+    # Mapear chaves, consumo e planos por usuário
     chaves_por_usuario = {}
     consumo_por_usuario = {}
+    plano_por_usuario = {}
 
     hoje = date.today()
 
@@ -652,6 +658,26 @@ async def pagina_admin(
             "percentual_mes": min(percentual_mes, 100),  # Cap at 100%
         }
 
+        # Determinar o plano do usuário
+        if u.limite_diario or u.limite_mensal:
+            # Tem limites customizados, mapear para o plano correspondente
+            limite_d = u.limite_diario or 0
+            limite_m = u.limite_mensal or 0
+
+            # Mapear limites para planos conhecidos
+            if limite_d == 50 and limite_m == 1000:
+                plano_por_usuario[u.id] = "Gratuito"
+            elif limite_d == 500 and limite_m == 10000:
+                plano_por_usuario[u.id] = "Básico"
+            elif limite_d == 2000 and limite_m == 50000:
+                plano_por_usuario[u.id] = "Profissional"
+            elif limite_d == 0 and limite_m == 0:
+                plano_por_usuario[u.id] = "Enterprise"
+            else:
+                plano_por_usuario[u.id] = "Customizado"
+        else:
+            plano_por_usuario[u.id] = "Gratuito"
+
     return templates.TemplateResponse(
         request, "admin.html",
         {
@@ -664,6 +690,7 @@ async def pagina_admin(
             "usuarios": usuarios,
             "chaves_por_usuario": chaves_por_usuario,
             "consumo_por_usuario": consumo_por_usuario,
+            "plano_por_usuario": plano_por_usuario,
         },
     )
 
@@ -674,8 +701,8 @@ async def admin_criar_usuario(
     nome: str = Form(...),
     email: str = Form(...),
     perfil: str = Form(...),
-    limite_diario: int = Form(100),
-    limite_mensal: int = Form(2000),
+    limite_diario: int = Form(50),
+    limite_mensal: int = Form(1000),
     usuario: Usuario = Depends(requer_admin),
     db: Session = Depends(get_db),
 ):
@@ -921,6 +948,19 @@ async def admin_usuario_detalhes(
     # Auditoria
     auditoria = usuario_repo.obter_auditoria_usuario(db, usuario_id, limite=20)
 
+    # Tendência de uso (últimos 30 dias)
+    tendencia = usuario_repo.obter_tendencia_uso(db, usuario_id, dias=30)
+
+    # Preparar dados para o gráfico
+    import json
+    tendencia_json = json.dumps([
+        {
+            "data": str(item["data"]),
+            "total": item["total"]
+        }
+        for item in tendencia
+    ])
+
     return templates.TemplateResponse(
         request, "admin_usuario_detalhes.html",
         {
@@ -935,6 +975,7 @@ async def admin_usuario_detalhes(
             "chaves": chaves,
             "historico": historico,
             "auditoria": auditoria,
+            "tendencia_json": tendencia_json,
         },
     )
 
