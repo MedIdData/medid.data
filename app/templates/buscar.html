@@ -310,7 +310,6 @@
         value="{{ q }}"
         placeholder="Buscar medicamento (ex: Resfenol, Gardenal, Dipirona)..."
         autocomplete="off"
-        autofocus
         spellcheck="false"
       >
       <input type="hidden" name="apenas_ativos" value="{{ 'true' if apenas_ativos else 'false' }}">
@@ -488,25 +487,44 @@
 
     if (!campo || !form) return;
 
-    // Foca no campo
-    campo.focus();
+    // Restaura posição do cursor após reload (evita seleção automática)
+    const valorAtual = campo.value;
+    const posicaoCursor = sessionStorage.getItem('cursor_pos');
 
-    // Submit automático ao digitar (debounce de 500ms)
+    if (valorAtual && posicaoCursor !== null) {
+      // Preserva cursor na posição anterior
+      setTimeout(() => {
+        campo.setSelectionRange(posicaoCursor, posicaoCursor);
+      }, 0);
+    } else if (!valorAtual) {
+      // Só foca no início se campo vazio
+      campo.focus();
+    }
+
+    // Submit automático ao digitar (debounce de 800ms = mais natural)
     let timeoutId;
     campo.addEventListener('input', () => {
       clearTimeout(timeoutId);
       timeoutId = setTimeout(() => {
+        // Salva posição do cursor antes de submeter
+        sessionStorage.setItem('cursor_pos', campo.selectionStart);
         form.submit();
-      }, 500);
+      }, 800);
     });
 
     // Submit imediato ao pressionar Enter
     campo.addEventListener('keydown', (e) => {
       if (e.key === 'Enter') {
         clearTimeout(timeoutId);
+        sessionStorage.setItem('cursor_pos', campo.selectionStart);
         form.submit();
       }
     });
+
+    // Limpa storage quando campo é limpo manualmente
+    if (!valorAtual) {
+      sessionStorage.removeItem('cursor_pos');
+    }
   });
 </script>
 {% endblock %}
