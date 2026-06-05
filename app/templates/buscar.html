@@ -491,15 +491,19 @@
     const valorAtual = campo.value;
     const posicaoCursor = sessionStorage.getItem('cursor_pos');
 
-    if (valorAtual && posicaoCursor !== null) {
-      // Preserva cursor na posição anterior
-      setTimeout(() => {
-        campo.setSelectionRange(posicaoCursor, posicaoCursor);
-      }, 0);
-    } else if (!valorAtual) {
-      // Só foca no início se campo vazio
+    // SEMPRE foca no campo e restaura cursor
+    setTimeout(() => {
       campo.focus();
-    }
+
+      if (valorAtual && posicaoCursor !== null) {
+        // Preserva cursor na posição anterior
+        const pos = parseInt(posicaoCursor);
+        campo.setSelectionRange(pos, pos);
+      } else {
+        // Coloca cursor no final
+        campo.setSelectionRange(valorAtual.length, valorAtual.length);
+      }
+    }, 0);
 
     // Submit automático ao digitar (debounce de 800ms = mais natural)
     let timeoutId;
