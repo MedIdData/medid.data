@@ -69,26 +69,67 @@ limiter = Limiter(
 # ── Seed de plano e usuário padrão ────────────────────────────────────────
 
 def _seed_plano_gratuito():
-    """Cria o plano Gratuito se não existir."""
+    """Cria planos padrão se não existirem."""
     from app.database import SessionLocal
     from app.models.empresa import Plano
 
     with SessionLocal() as db:
         try:
+            # Plano Gratuito
             if not db.query(Plano).filter(Plano.nome == "Gratuito").first():
-                plano = Plano(
+                gratuito = Plano(
                     nome="Gratuito",
                     descricao="Plano gratuito com limites básicos para testes e pequenos volumes",
-                    limite_diario=100,
-                    limite_mensal=2000,
+                    limite_diario=50,
+                    limite_mensal=1000,
                     valor_mensal_centavos=0,
                     ativo=True,
                 )
-                db.add(plano)
-                db.commit()
-                logger.info("Plano Gratuito criado: 100 req/dia, 2000 req/mês")
+                db.add(gratuito)
+                logger.info("Plano Gratuito criado: 50 req/dia, 1.000 req/mês")
+
+            # Plano Básico
+            if not db.query(Plano).filter(Plano.nome == "Básico").first():
+                basico = Plano(
+                    nome="Básico",
+                    descricao="Plano básico para pequenas clínicas e profissionais autônomos",
+                    limite_diario=500,
+                    limite_mensal=10000,
+                    valor_mensal_centavos=9900,  # R$ 99,00
+                    ativo=True,
+                )
+                db.add(basico)
+                logger.info("Plano Básico criado: 500 req/dia, 10.000 req/mês - R$ 99/mês")
+
+            # Plano Profissional
+            if not db.query(Plano).filter(Plano.nome == "Profissional").first():
+                pro = Plano(
+                    nome="Profissional",
+                    descricao="Plano profissional para clínicas e hospitais de médio porte",
+                    limite_diario=2000,
+                    limite_mensal=50000,
+                    valor_mensal_centavos=29900,  # R$ 299,00
+                    ativo=True,
+                )
+                db.add(pro)
+                logger.info("Plano Profissional criado: 2.000 req/dia, 50.000 req/mês - R$ 299/mês")
+
+            # Plano Enterprise
+            if not db.query(Plano).filter(Plano.nome == "Enterprise").first():
+                enterprise = Plano(
+                    nome="Enterprise",
+                    descricao="Plano enterprise para grandes hospitais e redes de saúde com volume ilimitado",
+                    limite_diario=0,  # 0 = ilimitado
+                    limite_mensal=0,  # 0 = ilimitado
+                    valor_mensal_centavos=99900,  # R$ 999,00
+                    ativo=True,
+                )
+                db.add(enterprise)
+                logger.info("Plano Enterprise criado: ILIMITADO - R$ 999/mês")
+
+            db.commit()
         except Exception as e:
-            logger.warning(f"Seed de plano ignorado: {e}")
+            logger.warning(f"Seed de planos ignorado: {e}")
 
 
 def _seed_usuario_padrao():

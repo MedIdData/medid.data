@@ -364,6 +364,27 @@
   </div>
 </div>
 
+<!-- Link para Gestão de Planos -->
+<a href="/admin/planos" style="text-decoration: none; display: block; margin-bottom: 24px;">
+  <div class="card" style="padding: 20px 24px; display: flex; justify-content: space-between; align-items: center; background: linear-gradient(135deg, rgba(15, 76, 129, 0.05) 0%, rgba(20, 184, 166, 0.05) 100%); border: 2px dashed var(--azul); transition: all .15s; cursor: pointer;">
+    <div style="display: flex; align-items: center; gap: 16px;">
+      <div style="width: 48px; height: 48px; border-radius: 50%; background: var(--azul); color: var(--branco); display: flex; align-items: center; justify-content: center;">
+        <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <rect x="2" y="5" width="20" height="14" rx="2"/>
+          <line x1="2" y1="10" x2="22" y2="10"/>
+        </svg>
+      </div>
+      <div>
+        <div style="font-family: 'Syne', sans-serif; font-weight: 700; font-size: 1.1rem; color: var(--azul-escuro); margin-bottom: 4px;">💳 Gestão de Planos</div>
+        <div style="font-size: .85rem; color: var(--texto-sec);">Configure planos, limites diários/mensais e valores de assinatura</div>
+      </div>
+    </div>
+    <svg width="24" height="24" fill="none" stroke="var(--azul)" stroke-width="2" viewBox="0 0 24 24">
+      <path d="M5 12h14M12 5l7 7-7 7"/>
+    </svg>
+  </div>
+</a>
+
 <!-- Lista de Usuários -->
 <div class="card">
   <div style="padding:20px 24px;border-bottom:1px solid var(--borda);display:flex;justify-content:space-between;align-items:center;">
@@ -386,6 +407,7 @@
           <th>Nome</th>
           <th>Email</th>
           <th>Perfil</th>
+          <th>Plano</th>
           <th>Status</th>
           <th>Chaves API</th>
           <th>Consumo Diário</th>
@@ -437,6 +459,16 @@
             <span class="badge {% if u.perfil == 'ADMINISTRADOR' %}badge-admin{% else %}badge-usuario{% endif %}">
               {{ u.perfil }}
             </span>
+          </td>
+          <td style="font-size:.85rem;color:var(--texto-sec);">
+            {% if u.limite_diario or u.limite_mensal %}
+              <div style="font-weight:500;color:var(--texto);">Custom</div>
+              <div style="font-size:.75rem;color:var(--texto-ter);">
+                {{ u.limite_diario or '∞' }}/dia · {{ u.limite_mensal or '∞' }}/mês
+              </div>
+            {% else %}
+              Gratuito
+            {% endif %}
           </td>
           <td>
             <span class="badge {% if u.ativo %}badge-ativo{% else %}badge-inativo{% endif %}">
@@ -704,3 +736,26 @@ function fecharModalToggleStatus() {
 }
 </script>
 {% endblock %}
+
+<!-- Adicionar antes da seção "Gestão de Usuários" -->
+<div style="margin-bottom: 24px;">
+  <a href="/admin/planos" style="text-decoration: none;">
+    <div class="card" style="padding: 20px 24px; display: flex; justify-content: space-between; align-items: center; background: linear-gradient(135deg, rgba(15, 76, 129, 0.05) 0%, rgba(20, 184, 166, 0.05) 100%); border: 2px dashed var(--azul); transition: all .15s;">
+      <div style="display: flex; align-items: center; gap: 16px;">
+        <div style="width: 48px; height: 48px; border-radius: 50%; background: var(--azul); color: var(--branco); display: flex; align-items: center; justify-content: center;">
+          <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <rect x="2" y="5" width="20" height="14" rx="2"/>
+            <line x1="2" y1="10" x2="22" y2="10"/>
+          </svg>
+        </div>
+        <div>
+          <div style="font-family: 'Syne', sans-serif; font-weight: 700; font-size: 1.1rem; color: var(--azul-escuro); margin-bottom: 4px;">💳 Gestão de Planos</div>
+          <div style="font-size: .85rem; color: var(--texto-sec);">Configure planos, limites diários/mensais e valores de assinatura</div>
+        </div>
+      </div>
+      <svg width="24" height="24" fill="none" stroke="var(--azul)" stroke-width="2" viewBox="0 0 24 24">
+        <path d="M5 12h14M12 5l7 7-7 7"/>
+      </svg>
+    </div>
+  </a>
+</div>

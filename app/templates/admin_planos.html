@@ -1,0 +1,480 @@
+{% extends "base.html" %}
+
+{% block titulo %}Gestão de Planos{% endblock %}
+{% block titulo_pagina %}Administração - Planos{% endblock %}
+
+{% block estilos_extras %}
+<style>
+  .hero {
+    background: linear-gradient(135deg, #0F4C81 0%, #14B8A6 100%);
+    border-radius: var(--r-card);
+    padding: 28px 32px;
+    margin-bottom: 24px;
+    color: var(--branco);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .hero h2 {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 1.5rem;
+    margin-bottom: 4px;
+  }
+  .hero p {
+    font-size: .875rem;
+    opacity: .9;
+  }
+  .btn-criar {
+    padding: 10px 20px;
+    background: rgba(255,255,255,.2);
+    border: 1px solid rgba(255,255,255,.3);
+    border-radius: var(--r-botao);
+    color: var(--branco);
+    font-size: .875rem;
+    cursor: pointer;
+    transition: all .15s;
+  }
+  .btn-criar:hover {
+    background: rgba(255,255,255,.3);
+  }
+
+  .planos-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 20px;
+    margin-bottom: 24px;
+  }
+
+  .plano-card {
+    background: var(--branco);
+    border-radius: var(--r-card);
+    border: 2px solid var(--borda);
+    padding: 24px;
+    transition: all .15s;
+    position: relative;
+  }
+  .plano-card:hover {
+    box-shadow: var(--shadow-md);
+    transform: translateY(-2px);
+  }
+  .plano-card.inativo {
+    opacity: .6;
+    border-color: var(--texto-ter);
+  }
+
+  .plano-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 12px;
+  }
+  .plano-nome {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--azul-escuro);
+  }
+  .plano-badge {
+    padding: 4px 10px;
+    border-radius: var(--r-etiq);
+    font-size: .7rem;
+    font-weight: 500;
+  }
+  .badge-ativo {
+    background: #D1FAE5;
+    color: #065F46;
+  }
+  .badge-inativo {
+    background: #FEE2E2;
+    color: #991B1B;
+  }
+
+  .plano-descricao {
+    font-size: .85rem;
+    color: var(--texto-sec);
+    margin-bottom: 16px;
+    line-height: 1.5;
+  }
+
+  .plano-preco {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: var(--azul);
+    margin-bottom: 16px;
+  }
+  .plano-preco small {
+    font-size: .75rem;
+    font-weight: 400;
+    color: var(--texto-ter);
+  }
+
+  .plano-limites {
+    background: var(--fundo);
+    padding: 12px;
+    border-radius: 8px;
+    margin-bottom: 16px;
+  }
+  .limite-item {
+    display: flex;
+    justify-content: space-between;
+    font-size: .85rem;
+    margin-bottom: 6px;
+  }
+  .limite-item:last-child {
+    margin-bottom: 0;
+  }
+  .limite-label {
+    color: var(--texto-sec);
+  }
+  .limite-valor {
+    font-weight: 600;
+    color: var(--azul-escuro);
+  }
+
+  .plano-usuarios {
+    font-size: .8rem;
+    color: var(--texto-ter);
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .plano-acoes {
+    display: flex;
+    gap: 8px;
+  }
+  .btn-sm {
+    flex: 1;
+    padding: 8px 12px;
+    font-size: .8rem;
+    border-radius: var(--r-botao);
+    cursor: pointer;
+    transition: all .15s;
+    border: 1px solid var(--borda);
+    background: var(--branco);
+    color: var(--texto);
+  }
+  .btn-sm:hover {
+    background: var(--fundo-sec);
+  }
+  .btn-sm.perigo {
+    border-color: var(--vermelho);
+    color: var(--vermelho);
+  }
+  .btn-sm.perigo:hover {
+    background: var(--vermelho);
+    color: var(--branco);
+  }
+
+  /* Modal */
+  .modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 1000;
+  }
+  .modal.aberto {
+    display: block;
+  }
+  .modal-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0,0,0,.5);
+  }
+  .modal-conteudo {
+    position: relative;
+    background: var(--branco);
+    max-width: 600px;
+    margin: 60px auto;
+    border-radius: var(--r-card);
+    box-shadow: var(--shadow-md);
+    max-height: 80vh;
+    overflow-y: auto;
+  }
+  .modal-header {
+    padding: 20px 24px;
+    border-bottom: 1px solid var(--borda);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .modal-titulo {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--azul-escuro);
+    margin: 0;
+  }
+  .btn-fechar {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: var(--texto-ter);
+    padding: 0;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: all .15s;
+  }
+  .btn-fechar:hover {
+    background: var(--fundo-sec);
+    color: var(--texto);
+  }
+  .modal-body {
+    padding: 24px;
+  }
+  .form-group {
+    margin-bottom: 16px;
+  }
+  .form-group label {
+    display: block;
+    font-size: .85rem;
+    font-weight: 500;
+    color: var(--texto-sec);
+    margin-bottom: 6px;
+  }
+  .form-input,
+  .form-textarea,
+  .form-select {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid var(--borda);
+    border-radius: var(--r-campo);
+    font-size: .9rem;
+  }
+  .form-textarea {
+    resize: vertical;
+    min-height: 80px;
+  }
+  .form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+  .modal-footer {
+    padding: 16px 24px;
+    border-top: 1px solid var(--borda);
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
+  }
+  .btn-cancelar {
+    padding: 10px 20px;
+    background: var(--fundo-sec);
+    border: 1px solid var(--borda);
+    border-radius: var(--r-botao);
+    cursor: pointer;
+  }
+  .btn-salvar {
+    padding: 10px 20px;
+    background: var(--azul);
+    color: var(--branco);
+    border: none;
+    border-radius: var(--r-botao);
+    cursor: pointer;
+  }
+</style>
+{% endblock %}
+
+{% block conteudo %}
+<div class="hero">
+  <div>
+    <h2>💳 Gestão de Planos</h2>
+    <p>Configure planos, limites e valores de assinatura</p>
+  </div>
+  <button class="btn-criar" onclick="abrirModalCriar()">+ Criar Plano</button>
+</div>
+
+<div class="planos-grid">
+  {% for plano in planos %}
+  <div class="plano-card {% if not plano.ativo %}inativo{% endif %}">
+    <div class="plano-header">
+      <div class="plano-nome">{{ plano.nome }}</div>
+      <span class="plano-badge {% if plano.ativo %}badge-ativo{% else %}badge-inativo{% endif %}">
+        {{ 'Ativo' if plano.ativo else 'Inativo' }}
+      </span>
+    </div>
+
+    <div class="plano-descricao">{{ plano.descricao }}</div>
+
+    <div class="plano-preco">
+      {% if plano.valor_mensal_centavos == 0 %}
+        Gratuito
+      {% else %}
+        R$ {{ "%.2f"|format(plano.valor_mensal_centavos / 100) }}
+        <small>/mês</small>
+      {% endif %}
+    </div>
+
+    <div class="plano-limites">
+      <div class="limite-item">
+        <span class="limite-label">Limite Diário:</span>
+        <span class="limite-valor">
+          {% if plano.limite_diario == 0 %}
+            ∞ Ilimitado
+          {% else %}
+            {{ "{:,}".format(plano.limite_diario) }} req/dia
+          {% endif %}
+        </span>
+      </div>
+      <div class="limite-item">
+        <span class="limite-label">Limite Mensal:</span>
+        <span class="limite-valor">
+          {% if plano.limite_mensal == 0 %}
+            ∞ Ilimitado
+          {% else %}
+            {{ "{:,}".format(plano.limite_mensal) }} req/mês
+          {% endif %}
+        </span>
+      </div>
+    </div>
+
+    <div class="plano-usuarios">
+      <svg width="14" height="14" fill="currentColor" viewBox="0 0 24 24">
+        <path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/>
+      </svg>
+      {{ usuarios_por_plano.get(plano.id, 0) }} usuário{{ 's' if usuarios_por_plano.get(plano.id, 0) != 1 else '' }}
+    </div>
+
+    <div class="plano-acoes">
+      <button class="btn-sm" onclick="abrirModalEditar({{ plano.id }}, '{{ plano.nome }}', '{{ plano.descricao }}', {{ plano.limite_diario }}, {{ plano.limite_mensal }}, {{ plano.valor_mensal_centavos }}, {{ 'true' if plano.ativo else 'false' }})">
+        Editar
+      </button>
+      <form method="POST" action="/admin/planos/{{ plano.id }}/toggle" style="flex: 1; margin: 0;">
+        <button type="submit" class="btn-sm perigo" style="width: 100%;">
+          {{ 'Desativar' if plano.ativo else 'Ativar' }}
+        </button>
+      </form>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+<!-- Modal Criar Plano -->
+<div id="modalCriar" class="modal">
+  <div class="modal-overlay" onclick="fecharModalCriar()"></div>
+  <div class="modal-conteudo">
+    <div class="modal-header">
+      <h2 class="modal-titulo">Criar Novo Plano</h2>
+      <button class="btn-fechar" onclick="fecharModalCriar()">×</button>
+    </div>
+    <form method="POST" action="/admin/planos/criar">
+      <div class="modal-body">
+        <div class="form-group">
+          <label for="nome">Nome do Plano *</label>
+          <input type="text" id="nome" name="nome" class="form-input" required placeholder="Ex: Premium">
+        </div>
+        <div class="form-group">
+          <label for="descricao">Descrição</label>
+          <textarea id="descricao" name="descricao" class="form-textarea" placeholder="Descrição detalhada do plano..."></textarea>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="limite_diario">Limite Diário *</label>
+            <input type="number" id="limite_diario" name="limite_diario" class="form-input" required min="0" placeholder="0 = ilimitado">
+          </div>
+          <div class="form-group">
+            <label for="limite_mensal">Limite Mensal *</label>
+            <input type="number" id="limite_mensal" name="limite_mensal" class="form-input" required min="0" placeholder="0 = ilimitado">
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="valor_mensal_centavos">Valor Mensal (em centavos) *</label>
+          <input type="number" id="valor_mensal_centavos" name="valor_mensal_centavos" class="form-input" required min="0" placeholder="Ex: 9900 = R$ 99,00">
+          <small style="color: var(--texto-ter); font-size: .75rem;">Digite em centavos. Ex: 9900 = R$ 99,00</small>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn-cancelar" onclick="fecharModalCriar()">Cancelar</button>
+        <button type="submit" class="btn-salvar">Criar Plano</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Modal Editar Plano -->
+<div id="modalEditar" class="modal">
+  <div class="modal-overlay" onclick="fecharModalEditar()"></div>
+  <div class="modal-conteudo">
+    <div class="modal-header">
+      <h2 class="modal-titulo">Editar Plano</h2>
+      <button class="btn-fechar" onclick="fecharModalEditar()">×</button>
+    </div>
+    <form method="POST" id="formEditar">
+      <div class="modal-body">
+        <div class="form-group">
+          <label for="edit_nome">Nome do Plano *</label>
+          <input type="text" id="edit_nome" name="nome" class="form-input" required>
+        </div>
+        <div class="form-group">
+          <label for="edit_descricao">Descrição</label>
+          <textarea id="edit_descricao" name="descricao" class="form-textarea"></textarea>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="edit_limite_diario">Limite Diário *</label>
+            <input type="number" id="edit_limite_diario" name="limite_diario" class="form-input" required min="0">
+          </div>
+          <div class="form-group">
+            <label for="edit_limite_mensal">Limite Mensal *</label>
+            <input type="number" id="edit_limite_mensal" name="limite_mensal" class="form-input" required min="0">
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="edit_valor_mensal_centavos">Valor Mensal (em centavos) *</label>
+          <input type="number" id="edit_valor_mensal_centavos" name="valor_mensal_centavos" class="form-input" required min="0">
+        </div>
+        <div class="form-group">
+          <label for="edit_ativo">Status</label>
+          <select id="edit_ativo" name="ativo" class="form-select">
+            <option value="true">Ativo</option>
+            <option value="false">Inativo</option>
+          </select>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn-cancelar" onclick="fecharModalEditar()">Cancelar</button>
+        <button type="submit" class="btn-salvar">Salvar Alterações</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+function abrirModalCriar() {
+  document.getElementById('modalCriar').classList.add('aberto');
+}
+
+function fecharModalCriar() {
+  document.getElementById('modalCriar').classList.remove('aberto');
+}
+
+function abrirModalEditar(id, nome, descricao, limiteDiario, limiteMensal, valorCentavos, ativo) {
+  document.getElementById('formEditar').action = `/admin/planos/${id}/editar`;
+  document.getElementById('edit_nome').value = nome;
+  document.getElementById('edit_descricao').value = descricao;
+  document.getElementById('edit_limite_diario').value = limiteDiario;
+  document.getElementById('edit_limite_mensal').value = limiteMensal;
+  document.getElementById('edit_valor_mensal_centavos').value = valorCentavos;
+  document.getElementById('edit_ativo').value = ativo;
+  document.getElementById('modalEditar').classList.add('aberto');
+}
+
+function fecharModalEditar() {
+  document.getElementById('modalEditar').classList.remove('aberto');
+}
+</script>
+{% endblock %}
