@@ -309,10 +309,10 @@ def atualizar_perfil_usuario(db: Session, usuario_id: int, perfil: str) -> None:
 def atualizar_limites_usuario(
     db: Session,
     usuario_id: int,
-    limite_diario: int,
-    limite_mensal: int
+    limite_diario: Optional[int],
+    limite_mensal: Optional[int]
 ) -> None:
-    """Atualiza limites diários e mensais do usuário."""
+    """Atualiza limites diários e mensais do usuário. None = ilimitado."""
     usuario = db.query(Usuario).filter(Usuario.id == usuario_id).first()
     if usuario:
         usuario.limite_diario = limite_diario

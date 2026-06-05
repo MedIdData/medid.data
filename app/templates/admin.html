@@ -386,6 +386,7 @@
           <th>Email</th>
           <th>Perfil</th>
           <th>Status</th>
+          <th>Chaves API</th>
           <th>Limite Diário</th>
           <th>Limite Mensal</th>
           <th>Cadastro</th>
@@ -407,8 +408,20 @@
               {{ 'Ativo' if u.ativo else 'Inativo' }}
             </span>
           </td>
-          <td>{{ u.limite_diario or '-' }}</td>
-          <td>{{ u.limite_mensal or '-' }}</td>
+          <td style="font-size:.85rem;">
+            {% set chaves = chaves_por_usuario.get(u.id, []) %}
+            {% if chaves %}
+              <div style="display:flex;flex-direction:column;gap:4px;">
+              {% for chave in chaves %}
+                <code style="background:var(--fundo-sec);padding:2px 6px;border-radius:4px;font-size:.8rem;">{{ chave.prefixo }}...</code>
+              {% endfor %}
+              </div>
+            {% else %}
+              <span style="color:var(--texto-ter);">Nenhuma</span>
+            {% endif %}
+          </td>
+          <td>{{ u.limite_diario if u.limite_diario else '-' }}</td>
+          <td>{{ u.limite_mensal if u.limite_mensal else '-' }}</td>
           <td style="font-size:.85rem;color:var(--texto-ter);">
             {{ u.criado_em.strftime('%d/%m/%Y') if u.criado_em else '-' }}
           </td>

@@ -604,16 +604,22 @@ async def pagina_admin(
     db: Session = Depends(get_db),
 ):
     from datetime import date
-    
+
     # Estatísticas
     total_usuarios = usuario_repo.contar_usuarios(db)
     usuarios_ativos = usuario_repo.contar_usuarios_ativos(db)
     total_chaves = usuario_repo.contar_chaves_total(db)
     requisicoes_hoje = usuario_repo.obter_consumo_sistema_dia(db, date.today())
-    
-    # Lista de usuários
+
+    # Lista de usuários com suas chaves
     usuarios = usuario_repo.listar_todos_usuarios(db)
-    
+
+    # Mapear chaves por usuário
+    chaves_por_usuario = {}
+    for u in usuarios:
+        chaves = usuario_repo.listar_chaves_usuario(db, u.id)
+        chaves_por_usuario[u.id] = chaves
+
     return templates.TemplateResponse(
         request, "admin.html",
         {
@@ -624,6 +630,7 @@ async def pagina_admin(
             "total_chaves": total_chaves,
             "requisicoes_hoje": requisicoes_hoje,
             "usuarios": usuarios,
+            "chaves_por_usuario": chaves_por_usuario,
         },
     )
 
@@ -665,18 +672,18 @@ async def admin_editar_usuario(
     email: str = Form(...),
     perfil: str = Form(...),
     ativo: str = Form(...),
-    limite_diario: int = Form(None),
-    limite_mensal: int = Form(None),
+    limite_diario: Optional[int] = Form(None),
+    limite_mensal: Optional[int] = Form(None),
     usuario: Usuario = Depends(requer_admin),
     db: Session = Depends(get_db),
 ):
     # Atualizar dados
     ativo_bool = ativo == 'true'
     usuario_repo.atualizar_usuario(db, usuario_id, nome, email, perfil, ativo_bool)
-    
-    if limite_diario is not None and limite_mensal is not None:
-        usuario_repo.atualizar_limites_usuario(db, usuario_id, limite_diario, limite_mensal)
-    
+
+    # Atualizar limites (sempre atualiza, mesmo que seja None = ilimitado)
+    usuario_repo.atualizar_limites_usuario(db, usuario_id, limite_diario, limite_mensal)
+
     return RedirectResponse(url="/admin", status_code=status.HTTP_302_FOUND)
 
 
