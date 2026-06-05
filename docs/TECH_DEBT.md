@@ -30,12 +30,13 @@
 
 ## 🟡 ALTO
 
-### 4. Validação de Campos (erro 500)
-**Problema**: Valores numéricos específicos causam erro interno  
-**Localização**: `app/schemas/analise.py`, `app/routers/web.py`  
+### 4. ~~Validação de Campos (erro 500)~~ ✅ RESOLVIDO
+**Problema**: Valores numéricos específicos causavam erro interno  
+**Localização**: `app/schemas/analise.py`, `app/routers/web.py`, `app/templates/analise.html`  
 **Impacto**: UX ruim, erro 500 ao invés de mensagem amigável  
-**Solução**: Melhorar try/catch e parsing de erros Pydantic  
-**Esforço**: 2h
+**Solução**: Query params como string, conversão validada, mensagens traduzidas, JS real-time  
+**Esforço**: 2h  
+**Status**: ✅ Resolvido no commit `f491f73` (M2.2)
 
 ### 5. Sem Testes Automatizados
 **Problema**: Nenhum teste pytest implementado  

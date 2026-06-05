@@ -16,10 +16,16 @@
 
 #### 🎉 Marcos Alcançados
 - ✅ **100% dos módulos CRÍTICOS resolvidos**
+- ✅ **67% dos módulos ALTO resolvidos** (M3, M2.2)
 - ✅ Sistema funcionalmente correto nas funcionalidades principais
+- ✅ Zero erros 500 por validação de campos
 
-#### ⚠️ Problemas Identificados (não corrigidos ainda)
-- **M2.2 - Validação de campos**: Alguns valores numéricos geram erro 500
+#### ✅ Completado (Módulo 2 - Análise de Risco)
+- **M2.2 - Validação de campos**: Tratamento robusto de erros numéricos (commit f491f73)
+  - Query params como string com conversão validada
+  - Mensagens de erro amigáveis (tradução de ValidationError)
+  - JavaScript: validação em tempo real, auto-limpeza, vírgula→ponto
+  - Validators Pydantic expandidos (preço, quantidade, tratamento)
 
 ---
 

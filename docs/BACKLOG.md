@@ -22,7 +22,7 @@
 ---
 
 ### M2 - Análise de Risco - Gauge e Regras de Glosa
-**Status**: 🔴 PENDENTE  
+**Status**: ✅ CONCLUÍDO  
 **Prioridade**: CRÍTICA
 
 #### M2.1 - Gauge Invertido
@@ -36,14 +36,23 @@
 **Commit**: `eafae63`
 
 #### M2.2 - Validação de Campos
-- [ ] Erro 500 ao inserir valores numéricos específicos
-- [ ] Revisar conversões frontend/backend
-- [ ] Garantir mensagens amigáveis
+**Status**: ✅ CONCLUÍDO
+- [x] Erro 500 ao inserir valores numéricos específicos → Resolvido
+- [x] Conversões frontend/backend → Query params recebidos como string, validados antes
+- [x] Mensagens amigáveis → Tradução de ValidationError, feedback em tempo real
 
-**Arquivos**:
-- `app/schemas/analise.py` (validators Pydantic)
-- `app/templates/analise.html` (validações HTML5)
-- `app/routers/web.py` (tratamento de erros)
+**Implementação**:
+- Query params: preco_informado e quantidade como string
+- Conversão explícita com try/catch específico
+- JavaScript: auto-limpeza, vírgula→ponto, setCustomValidity()
+- Mensagens em português claro por tipo de erro
+
+**Arquivos modificados**:
+- `app/schemas/analise.py` (validators expandidos)
+- `app/templates/analise.html` (validação real-time JS)
+- `app/routers/web.py` (tratamento por tipo de erro)
+
+**Commit**: `f491f73`
 
 #### M2.3 - Regras de Potencial de Glosa
 **Status**: ✅ CONCLUÍDO
@@ -225,10 +234,10 @@
 | Prioridade | Total | Concluídos | Pendentes | % |
 |------------|-------|------------|-----------|---|
 | 🔴 CRÍTICO | 3     | 3          | 0         | 100% ✅ |
-| 🟡 ALTO    | 3     | 1          | 2         | 33% |
+| 🟡 ALTO    | 3     | 2          | 1         | 67% ✅ |
 | 🟢 MÉDIO   | 4     | 0          | 4         | 0% |
 | 🔵 BAIXO   | 4     | 0          | 4         | 0% |
-| **TOTAL**  | **14**| **4**      | **10**    | **29%** |
+| **TOTAL**  | **14**| **5**      | **9**     | **36%** |
 
 ---
 
