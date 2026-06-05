@@ -11,9 +11,9 @@
 - **Menu dropdown**: Implementado menu de usuário (Perfil, Alterar Senha, Chaves, Consumo, Admin, Sair)
 - **Rotas de perfil**: Criadas rotas /perfil e /alterar-senha com validações
 - **M1 - Busca travada**: Letra "A" removida, cursor não volta ao início, lista inicial carregada (commit 1bac73d)
+- **M2.1 - Gauge invertido**: Fórmula stroke-dashoffset corrigida (commit eafae63)
 
 #### ⚠️ Problemas Identificados (não corrigidos ainda)
-- **Gauge invertido**: Ainda mostra risco ao contrário (precisa reversão da "correção")
 - **Potencial glosa baixo**: Sistema retorna glosa baixa quando deveria ser alta (falta de dados)
 
 ---

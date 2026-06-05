@@ -2,12 +2,13 @@
 
 ## 🔴 CRÍTICO
 
-### 1. Gauge Invertido (analise.html)
+### 1. ~~Gauge Invertido (analise.html)~~ ✅ RESOLVIDO
 **Problema**: Correção aplicada inverteu ainda mais o visual do gauge  
-**Localização**: `app/templates/analise.html` linha ~434  
+**Localização**: `app/templates/analise.html` linha 451  
 **Impacto**: Usuário vê risco baixo quando é alto e vice-versa  
-**Solução**: Reverter "correção" e aplicar fórmula correta  
-**Esforço**: 1h
+**Solução**: Revertido para fórmula correta: `totalArco * (1 - valor / 100)`  
+**Esforço**: 1h  
+**Status**: ✅ Resolvido no commit `eafae63` (M2.1)
 
 ### 2. ~~Busca Travada (buscar.html)~~ ✅ RESOLVIDO
 **Problema**: Letra "A" auto-carrega e reaparece, cursor volta ao início  

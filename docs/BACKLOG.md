@@ -26,11 +26,14 @@
 **Prioridade**: CRÍTICA
 
 #### M2.1 - Gauge Invertido
-- [ ] Gauge visual mostra risco ao contrário (alto parece baixo)
-- [ ] Corrigir cálculo do stroke-dashoffset
+**Status**: ✅ CONCLUÍDO
+- [x] Gauge visual mostra risco ao contrário → Corrigido stroke-dashoffset
+- [x] Fórmula correta: `totalArco * (1 - valor / 100)`
 
-**Arquivos**:
-- `app/templates/analise.html` (linha ~434 - JavaScript gauge)
+**Arquivos modificados**:
+- `app/templates/analise.html` (linha 451)
+
+**Commit**: `eafae63`
 
 #### M2.2 - Validação de Campos
 - [ ] Erro 500 ao inserir valores numéricos específicos
@@ -218,11 +221,11 @@
 
 | Prioridade | Total | Concluídos | Pendentes | % |
 |------------|-------|------------|-----------|---|
-| 🔴 CRÍTICO | 3     | 1          | 2         | 33% |
+| 🔴 CRÍTICO | 3     | 2          | 1         | 67% |
 | 🟡 ALTO    | 3     | 1          | 2         | 33% |
 | 🟢 MÉDIO   | 4     | 0          | 4         | 0% |
 | 🔵 BAIXO   | 4     | 0          | 4         | 0% |
-| **TOTAL**  | **14**| **2**      | **12**    | **14%** |
+| **TOTAL**  | **14**| **3**      | **11**    | **21%** |
 
 ---
 
