@@ -49,14 +49,35 @@ def setup_database():
         logger.info(f"Database: {settings.database_url.split('@')[1] if '@' in settings.database_url else 'local'}")
 
         # 1. Testar conexão
-        logger.info("\n[1/4] Testando conexão com o banco de dados...")
+        logger.info("\n[1/5] Testando conexão com o banco de dados...")
         with engine.connect() as conn:
             result = conn.execute(text("SELECT version()"))
             version = result.scalar()
             logger.info(f"✓ Conectado ao PostgreSQL: {version.split(',')[0]}")
 
-        # 2. Criar todas as tabelas
-        logger.info("\n[2/4] Criando tabelas...")
+        # 2. Criar extensões necessárias
+        logger.info("\n[2/5] Criando extensões PostgreSQL...")
+        with engine.connect() as conn:
+            # pg_trgm: Trigram similarity (fuzzy search)
+            try:
+                conn.execute(text("CREATE EXTENSION IF NOT EXISTS pg_trgm"))
+                logger.info("✓ Extensão pg_trgm criada/verificada")
+            except Exception as e:
+                logger.warning(f"⚠ Erro ao criar pg_trgm: {e}")
+                logger.warning("  Busca fuzzy pode não funcionar corretamente")
+
+            # unaccent: Remove acentos para busca normalizada
+            try:
+                conn.execute(text("CREATE EXTENSION IF NOT EXISTS unaccent"))
+                logger.info("✓ Extensão unaccent criada/verificada")
+            except Exception as e:
+                logger.warning(f"⚠ Erro ao criar unaccent: {e}")
+                logger.warning("  Busca sem acentos pode não funcionar")
+
+            conn.commit()
+
+        # 3. Criar todas as tabelas
+        logger.info("\n[3/5] Criando tabelas...")
         Base.metadata.create_all(bind=engine)
         logger.info("✓ Tabelas criadas com sucesso")
 
@@ -72,8 +93,8 @@ def setup_database():
             for table in tables:
                 logger.info(f"    - {table}")
 
-        # 3. Criar plano Gratuito
-        logger.info("\n[3/4] Criando plano Gratuito...")
+        # 4. Criar plano Gratuito
+        logger.info("\n[4/5] Criando plano Gratuito...")
         with SessionLocal() as db:
             plano_existente = db.query(Plano).filter(Plano.nome == "Gratuito").first()
 
@@ -96,8 +117,8 @@ def setup_database():
                 logger.info(f"    Limite diário: {plano.limite_diario} requisições")
                 logger.info(f"    Limite mensal: {plano.limite_mensal} requisições")
 
-        # 4. Criar usuário admin
-        logger.info("\n[4/4] Criando usuário administrador...")
+        # 5. Criar usuário admin
+        logger.info("\n[5/5] Criando usuário administrador...")
         with SessionLocal() as db:
             admin_email = "admin@mediddata.com"
             admin_existente = db.query(Usuario).filter(Usuario.email == admin_email).first()
@@ -121,7 +142,27 @@ def setup_database():
                 logger.info(f"    Senha: medid@2026")
                 logger.info(f"    Perfil: {admin.perfil}")
 
-        # 5. Verificar contagens
+        # 6. Verificar extensões instaladas
+        logger.info("\n" + "=" * 70)
+        logger.info("VERIFICAÇÃO DE EXTENSÕES")
+        logger.info("=" * 70)
+
+        with engine.connect() as conn:
+            result = conn.execute(text("""
+                SELECT extname, extversion
+                FROM pg_extension
+                WHERE extname IN ('pg_trgm', 'unaccent')
+                ORDER BY extname
+            """))
+            extensoes = result.fetchall()
+            if extensoes:
+                for ext_name, ext_version in extensoes:
+                    logger.info(f"✓ {ext_name} {ext_version}")
+            else:
+                logger.warning("⚠ Nenhuma extensão de busca instalada")
+                logger.warning("  Busca de medicamentos pode não funcionar!")
+
+        # 7. Verificar contagens
         logger.info("\n" + "=" * 70)
         logger.info("RESUMO DO SETUP")
         logger.info("=" * 70)
