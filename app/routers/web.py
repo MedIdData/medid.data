@@ -351,7 +351,7 @@ async def pagina_buscar(
     q: str = Query("", alias="q"),
     apenas_ativos: bool = Query(True),
     pagina: int = Query(1, ge=1),
-    limite: int = Query(20, ge=1, le=100),
+    limite: int = Query(500, ge=1, le=1000),  # Carrega 500 por padrão para filtro client-side
     usuario: Optional[Usuario] = Depends(get_usuario_atual),
     db: Session = Depends(get_db),
 ):
@@ -363,7 +363,7 @@ async def pagina_buscar(
     sugestao = None
     termo_busca = q.strip() if q else ""
 
-    # Buscar sempre: com termo >= 2 chars faz fuzzy search, sem termo lista todos
+    # Sempre carrega lista (vazia = lista inicial, com termo = busca fuzzy)
     resposta = busca_medicamento.buscar(db, termo_busca, apenas_ativos, pagina, limite)
     resultados = resposta.resultados
     total = resposta.total

@@ -62,31 +62,6 @@
   }
   .btn-buscar:hover { background: var(--teal-claro); }
 
-  /* Loading indicator */
-  .busca-loading {
-    position: absolute; right: 14px; top: 50%;
-    transform: translateY(-50%);
-    color: var(--teal);
-  }
-  .busca-loading svg {
-    animation: spin 0.8s linear infinite;
-  }
-  @keyframes spin {
-    to { transform: rotate(360deg); }
-  }
-
-  /* Hint de caracteres mínimos */
-  .busca-hint {
-    position: absolute; right: 14px; top: 50%;
-    transform: translateY(-50%);
-    font-size: 0.75rem;
-    color: var(--texto-ter);
-    background: var(--fundo-sec);
-    padding: 2px 8px;
-    border-radius: 4px;
-    pointer-events: none;
-  }
-
   /* ── Filtros ────────────────────────────────────────────────────────── */
   .busca-layout {
     display: flex; gap: 24px; align-items: flex-start;
@@ -261,21 +236,12 @@
         type="search"
         name="q"
         id="campo-busca"
-        value="{{ q or '' }}"
-        placeholder="Digite para buscar em tempo real (mín. 2 caracteres)..."
+        value=""
+        placeholder="Digite para filtrar instantaneamente..."
         autocomplete="off"
         autofocus
         spellcheck="false"
       >
-      <div class="busca-loading" id="busca-loading" style="display:none;">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <circle cx="12" cy="12" r="10" opacity="0.25"/>
-          <path d="M12 2 A10 10 0 0 1 22 12" stroke-linecap="round"/>
-        </svg>
-      </div>
-      <div class="busca-hint" id="busca-hint" style="display:none;">
-        Digite mais <span id="hint-chars">1</span> caractere(s)
-      </div>
     </div>
     <button type="submit" class="btn-buscar">
       <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -331,18 +297,16 @@
   <!-- Área de resultados -->
   <section class="resultados-area">
 
-    {% if q %}
-      {% if resultados %}
+    {% if resultados %}
         <div class="resultados-info">
           <div class="resultados-contagem">
-            <strong>{{ total }}</strong> resultado{{ 's' if total != 1 else '' }}
-            para <strong>„{{ q }}"</strong>
+            <strong>{{ total }}</strong> medicamento{{ 's' if total != 1 else '' }}
             {% if not apenas_ativos %}
               <span class="etiq etiq-atencao" style="margin-left:6px;">incluindo inativos</span>
             {% endif %}
           </div>
           <div style="font-size:.75rem;color:var(--texto-ter);">
-            Página {{ pagina }} de {{ (total // limite + (1 if total % limite else 0)) }}
+            Digite no campo acima para filtrar instantaneamente
           </div>
         </div>
 
@@ -413,67 +377,15 @@
           {% endfor %}
         </div>
 
-        <!-- Paginação -->
-        {% set total_paginas = (total // limite + (1 if total % limite else 0)) %}
-        {% if total_paginas > 1 %}
-        <nav class="paginacao" aria-label="Paginação">
-          {% if pagina > 1 %}
-          <a href="/buscar?q={{ q }}&apenas_ativos={{ apenas_ativos|lower }}&pagina={{ pagina - 1 }}" class="pag-btn">‹</a>
-          {% else %}
-          <span class="pag-btn desabilitado">‹</span>
-          {% endif %}
-
-          {% for p in range([1, pagina - 2]|max, [total_paginas + 1, pagina + 3]|min) %}
-            {% if p == pagina %}
-            <span class="pag-btn atual">{{ p }}</span>
-            {% else %}
-            <a href="/buscar?q={{ q }}&apenas_ativos={{ apenas_ativos|lower }}&pagina={{ p }}" class="pag-btn">{{ p }}</a>
-            {% endif %}
-          {% endfor %}
-
-          {% if pagina < total_paginas %}
-          <a href="/buscar?q={{ q }}&apenas_ativos={{ apenas_ativos|lower }}&pagina={{ pagina + 1 }}" class="pag-btn">›</a>
-          {% else %}
-          <span class="pag-btn desabilitado">›</span>
-          {% endif %}
-        </nav>
-        {% endif %}
-
-      {% else %}
-        <!-- Sem resultados -->
-        <div class="card" style="padding:40px 32px;">
-          <div class="estado-vazio">
-            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-              <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
-            </svg>
-            <h3>Nenhum resultado para <em>„{{ q }}"</em></h3>
-            <p>Verifique a grafia ou tente um termo diferente.</p>
-          </div>
-          {% if sugestao %}
-          <div class="sugestao-box">
-            Você quis dizer:
-            <a href="/buscar?q={{ sugestao }}&apenas_ativos={{ apenas_ativos|lower }}">{{ sugestao }}</a>?
-          </div>
-          {% endif %}
-        </div>
-      {% endif %}
-
     {% else %}
-      <!-- Estado inicial — sem busca -->
-      <div class="card" style="padding:0;">
-        <div class="estado-inicial">
-          <div class="icone">
-            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-              <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
-            </svg>
-          </div>
-          <h3>Pesquise na base de medicamentos</h3>
-          <p>Digite o nome comercial ou o princípio ativo no campo acima.</p>
-          <div class="exemplos-busca">
-            {% for termo in ['Dipirona', 'Amoxicilina', 'Omeprazol', 'Losartana', 'Metformina', 'Atorvastatina'] %}
-            <a href="/buscar?q={{ termo }}&apenas_ativos=true" class="exemplo-termo">{{ termo }}</a>
-            {% endfor %}
-          </div>
+      <!-- Sem resultados -->
+      <div class="card" style="padding:40px 32px;">
+        <div class="estado-vazio">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+          </svg>
+          <h3>Nenhum medicamento encontrado</h3>
+          <p>Tente recarregar a página ou verificar sua conexão.</p>
         </div>
       </div>
     {% endif %}
@@ -486,114 +398,77 @@
 <script>
   document.addEventListener('DOMContentLoaded', () => {
     const campo = document.getElementById('campo-busca');
-    const form = document.getElementById('form-busca');
-    const loading = document.getElementById('busca-loading');
-    const hint = document.getElementById('busca-hint');
-    const hintChars = document.getElementById('hint-chars');
-    const apenasAtivos = document.querySelector('input[name="apenas_ativos"]');
+    const grid = document.querySelector('.resultados-grid');
+    const contagem = document.querySelector('.resultados-contagem');
 
-    if (!campo) return;
+    if (!campo || !grid) return;
 
-    // Foca no campo se vazio
-    if (!campo.value) {
-      campo.focus();
-    }
+    // Foca no campo
+    campo.focus();
 
     // ─────────────────────────────────────────────────────────────────
-    // AUTOCOMPLETE EM TEMPO REAL COM DEBOUNCE
+    // FILTRO CLIENT-SIDE INSTANTÂNEO (SEM RELOAD)
     // ─────────────────────────────────────────────────────────────────
 
-    let timeoutId = null;
-    let ultimaBusca = campo.value.trim();
-    const DEBOUNCE_MS = 600; // 600ms de debounce
-    const MIN_CHARS = 2;     // Mínimo 2 caracteres para buscar
+    // Pega todos os cards e extrai dados
+    const todosCards = Array.from(grid.querySelectorAll('.med-card'));
+    const medicamentos = todosCards.map(card => {
+      const nome = card.querySelector('.med-nome')?.textContent || '';
+      const principio = card.querySelector('.med-principio')?.textContent || '';
+      return {
+        elemento: card,
+        nome: nome.toLowerCase(),
+        principio: principio.toLowerCase(),
+        textoCompleto: (nome + ' ' + principio).toLowerCase()
+      };
+    });
 
-    function mostrarLoading(mostrar) {
-      if (loading) {
-        loading.style.display = mostrar ? 'block' : 'none';
+    function filtrar() {
+      const termo = campo.value.trim().toLowerCase();
+
+      if (!termo) {
+        // Sem filtro: mostra todos
+        medicamentos.forEach(med => med.elemento.style.display = 'flex');
+        atualizarContagem(medicamentos.length);
+        return;
       }
+
+      // Filtra por nome ou princípio
+      let visiveis = 0;
+      medicamentos.forEach(med => {
+        const match = med.textoCompleto.includes(termo);
+        med.elemento.style.display = match ? 'flex' : 'none';
+        if (match) visiveis++;
+      });
+
+      atualizarContagem(visiveis);
     }
 
-    function buscarEmTempoReal() {
-      const termo = campo.value.trim();
-
-      // Ignora se não mudou ou está muito curto
-      if (termo === ultimaBusca) {
-        mostrarLoading(false);
-        return;
-      }
-      if (termo.length > 0 && termo.length < MIN_CHARS) {
-        mostrarLoading(false);
-        return;
-      }
-
-      ultimaBusca = termo;
-
-      // Mostra loading antes de navegar
-      mostrarLoading(true);
-
-      // Monta URL com filtros
-      const params = new URLSearchParams();
-      if (termo) params.set('q', termo);
-      if (apenasAtivos && apenasAtivos.checked) params.set('apenas_ativos', 'true');
-
-      // Navega para a nova URL (recarrega página com resultados)
-      window.location.href = '/buscar?' + params.toString();
-    }
-
-    // Event listener no input com debounce
-    campo.addEventListener('input', (e) => {
-      const termo = e.target.value.trim();
-
-      // Limpa timeout anterior
-      if (timeoutId) {
-        clearTimeout(timeoutId);
-        mostrarLoading(false);
-      }
-
-      // Se vazio, reseta tudo
-      if (termo.length === 0) {
-        campo.style.borderColor = '';
-        if (hint) hint.style.display = 'none';
-        return;
-      }
-
-      // Se muito curto, mostra hint
-      if (termo.length < MIN_CHARS) {
-        campo.style.borderColor = '';
-        const faltam = MIN_CHARS - termo.length;
-        if (hint && hintChars) {
-          hintChars.textContent = faltam;
-          hint.style.display = 'block';
+    function atualizarContagem(visiveis) {
+      if (contagem) {
+        const termo = campo.value.trim();
+        if (termo) {
+          contagem.innerHTML = `<strong>${visiveis}</strong> resultado${visiveis !== 1 ? 's' : ''} para <strong>"${termo}"</strong>`;
+        } else {
+          contagem.innerHTML = `<strong>${visiveis}</strong> medicamento${visiveis !== 1 ? 's' : ''}`;
         }
-        return;
       }
+    }
 
-      // Esconde hint e mostra feedback de busca
-      if (hint) hint.style.display = 'none';
-      campo.style.borderColor = '#14B8A6';
+    // Event listener - filtro instantâneo
+    campo.addEventListener('input', filtrar);
 
-      // Agenda nova busca
-      timeoutId = setTimeout(() => {
-        buscarEmTempoReal();
-      }, DEBOUNCE_MS);
-    });
+    // Previne submit do form (não queremos reload)
+    const form = document.getElementById('form-busca');
+    if (form) {
+      form.addEventListener('submit', (e) => {
+        e.preventDefault();
+        filtrar();
+      });
+    }
 
-    // Submit manual (botão ou Enter) cancela debounce e busca imediatamente
-    form.addEventListener('submit', (e) => {
-      if (timeoutId) {
-        clearTimeout(timeoutId);
-      }
-      mostrarLoading(true);
-      // Permite submit normal do form
-    });
-
-    // Limpa loading ao voltar para a página (back/forward)
-    window.addEventListener('pageshow', (e) => {
-      if (e.persisted) {
-        mostrarLoading(false);
-      }
-    });
+    // Contagem inicial
+    atualizarContagem(medicamentos.length);
   });
 </script>
 {% endblock %}
