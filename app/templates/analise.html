@@ -63,7 +63,7 @@
   }
   .arco {
     fill: none; stroke-width: 14; stroke-linecap: round;
-    stroke-dasharray: 283; stroke-dashoffset: 283;
+    stroke-dasharray: 267; stroke-dashoffset: 267;
     transition: stroke-dashoffset 1.2s ease, stroke .4s;
     transform-origin: center; transform: rotate(-180deg);
   }
@@ -447,10 +447,10 @@
 
     const valor     = parseInt(arco.dataset.valor, 10);
     const totalArco = parseFloat(arco.dataset.totalArco);
-    // Com rotate(-180deg), a direção do preenchimento é invertida
-    // valor 100 → offset 283 (preenchimento completo visualmente)
-    // valor 0   → offset 0 (vazio visualmente)
-    const offset    = totalArco * (valor / 100);
+    // DEFINITIVO: stroke-dashoffset com rotate(-180deg)
+    // Valor 92 → offset 21.36 (267 * 0.08) → arco 92% preenchido
+    // Valor 8  → offset 245.64 (267 * 0.92) → arco 8% preenchido
+    const offset    = totalArco * (1 - valor / 100);
 
     // Anima após 100ms para garantir render
     setTimeout(() => {
