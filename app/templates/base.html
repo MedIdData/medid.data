@@ -547,7 +547,7 @@
 
             <div class="dropdown-divider"></div>
 
-            {% if usuario.perfil == 'ADMINISTRADOR' %}
+            {% if usuario.perfil in ('ADMINISTRADOR', 'ADMIN') %}
             <a href="/admin" class="dropdown-item admin-only">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/>

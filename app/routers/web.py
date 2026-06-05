@@ -588,10 +588,11 @@ async def processar_alterar_senha(
 
 def requer_admin(usuario: Usuario = Depends(requer_usuario_web)):
     """Middleware que valida se usuário é administrador."""
-    if usuario.perfil != 'ADMINISTRADOR':
+    # Aceita ADMINISTRADOR e ADMIN (compatibilidade)
+    if usuario.perfil not in ('ADMINISTRADOR', 'ADMIN'):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Acesso negado. Apenas administradores."
+            detail="Acesso negado. Apenas administradores podem acessar esta área."
         )
     return usuario
 
