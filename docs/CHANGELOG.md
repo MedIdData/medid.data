@@ -2,6 +2,36 @@
 
 ## [1.0.1] - 2026-06-04
 
+### 🔥 CRÍTICO - Correção de Produção
+
+#### ✅ Extensões PostgreSQL em Produção (commit 0693156)
+**Problema**: Busca de medicamentos funciona localhost mas retorna vazio em produção (Railway)
+
+**Causa Raiz**:
+- `setup_prod.py` criava tabelas MAS não instalava extensões
+- Queries usam `word_similarity()` e `unaccent()` que não existiam
+- Erro silencioso (sem exception) resultava em busca vazia
+
+**Solução**:
+- ✅ `setup_prod.py` agora cria pg_trgm e unaccent (step 2/5)
+- ✅ `migrations/add_extensions.sql` — script SQL standalone
+- ✅ `migrations/README.md` — 3 formas de aplicar + troubleshooting
+
+**Como Aplicar**:
+```bash
+# Opção 1: psql
+psql $DATABASE_URL -f migrations/add_extensions.sql
+
+# Opção 2: Railway Dashboard → Query → colar SQL
+
+# Opção 3: Re-run setup
+python setup_prod.py
+```
+
+**Impacto**: CRÍTICO - busca não funciona sem essas extensões
+
+---
+
 ### 🐛 Correções (Fase 1 e 2 + M1)
 
 #### ✅ Completado

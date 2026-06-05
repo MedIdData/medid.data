@@ -2,6 +2,14 @@
 
 ## 🔴 CRÍTICO
 
+### 0. ~~Extensões PostgreSQL Não Instaladas em Produção~~ ✅ RESOLVIDO
+**Problema**: Busca funciona localhost mas não em Railway  
+**Localização**: `setup_prod.py`, banco Railway  
+**Impacto**: CRÍTICO - busca de medicamentos retorna vazio em produção  
+**Solução**: CREATE EXTENSION pg_trgm, unaccent no setup  
+**Esforço**: 1h  
+**Status**: ✅ Resolvido no commit `0693156`
+
 ### 1. ~~Gauge Invertido (analise.html)~~ ✅ RESOLVIDO
 **Problema**: Correção aplicada inverteu ainda mais o visual do gauge  
 **Localização**: `app/templates/analise.html` linha 451  
