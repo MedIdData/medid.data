@@ -60,7 +60,7 @@ def analisar(db: Session, entrada: AnaliseEntrada) -> AnaliseResultado:
     # DIMENSÃO 1: MEDICAMENTO (+40 pts se não encontrado)
     # ──────────────────────────────────────────────────────────────
 
-    med_row = analise_repo.buscar_medicamento_similar(
+    med_row = analise_repo.buscar_medicamento_para_analise(
         db, entrada.medicamento
     )
 
