@@ -464,10 +464,12 @@
             {% set nome_plano = plano_por_usuario.get(u.id, 'Gratuito') %}
             <div style="font-weight:500;color:var(--texto);">{{ nome_plano }}</div>
             <div style="font-size:.75rem;color:var(--texto-ter);">
-              {% if u.limite_diario == 0 and u.limite_mensal == 0 %}
+              {% if nome_plano == 'Admin' or (u.limite_diario == 0 and u.limite_mensal == 0) %}
                 ∞/dia · ∞/mês
+              {% elif u.limite_diario and u.limite_mensal %}
+                {{ "{:,}".format(u.limite_diario) }}/dia · {{ "{:,}".format(u.limite_mensal) }}/mês
               {% else %}
-                {{ "{:,}".format(u.limite_diario) if u.limite_diario else '50' }}/dia · {{ "{:,}".format(u.limite_mensal) if u.limite_mensal else '1.000' }}/mês
+                20/dia · 100/mês
               {% endif %}
             </div>
           </td>

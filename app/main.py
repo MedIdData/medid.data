@@ -75,18 +75,37 @@ def _seed_plano_gratuito():
 
     with SessionLocal() as db:
         try:
+            # Plano Admin (uso interno, ilimitado)
+            if not db.query(Plano).filter(Plano.nome == "Admin").first():
+                admin_plano = Plano(
+                    nome="Admin",
+                    descricao="Plano exclusivo para administradores do sistema (uso interno ilimitado)",
+                    limite_diario=0,  # Ilimitado
+                    limite_mensal=0,  # Ilimitado
+                    valor_mensal_centavos=0,
+                    ativo=True,
+                )
+                db.add(admin_plano)
+                logger.info("Plano Admin criado: ILIMITADO (uso interno)")
+
             # Plano Gratuito
-            if not db.query(Plano).filter(Plano.nome == "Gratuito").first():
+            plano_gratuito = db.query(Plano).filter(Plano.nome == "Gratuito").first()
+            if not plano_gratuito:
                 gratuito = Plano(
                     nome="Gratuito",
                     descricao="Plano gratuito com limites básicos para testes e pequenos volumes",
-                    limite_diario=50,
-                    limite_mensal=1000,
+                    limite_diario=20,
+                    limite_mensal=100,
                     valor_mensal_centavos=0,
                     ativo=True,
                 )
                 db.add(gratuito)
-                logger.info("Plano Gratuito criado: 50 req/dia, 1.000 req/mês")
+                logger.info("Plano Gratuito criado: 20 req/dia, 100 req/mês")
+            else:
+                # Atualizar limites se já existe
+                plano_gratuito.limite_diario = 20
+                plano_gratuito.limite_mensal = 100
+                logger.info("Plano Gratuito atualizado: 20 req/dia, 100 req/mês")
 
             # Plano Básico
             if not db.query(Plano).filter(Plano.nome == "Básico").first():

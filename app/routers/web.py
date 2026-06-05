@@ -222,8 +222,8 @@ async def pagina_painel(
     consumo_hoje = usuario_repo.obter_consumo_total_dia(db, usuario.id, hoje)
     consumo_mes = usuario_repo.obter_consumo_mensal(db, usuario.id, hoje.year, hoje.month)
     por_modulo = usuario_repo.obter_consumo_por_modulo(db, usuario.id, hoje)
-    limite_diario = plano.limite_diario if plano else 50
-    limite_mensal = plano.limite_mensal if plano else 1000
+    limite_diario = plano.limite_diario if plano else 20
+    limite_mensal = plano.limite_mensal if plano else 100
 
     return templates.TemplateResponse(
         request, "painel.html",
@@ -463,8 +463,8 @@ async def pagina_consumo(
 
     hoje = date.today()
     plano = usuario_repo.obter_plano_usuario(db, usuario)
-    limite_diario = plano.limite_diario if plano else 50
-    limite_mensal = plano.limite_mensal if plano else 1000
+    limite_diario = plano.limite_diario if plano else 20
+    limite_mensal = plano.limite_mensal if plano else 100
     nome_plano = plano.nome if plano else "Gratuito"
 
     consumo_hoje = usuario_repo.obter_consumo_total_dia(db, usuario.id, hoje)
@@ -659,23 +659,23 @@ async def pagina_admin(
         }
 
         # Determinar o plano do usuário
-        if u.limite_diario or u.limite_mensal:
-            # Tem limites customizados, mapear para o plano correspondente
-            limite_d = u.limite_diario or 0
-            limite_m = u.limite_mensal or 0
+        limite_d = u.limite_diario or 0
+        limite_m = u.limite_mensal or 0
 
-            # Mapear limites para planos conhecidos
-            if limite_d == 50 and limite_m == 1000:
-                plano_por_usuario[u.id] = "Gratuito"
-            elif limite_d == 500 and limite_m == 10000:
-                plano_por_usuario[u.id] = "Básico"
-            elif limite_d == 2000 and limite_m == 50000:
-                plano_por_usuario[u.id] = "Profissional"
-            elif limite_d == 0 and limite_m == 0:
-                plano_por_usuario[u.id] = "Enterprise"
-            else:
-                plano_por_usuario[u.id] = "Customizado"
+        # Mapear limites para planos conhecidos
+        if u.perfil in ('ADMINISTRADOR', 'ADMIN'):
+            # Administradores têm plano Admin (ilimitado)
+            plano_por_usuario[u.id] = "Admin"
+        elif limite_d == 20 and limite_m == 100:
+            plano_por_usuario[u.id] = "Gratuito"
+        elif limite_d == 500 and limite_m == 10000:
+            plano_por_usuario[u.id] = "Básico"
+        elif limite_d == 2000 and limite_m == 50000:
+            plano_por_usuario[u.id] = "Profissional"
+        elif limite_d == 0 and limite_m == 0:
+            plano_por_usuario[u.id] = "Enterprise"
         else:
+            # Qualquer outro limite → forçar para Gratuito
             plano_por_usuario[u.id] = "Gratuito"
 
     return templates.TemplateResponse(
@@ -701,8 +701,8 @@ async def admin_criar_usuario(
     nome: str = Form(...),
     email: str = Form(...),
     perfil: str = Form(...),
-    limite_diario: int = Form(50),
-    limite_mensal: int = Form(1000),
+    limite_diario: int = Form(20),
+    limite_mensal: int = Form(100),
     usuario: Usuario = Depends(requer_admin),
     db: Session = Depends(get_db),
 ):
