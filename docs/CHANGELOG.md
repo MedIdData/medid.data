@@ -2,7 +2,7 @@
 
 ## [1.0.1] - 2026-06-04
 
-### 🐛 Correções (Fase 1 e 2)
+### 🐛 Correções (Fase 1 e 2 + M1)
 
 #### ✅ Completado
 - **Lógica de risco invertida**: Medicamento não encontrado agora retorna NAO_ADERENTE (risco alto)
@@ -10,10 +10,10 @@
 - **Debug removido**: Prints de debug retirados do fluxo de login (web.py)
 - **Menu dropdown**: Implementado menu de usuário (Perfil, Alterar Senha, Chaves, Consumo, Admin, Sair)
 - **Rotas de perfil**: Criadas rotas /perfil e /alterar-senha com validações
+- **M1 - Busca travada**: Letra "A" removida, cursor não volta ao início, lista inicial carregada (commit 1bac73d)
 
 #### ⚠️ Problemas Identificados (não corrigidos ainda)
 - **Gauge invertido**: Ainda mostra risco ao contrário (precisa reversão da "correção")
-- **Busca travada**: Letra "A" reaparece, cursor volta ao início, impossível digitar
 - **Potencial glosa baixo**: Sistema retorna glosa baixa quando deveria ser alta (falta de dados)
 
 ---

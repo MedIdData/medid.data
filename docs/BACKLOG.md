@@ -3,18 +3,21 @@
 ## 🔴 CRÍTICO - Correções Urgentes
 
 ### M1 - Busca de Medicamentos
-**Status**: 🔴 PENDENTE  
+**Status**: ✅ CONCLUÍDO  
 **Prioridade**: CRÍTICA  
-**Problemas**:
-- [ ] Lista não aparece ao abrir a tela (deveria exibir medicamentos por padrão)
-- [ ] Letra "A" aparece automaticamente e reaparece após apagar
-- [ ] Cursor retorna para início do campo durante digitação
-- [ ] Impossível digitar normalmente
-- [ ] JavaScript interferindo na experiência
+**Problemas resolvidos**:
+- [x] Lista não aparece ao abrir a tela → Query vazia agora lista primeiros medicamentos
+- [x] Letra "A" aparece automaticamente → Removido auto-redirect
+- [x] Cursor retorna para início do campo → Removido auto-submit via JavaScript
+- [x] Impossível digitar normalmente → Form usa comportamento HTML padrão
+- [x] JavaScript interferindo na experiência → JavaScript simplificado (apenas focus)
 
-**Arquivos impactados**:
-- `app/templates/buscar.html` (JavaScript autocomplete)
-- `app/routers/web.py` (rota GET /buscar)
+**Arquivos modificados**:
+- `app/templates/buscar.html` (JavaScript simplificado)
+- `app/routers/web.py` (lógica simplificada)
+- `app/repositories/medicamento_repo.py` (suporte query vazia)
+
+**Commit**: `1bac73d`
 
 ---
 
@@ -215,11 +218,11 @@
 
 | Prioridade | Total | Concluídos | Pendentes | % |
 |------------|-------|------------|-----------|---|
-| 🔴 CRÍTICO | 3     | 0          | 3         | 0% |
+| 🔴 CRÍTICO | 3     | 1          | 2         | 33% |
 | 🟡 ALTO    | 3     | 1          | 2         | 33% |
 | 🟢 MÉDIO   | 4     | 0          | 4         | 0% |
 | 🔵 BAIXO   | 4     | 0          | 4         | 0% |
-| **TOTAL**  | **14**| **1**      | **13**    | **7%** |
+| **TOTAL**  | **14**| **2**      | **12**    | **14%** |
 
 ---
 

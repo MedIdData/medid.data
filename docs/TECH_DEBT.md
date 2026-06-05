@@ -9,12 +9,13 @@
 **Solução**: Reverter "correção" e aplicar fórmula correta  
 **Esforço**: 1h
 
-### 2. Busca Travada (buscar.html)
+### 2. ~~Busca Travada (buscar.html)~~ ✅ RESOLVIDO
 **Problema**: Letra "A" auto-carrega e reaparece, cursor volta ao início  
 **Localização**: `app/templates/buscar.html` linhas 450-485 (JavaScript)  
 **Impacto**: Impossível digitar normalmente  
-**Solução**: Remover auto-redirect para `/buscar?q=A`, corrigir event listener  
-**Esforço**: 2h
+**Solução**: Removido auto-redirect, auto-submit e event listener input  
+**Esforço**: 2h  
+**Status**: ✅ Resolvido no commit `1bac73d` (M1)
 
 ### 3. Potencial de Glosa Incorreto
 **Problema**: Falta de dados confiáveis gera risco BAIXO (deveria ser ALTO)  
