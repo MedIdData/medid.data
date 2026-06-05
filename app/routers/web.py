@@ -663,9 +663,9 @@ async def admin_criar_usuario(
     # Gerar convite (válido por 72h)
     convite = convite_repo.gerar_convite(db, novo_usuario.id, validade_horas=72)
 
-    # Construir link de ativação
+    # Construir link de ativação (usa /convite para preview com OG tags)
     base_url = str(request.base_url).rstrip('/')
-    link_ativacao = f"{base_url}/ativar-conta/{convite.token}"
+    link_ativacao = f"{base_url}/convite/{convite.token}"
 
     # Redirecionar para página com o link
     return RedirectResponse(
@@ -830,3 +830,26 @@ async def ativar_conta(
     )
 
     return response
+
+
+@router.get("/convite/{token}", response_class=HTMLResponse)
+async def preview_convite(
+    request: Request,
+    token: str,
+    db: Session = Depends(get_db),
+):
+    """Preview do convite com Open Graph tags para WhatsApp/Email."""
+    convite = convite_repo.buscar_convite_valido(db, token)
+
+    if not convite:
+        return templates.TemplateResponse(
+            request, "convite_expirado.html", {}
+        )
+
+    return templates.TemplateResponse(
+        request, "convite_preview.html",
+        {
+            "token": token,
+            "request": request,
+        },
+    )

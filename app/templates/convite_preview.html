@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ative sua conta - MedID Data</title>
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="{{ request.url }}">
+    <meta property="og:title" content="🎉 Bem-vindo ao MedID Data!">
+    <meta property="og:description" content="Sua conta foi criada. Clique para ativar e definir sua senha.">
+    <meta property="og:image" content="{{ request.base_url }}static/og-image.svg">
+
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="{{ request.url }}">
+    <meta property="twitter:title" content="🎉 Bem-vindo ao MedID Data!">
+    <meta property="twitter:description" content="Sua conta foi criada. Clique para ativar e definir sua senha.">
+    <meta property="twitter:image" content="{{ request.base_url }}static/og-image.svg">
+
+    <!-- WhatsApp -->
+    <meta property="og:site_name" content="MedID Data">
+    <meta property="og:locale" content="pt_BR">
+
+    <!-- Auto redirect após 2 segundos -->
+    <meta http-equiv="refresh" content="2;url=/ativar-conta/{{ token }}">
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #0F4C81 0%, #14B8A6 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .container {
+            background: white;
+            border-radius: 16px;
+            padding: 48px 32px;
+            max-width: 500px;
+            width: 100%;
+            text-align: center;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        .icon {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #14B8A6 0%, #0F4C81 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+            margin: 0 auto 24px;
+        }
+        h1 {
+            font-size: 1.75rem;
+            color: #0F4C81;
+            margin-bottom: 12px;
+            font-weight: 700;
+        }
+        p {
+            color: #64748B;
+            line-height: 1.6;
+            margin-bottom: 24px;
+        }
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #E2E8F0;
+            border-top-color: #14B8A6;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        .link {
+            display: inline-block;
+            margin-top: 20px;
+            padding: 12px 24px;
+            background: #0F4C81;
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+        .link:hover {
+            background: #14B8A6;
+            transform: translateY(-2px);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="icon">🎉</div>
+        <h1>Bem-vindo ao MedID Data!</h1>
+        <p>Redirecionando para ativação da sua conta...</p>
+        <div class="spinner"></div>
+        <a href="/ativar-conta/{{ token }}" class="link">
+            Ou clique aqui para continuar
+        </a>
+    </div>
+</body>
+</html>
