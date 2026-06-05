@@ -1,0 +1,48 @@
+{
+  "data_execucao": "2026-06-05T15:10:01.472895",
+  "total": 8,
+  "passou": 3,
+  "falhou": 5,
+  "detalhes": [
+    {
+      "teste": "Health Check",
+      "sucesso": true,
+      "detalhe": "200"
+    },
+    {
+      "teste": "Cadastro",
+      "sucesso": true,
+      "detalhe": "status=201"
+    },
+    {
+      "teste": "Login",
+      "sucesso": true,
+      "detalhe": "status=200"
+    },
+    {
+      "teste": "Perfil",
+      "sucesso": false,
+      "detalhe": "status=405"
+    },
+    {
+      "teste": "Busca Dipirona",
+      "sucesso": false,
+      "detalhe": "status=422"
+    },
+    {
+      "teste": "Busca Inexistente",
+      "sucesso": false,
+      "detalhe": "status=422"
+    },
+    {
+      "teste": "Analise",
+      "sucesso": false,
+      "detalhe": "status=404"
+    },
+    {
+      "teste": "Consumo Hoje",
+      "sucesso": false,
+      "detalhe": "status=404"
+    }
+  ]
+}

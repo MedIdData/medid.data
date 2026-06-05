@@ -618,21 +618,33 @@ async def pagina_admin(
     chaves_por_usuario = {}
     consumo_por_usuario = {}
 
+    hoje = date.today()
+
     for u in usuarios:
         chaves = usuario_repo.listar_chaves_usuario(db, u.id)
         chaves_por_usuario[u.id] = chaves
 
         # Calcular % de consumo do dia
-        consumo_hoje = usuario_repo.obter_consumo_total_dia(db, u.id, date.today())
+        consumo_hoje = usuario_repo.obter_consumo_total_dia(db, u.id, hoje)
 
         if u.limite_diario and u.limite_diario > 0:
-            percentual = (consumo_hoje / u.limite_diario) * 100
+            percentual_dia = (consumo_hoje / u.limite_diario) * 100
         else:
-            percentual = 0  # Ilimitado
+            percentual_dia = 0  # Ilimitado
+
+        # Calcular % de consumo do mês
+        consumo_mes = usuario_repo.obter_consumo_mensal(db, u.id, hoje.year, hoje.month)
+
+        if u.limite_mensal and u.limite_mensal > 0:
+            percentual_mes = (consumo_mes / u.limite_mensal) * 100
+        else:
+            percentual_mes = 0  # Ilimitado
 
         consumo_por_usuario[u.id] = {
             "consumo_hoje": consumo_hoje,
-            "percentual": min(percentual, 100),  # Cap at 100%
+            "percentual_dia": min(percentual_dia, 100),  # Cap at 100%
+            "consumo_mes": consumo_mes,
+            "percentual_mes": min(percentual_mes, 100),  # Cap at 100%
         }
 
     return templates.TemplateResponse(

@@ -1,0 +1,312 @@
+{
+  "routers": [
+    "app/routers/auth.py",
+    "app/routers/medicamentos.py",
+    "app/routers/web.py",
+    "app/routers/usuario.py",
+    "app/routers/__init__.py",
+    "app/routers/admin.py",
+    "app/routers/analise.py"
+  ],
+  "schemas": [
+    {
+      "arquivo": "app/schemas/auth.py",
+      "classes": [
+        "LoginEntrada",
+        "CadastroEntrada",
+        "TokenSaida",
+        "RefreshEntrada"
+      ]
+    },
+    {
+      "arquivo": "app/schemas/medicamento.py",
+      "classes": [
+        "MedicamentoItem",
+        "MedicamentoBuscaResposta",
+        "MedicamentoDetalhe"
+      ]
+    },
+    {
+      "arquivo": "app/schemas/usuario.py",
+      "classes": [
+        "UsuarioPerfil",
+        "ConsumoItem",
+        "ConsumoResposta",
+        "ChaveAcessoEntrada",
+        "ChaveAcessoResposta",
+        "AtualizarPerfilEntrada",
+        "AtualizarSenhaEntrada"
+      ]
+    },
+    {
+      "arquivo": "app/schemas/__init__.py",
+      "classes": []
+    },
+    {
+      "arquivo": "app/schemas/admin.py",
+      "classes": [
+        "EstatisticasResposta",
+        "UsuarioDetalhado",
+        "CriarUsuarioEntrada",
+        "AtualizarUsuarioEntrada",
+        "ResetarSenhaEntrada"
+      ]
+    },
+    {
+      "arquivo": "app/schemas/analise.py",
+      "classes": [
+        "Situacao",
+        "AnaliseEntrada",
+        "AnaliseTratamento",
+        "AnaliseCid",
+        "AnaliseProced",
+        "AnalisePreco",
+        "AnaliseQuantidade",
+        "AnaliseResultado"
+      ]
+    }
+  ],
+  "endpoints": [
+    {
+      "arquivo": "app/routers/auth.py",
+      "metodo": "POST",
+      "rota": "/cadastro"
+    },
+    {
+      "arquivo": "app/routers/auth.py",
+      "metodo": "POST",
+      "rota": "/login"
+    },
+    {
+      "arquivo": "app/routers/auth.py",
+      "metodo": "POST",
+      "rota": "/refresh"
+    },
+    {
+      "arquivo": "app/routers/auth.py",
+      "metodo": "POST",
+      "rota": "/logout"
+    },
+    {
+      "arquivo": "app/routers/auth.py",
+      "metodo": "GET",
+      "rota": "/me"
+    },
+    {
+      "arquivo": "app/routers/medicamentos.py",
+      "metodo": "GET",
+      "rota": "/buscar"
+    },
+    {
+      "arquivo": "app/routers/medicamentos.py",
+      "metodo": "GET",
+      "rota": "/{medicamento_id}"
+    },
+    {
+      "arquivo": "app/routers/web.py",
+      "metodo": "GET",
+      "rota": "/"
+    },
+    {
+      "arquivo": "app/routers/web.py",
+      "metodo": "GET",
+      "rota": "/login"
+    },
+    {
+      "arquivo": "app/routers/web.py",
+      "metodo": "POST",
+      "rota": "/login"
+    },
+    {
+      "arquivo": "app/routers/web.py",
+      "metodo": "GET",
+      "rota": "/cadastro"
+    },
+    {
+      "arquivo": "app/routers/web.py",
+      "metodo": "POST",
+      "rota": "/cadastro"
+    },
+    {
+      "arquivo": "app/routers/web.py",
+      "metodo": "POST",
+      "rota": "/sair"
+    },
+    {
+      "arquivo": "app/routers/web.py",
+      "metodo": "GET",
+      "rota": "/painel"
+    },
+    {
+      "arquivo": "app/routers/web.py",
+      "metodo": "GET",
+      "rota": "/analise"
+    },
+    {
+      "arquivo": "app/routers/web.py",
+      "metodo": "GET",
+      "rota": "/buscar"
+    },
+    {
+      "arquivo": "app/routers/web.py",
+      "metodo": "GET",
+      "rota": "/chaves"
+    },
+    {
+      "arquivo": "app/routers/web.py",
+      "metodo": "POST",
+      "rota": "/chaves/criar"
+    },
+    {
+      "arquivo": "app/routers/web.py",
+      "metodo": "POST",
+      "rota": "/chaves/revogar/{chave_id}"
+    },
+    {
+      "arquivo": "app/routers/web.py",
+      "metodo": "GET",
+      "rota": "/consumo"
+    },
+    {
+      "arquivo": "app/routers/web.py",
+      "metodo": "GET",
+      "rota": "/perfil"
+    },
+    {
+      "arquivo": "app/routers/web.py",
+      "metodo": "GET",
+      "rota": "/alterar-senha"
+    },
+    {
+      "arquivo": "app/routers/web.py",
+      "metodo": "POST",
+      "rota": "/alterar-senha"
+    },
+    {
+      "arquivo": "app/routers/web.py",
+      "metodo": "GET",
+      "rota": "/admin"
+    },
+    {
+      "arquivo": "app/routers/web.py",
+      "metodo": "POST",
+      "rota": "/admin/usuarios/criar"
+    },
+    {
+      "arquivo": "app/routers/web.py",
+      "metodo": "POST",
+      "rota": "/admin/usuarios/{usuario_id}/editar"
+    },
+    {
+      "arquivo": "app/routers/web.py",
+      "metodo": "POST",
+      "rota": "/admin/usuarios/{usuario_id}/resetar-senha"
+    },
+    {
+      "arquivo": "app/routers/web.py",
+      "metodo": "POST",
+      "rota": "/admin/usuarios/{usuario_id}/toggle-status"
+    },
+    {
+      "arquivo": "app/routers/web.py",
+      "metodo": "GET",
+      "rota": "/admin/usuario-criado"
+    },
+    {
+      "arquivo": "app/routers/web.py",
+      "metodo": "GET",
+      "rota": "/ativar-conta/{token}"
+    },
+    {
+      "arquivo": "app/routers/web.py",
+      "metodo": "POST",
+      "rota": "/ativar-conta/{token}"
+    },
+    {
+      "arquivo": "app/routers/web.py",
+      "metodo": "GET",
+      "rota": "/convite/{token}"
+    },
+    {
+      "arquivo": "app/routers/web.py",
+      "metodo": "GET",
+      "rota": "/admin/usuarios/{usuario_id}/detalhes"
+    },
+    {
+      "arquivo": "app/routers/web.py",
+      "metodo": "POST",
+      "rota": "/admin/api/usuarios/{usuario_id}/revogar-chave/{chave_id}"
+    },
+    {
+      "arquivo": "app/routers/usuario.py",
+      "metodo": "GET",
+      "rota": "/consumo"
+    },
+    {
+      "arquivo": "app/routers/usuario.py",
+      "metodo": "GET",
+      "rota": "/chaves"
+    },
+    {
+      "arquivo": "app/routers/usuario.py",
+      "metodo": "POST",
+      "rota": "/chaves"
+    },
+    {
+      "arquivo": "app/routers/usuario.py",
+      "metodo": "DELETE",
+      "rota": "/chaves/{chave_id}"
+    },
+    {
+      "arquivo": "app/routers/usuario.py",
+      "metodo": "PUT",
+      "rota": "/perfil"
+    },
+    {
+      "arquivo": "app/routers/usuario.py",
+      "metodo": "PUT",
+      "rota": "/senha"
+    },
+    {
+      "arquivo": "app/routers/admin.py",
+      "metodo": "GET",
+      "rota": "/estatisticas"
+    },
+    {
+      "arquivo": "app/routers/admin.py",
+      "metodo": "GET",
+      "rota": "/usuarios"
+    },
+    {
+      "arquivo": "app/routers/admin.py",
+      "metodo": "POST",
+      "rota": "/usuarios"
+    },
+    {
+      "arquivo": "app/routers/admin.py",
+      "metodo": "PUT",
+      "rota": "/usuarios/{usuario_id}"
+    },
+    {
+      "arquivo": "app/routers/admin.py",
+      "metodo": "POST",
+      "rota": "/usuarios/{usuario_id}/resetar-senha"
+    },
+    {
+      "arquivo": "app/routers/admin.py",
+      "metodo": "POST",
+      "rota": "/usuarios/{usuario_id}/toggle-status"
+    },
+    {
+      "arquivo": "app/routers/admin.py",
+      "metodo": "DELETE",
+      "rota": "/usuarios/{usuario_id}"
+    },
+    {
+      "arquivo": "app/routers/analise.py",
+      "metodo": "POST",
+      "rota": "/risco"
+    }
+  ],
+  "main_py": "from contextlib import asynccontextmanager\nimport sys\nimport logging\nimport time\nfrom typing import Callable\n\nfrom fastapi import FastAPI, Request, Response\nfrom fastapi.middleware.cors import CORSMiddleware\nfrom fastapi.responses import RedirectResponse, JSONResponse\nfrom fastapi.staticfiles import StaticFiles\nfrom slowapi import Limiter, _rate_limit_exceeded_handler\nfrom slowapi.util import get_remote_address\nfrom slowapi.errors import RateLimitExceeded\nfrom pythonjsonlogger import jsonlogger\n\nfrom app.config import settings\nfrom app.middleware.auth_middleware import RedirectParaLogin\n\n\n# ── Logging estruturado ────────────────────────────────────────────────────\n\ndef setup_logging():\n    \"\"\"Configura logging estruturado em JSON para produção.\"\"\"\n    logger = logging.getLogger()\n    logger.setLevel(getattr(logging, settings.log_level.upper()))\n\n    # Remove handlers existentes\n    for handler in logger.handlers[:]:\n        logger.removeHandler(handler)\n\n    # Handler para stdout\n    handler = logging.StreamHandler(sys.stdout)\n\n    if settings.log_format == \"json\":\n        # JSON estruturado para produção\n        formatter = jsonlogger.JsonFormatter(\n            \"%(asctime)s %(levelname)s %(name)s %(message)s\",\n            timestamp=True\n        )\n    else:\n        # Formato texto para desenvolvimento\n        formatter = logging.Formatter(\n            \"%(asctime)s - %(name)s - %(levelname)s - %(message)s\"\n        )\n\n    handler.setFormatter(formatter)\n    logger.addHandler(handler)\n\n    return logging.getLogger(__name__)\n\n\nlogger = setup_logging()\n\n\n# ── Rate Limiting ──────────────────────────────────────────────────────────\n\nlimiter = Limiter(\n    key_func=get_remote_address,\n    default_limits=[\n        f\"{settings.rate_limit_per_minute}/minute\",\n        f\"{settings.rate_limit_per_hour}/hour\"\n    ],\n    enabled=settings.rate_limit_enabled,\n    storage_uri=\"memory://\" if settings.environment == \"development\" else settings.redis_url,\n    strategy=\"fixed-window\"\n)\n\n\n# ── Seed de plano e usuário padrão ────────────────────────────────────────\n\ndef _seed_plano_gratuito():\n    \"\"\"Cria o plano Gratuito se não existir.\"\"\"\n    from app.database import SessionLocal\n    from app.models.empresa import Plano\n\n    with SessionLocal() as db:\n        try:\n            if not db.query(Plano).filter(Plano.nome == \"Gratuito\").first():\n                plano = Plano(\n                    nome=\"Gratuito\",\n                    descricao=\"Plano gratuito com limites básicos para testes e pequenos volumes\",\n                    limite_diario=100,\n                    limite_mensal=2000,\n                    valor_mensal_centavos=0,\n                    ativo=True,\n                )\n                db.add(plano)\n                db.commit()\n                logger.info(\"Plano Gratuito criado: 100 req/dia, 2000 req/mês\")\n        except Exception as e:\n            logger.warning(f\"Seed de plano ignorado: {e}\")\n\n\ndef _seed_usuario_padrao():\n    \"\"\"Cria um administrador padrão se não existir nenhum usuário.\"\"\"\n    from app.database import SessionLocal\n    from app.models.usuario import Usuario\n    from app.services.auth_service import hash_senha\n    from app.repositories.usuario_repo import buscar_por_email, criar_usuario\n\n    with SessionLocal() as db:\n        try:\n            if db.query(Usuario).count() == 0:\n                admin = criar_usuario(\n                    db, \"Administrador\", \"admin@mediddata.com\", hash_senha(\"medid@2026\")\n                )\n                admin.perfil = \"ADMINISTRADOR\"\n                db.commit()\n                logger.info(\"Usuário padrão criado: admin@mediddata.com / medid@2026\")\n        except Exception as e:\n            logger.warning(f\"Seed de usuário ignorado: {e}\")\n\n\n@asynccontextmanager\nasync def lifespan(app: FastAPI):\n    _seed_plano_gratuito()\n    _seed_usuario_padrao()\n    yield\n\n\n# ── App ────────────────────────────────────────────────────────────────────\n\napp = FastAPI(\n    title=\"MedID Data API\",\n    description=(\n        \"**Plataforma de Inteligência em Saúde**\\n\\n\"\n        \"API RESTful para análise de risco clínico e financeiro com dados oficiais:\\n\"\n        \"- ANVISA (medicamentos)\\n\"\n        \"- CMED (preços regulados)\\n\"\n        \"- CID-10 (classificação de doenças)\\n\"\n        \"- SIGTAP (procedimentos SUS)\\n\\n\"\n        \"## Autenticação\\n\\n\"\n        \"Dois métodos de autenticação suportados:\\n\\n\"\n        \"1. **JWT Bearer Token** (sessões web e aplicações):\\n\"\n        \"   ```\\n\"\n        \"   Authorization: Bearer <access_token>\\n\"\n        \"   ```\\n\\n\"\n        \"2. **Chave de Acesso API** (integrações):\\n\"\n        \"   ```\\n\"\n        \"   Authorization: Bearer med_...\\n\"\n        \"   X-API-Key: med_...\\n\"\n        \"   ```\\n\\n\"\n        \"Obtenha tokens via `/auth/login` ou chaves via `/usuario/chaves`.\\n\\n\"\n        \"## Rate Limiting\\n\\n\"\n        \"- **Desenvolvimento**: sem limites\\n\"\n        \"- **Produção**: 60 req/min por IP, 1000 req/hora\\n\"\n        \"- **Por plano**: limites diários/mensais por usuário\\n\\n\"\n        \"## Módulos\\n\\n\"\n        \"- **Base de Medicamentos** — busca inteligente com fuzzy matching\\n\"\n        \"- **Análise de Risco** — motor de 9 dimensões com pontuação de glosa\\n\"\n        \"- **Gestão de Chaves** — criar e gerenciar chaves de integração\\n\"\n        \"- **Histórico de Consumo** — métricas e analytics de uso\\n\\n\"\n        \"## Suporte\\n\\n\"\n        \"- Documentação: https://mediddata.com/docs\\n\"\n        \"- Contato: contato@mediddata.com\\n\"\n    ),\n    version=\"1.0.0\",\n    docs_url=\"/docs\",\n    redoc_url=\"/redoc\",\n    openapi_url=\"/openapi.json\",\n    lifespan=lifespan,\n    contact={\n        \"name\": \"MedID Data\",\n        \"email\": \"contato@mediddata.com\",\n        \"url\": \"https://mediddata.com\"\n    },\n    license_info={\n        \"name\": \"Proprietário\",\n        \"url\": \"https://mediddata.com/termos\"\n    },\n    servers=[\n        {\"url\": \"https://mediddata.com\", \"description\": \"Produção\"},\n        {\"url\": \"http://localhost:8000\", \"description\": \"Desenvolvimento\"}\n    ]\n)\n\n# Rate limiting\napp.state.limiter = limiter\napp.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)\n\n# CORS configurável\napp.add_middleware(\n    CORSMiddleware,\n    allow_origins=settings.cors_origins,\n    allow_credentials=True,\n    allow_methods=[\"*\"],\n    allow_headers=[\"*\"],\n    expose_headers=[\"X-Tempo-Resposta\", \"X-RateLimit-Limit\", \"X-RateLimit-Remaining\"]\n)\n\n\n@app.middleware(\"http\")\nasync def logging_middleware(request: Request, call_next: Callable):\n    \"\"\"Middleware para logging estruturado e métricas de tempo de resposta.\"\"\"\n    inicio = time.time()\n\n    # Log da requisição\n    logger.info(\n        \"request_started\",\n        extra={\n            \"method\": request.method,\n            \"path\": request.url.path,\n            \"client_ip\": request.client.host if request.client else None,\n            \"user_agent\": request.headers.get(\"user-agent\")\n        }\n    )\n\n    try:\n        response = await call_next(request)\n        duracao_ms = (time.time() - inicio) * 1000\n\n        # Headers de resposta\n        response.headers[\"X-Tempo-Resposta\"] = f\"{duracao_ms:.0f}ms\"\n\n        # Log da resposta\n        logger.info(\n            \"request_completed\",\n            extra={\n                \"method\": request.method,\n                \"path\": request.url.path,\n                \"status_code\": response.status_code,\n                \"duration_ms\": round(duracao_ms, 2),\n                \"client_ip\": request.client.host if request.client else None\n            }\n        )\n\n        return response\n\n    except Exception as e:\n        duracao_ms = (time.time() - inicio) * 1000\n        logger.error(\n            \"request_failed\",\n            extra={\n                \"method\": request.method,\n                \"path\": request.url.path,\n                \"duration_ms\": round(duracao_ms, 2),\n                \"error\": str(e),\n                \"client_ip\": request.client.host if request.client else None\n            },\n            exc_info=True\n        )\n        raise\n\n\n@app.exception_handler(RedirectParaLogin)\nasync def redirect_para_login(request: Request, exc: RedirectParaLogin):\n    \"\"\"Redireciona para /login quando rota web exige autenticação.\"\"\"\n    proxima = str(request.url.path)\n    if request.url.query:\n        proxima += f\"?{request.url.query}\"\n    return RedirectResponse(url=f\"/login?proxima={proxima}\", status_code=302)\n\n\n# ── Health check ───────────────────────────────────────────────────────────\n\n@app.get(\n    \"/saude\",\n    tags=[\"Sistema\"],\n    summary=\"Health check\",\n    description=\"Verifica se a API está operacional. Usado por orquestradores (Railway, Kubernetes) para monitoramento.\",\n    response_description=\"Status operacional da API\",\n    responses={\n        200: {\n            \"description\": \"API operacional\",\n            \"content\": {\n                \"application/json\": {\n                    \"example\": {\n                        \"status\": \"operacional\",\n                        \"servico\": \"MedID Data\",\n                        \"versao\": \"1.0.0\",\n                        \"environment\": \"production\"\n                    }\n                }\n            }\n        }\n    }\n)\n@limiter.exempt\nasync def saude():\n    \"\"\"Health check endpoint para monitoramento de infraestrutura.\"\"\"\n    return {\n        \"status\": \"operacional\",\n        \"servico\": \"MedID Data\",\n        \"versao\": \"1.0.0\",\n        \"environment\": settings.environment\n    }\n\n\n# ── Routers ────────────────────────────────────────────────────────────────\n\nfrom app.routers import medicamentos, analise, auth, usuario, admin, web\n\napp.include_router(auth.router, prefix=\"/auth\", tags=[\"Autenticação\"])\napp.include_router(\n    medicamentos.router,\n    prefix=\"/medicamentos\",\n    tags=[\"Medicamentos\"],\n)\napp.include_router(\n    analise.router,\n    prefix=\"/analise\",\n    tags=[\"Análise de Risco\"],\n)\napp.include_router(\n    usuario.router,\n    prefix=\"/usuario\",\n    tags=[\"Usuário\"],\n)\napp.include_router(\n    admin.router,\n    prefix=\"/admin/api\",\n    tags=[\"Administração\"],\n)\napp.include_router(web.router)\n\n# Servir arquivos estáticos (para imagens OG, etc)\napp.mount(\"/static\", StaticFiles(directory=\"app/static\"), name=\"static\")\n"
+}
