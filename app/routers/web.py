@@ -304,14 +304,16 @@ async def pagina_buscar(
     resultados = []
     total = 0
     sugestao = None
+    termo_busca = q.strip() if q else ""
 
-    if q and len(q.strip()) >= 2:
-        resposta = busca_medicamento.buscar(db, q.strip(), apenas_ativos, pagina, limite)
-        resultados = resposta.resultados
-        total = resposta.total
-        sugestao = resposta.sugestao
+    # Buscar sempre: com termo >= 2 chars faz fuzzy search, sem termo lista todos
+    resposta = busca_medicamento.buscar(db, termo_busca, apenas_ativos, pagina, limite)
+    resultados = resposta.resultados
+    total = resposta.total
+    sugestao = resposta.sugestao
 
-        # Registra consumo
+    # Registra consumo se houve resultados
+    if resultados:
         from datetime import date
         usuario_repo.incrementar_consumo(db, usuario.id, date.today(), "MEDICAMENTOS")
 
@@ -320,7 +322,7 @@ async def pagina_buscar(
         {
             "pagina_ativa": "buscar",
             "usuario": usuario,
-            "q": q.strip(),
+            "q": termo_busca,
             "apenas_ativos": apenas_ativos,
             "pagina": pagina,
             "limite": limite,

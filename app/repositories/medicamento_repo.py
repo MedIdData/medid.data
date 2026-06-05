@@ -137,9 +137,47 @@ def buscar_medicamentos(
     sugestao é None quando há resultados, ou o nome mais próximo quando zero.
     """
     q = q.strip()
-    if len(q) < 2:
-        return [], 0, None
 
+    # Se query vazia, listar primeiros medicamentos (ordem alfabética)
+    if len(q) < 2:
+        limite = min(limite, 100)
+        offset = (pagina - 1) * limite
+
+        sql_listar = text("""
+            SELECT
+                a.id,
+                a.nome_produto as medicamento,
+                a.principio_ativo,
+                a.numero_registro,
+                a.classe_terapeutica,
+                a.apresentacao,
+                a.empresa_detentora as empresa,
+                a.tarja,
+                a.situacao_registro,
+                a.venda_generico,
+                c.pf,
+                c.pmc,
+                c.pmvg
+            FROM medicamentos_anvisa a
+            LEFT JOIN medicamentos_cmed c ON a.numero_registro = c.numero_registro
+            WHERE (:apenas_ativos = FALSE OR upper(a.situacao_registro) = 'ATIVO')
+            ORDER BY a.nome_produto ASC
+            LIMIT :limite OFFSET :offset
+        """)
+
+        sql_total = text("""
+            SELECT COUNT(*)
+            FROM medicamentos_anvisa a
+            WHERE (:apenas_ativos = FALSE OR upper(a.situacao_registro) = 'ATIVO')
+        """)
+
+        params_listar = {"apenas_ativos": apenas_ativos, "limite": limite, "offset": offset}
+        total = db.execute(sql_total, {"apenas_ativos": apenas_ativos}).scalar_one()
+        rows = db.execute(sql_listar, params_listar).mappings().fetchall()
+
+        return [dict(r) for r in rows], total, None
+
+    # Query com termo >= 2 caracteres: busca com fuzzy matching
     limite = min(limite, 100)
     offset = (pagina - 1) * limite
     params = _params(q, apenas_ativos, limite, offset)

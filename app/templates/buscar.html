@@ -449,42 +449,18 @@
 
 {% block scripts_extras %}
 <script>
-  // Foco automático e busca em tempo real
+  // Foco automático no campo se vazio
   document.addEventListener('DOMContentLoaded', () => {
     const campo = document.getElementById('campo-busca');
-    const form = document.getElementById('form-busca');
     if (!campo) return;
 
-    if (!campo.value) campo.focus();
-
-    // Busca em tempo real com debounce
-    let timeoutId;
-    campo.addEventListener('input', (e) => {
-      clearTimeout(timeoutId);
-      const termo = e.target.value.trim();
-
-      // Se vazio, carregar página sem query
-      if (!termo) {
-        timeoutId = setTimeout(() => {
-          window.location.href = '/buscar';
-        }, 500);
-        return;
-      }
-
-      // Se >= 2 caracteres, buscar automaticamente
-      if (termo.length >= 2) {
-        timeoutId = setTimeout(() => {
-          form.submit();
-        }, 600); // 600ms de debounce
-      }
-    });
-
-    // Carregar primeiros resultados ao abrir a página (se não houver query)
-    const urlParams = new URLSearchParams(window.location.search);
-    if (!urlParams.get('q')) {
-      // Auto-buscar primeiros medicamentos
-      window.location.href = '/buscar?q=A&apenas_ativos=true';
+    // Foca apenas se não houver valor (permite navegação com busca)
+    if (!campo.value) {
+      campo.focus();
     }
   });
+
+  // Form é submetido normalmente ao clicar botão ou pressionar Enter
+  // Sem JavaScript interferindo na digitação ou auto-submit
 </script>
 {% endblock %}
