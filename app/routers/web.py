@@ -903,16 +903,19 @@ async def admin_usuario_detalhes(
     
     # Estatísticas
     stats = usuario_repo.obter_estatisticas_usuario(db, usuario_id)
-    
+
+    # Consumo por tipo (WEB vs API)
+    consumo_tipo = usuario_repo.obter_consumo_por_tipo(db, usuario_id)
+
     # Chaves API
     chaves = usuario_repo.listar_chaves_usuario(db, usuario_id)
-    
+
     # Histórico
     historico = usuario_repo.obter_historico_consumo_usuario(db, usuario_id, limite=30)
-    
+
     # Auditoria
     auditoria = usuario_repo.obter_auditoria_usuario(db, usuario_id, limite=20)
-    
+
     return templates.TemplateResponse(
         request, "admin_usuario_detalhes.html",
         {
@@ -922,6 +925,7 @@ async def admin_usuario_detalhes(
             "ultimo_login": ultimo_login,
             "ultimo_uso_api": ultimo_uso_api,
             "stats": stats,
+            "consumo_tipo": consumo_tipo,
             "chaves": chaves,
             "historico": historico,
             "auditoria": auditoria,

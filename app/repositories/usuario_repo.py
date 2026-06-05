@@ -430,3 +430,36 @@ def obter_ultimo_uso_api(db: Session, usuario_id: int) -> Optional[datetime]:
     """)
     result = db.execute(sql, {"uid": usuario_id}).scalar_one()
     return result
+
+
+def obter_consumo_por_tipo(db: Session, usuario_id: int) -> dict:
+    """Obtém consumo dividido por tipo (WEB vs API)."""
+    from datetime import date
+    
+    hoje = date.today()
+    
+    # Por enquanto, vamos usar o canal da auditoria para determinar tipo
+    # WEB = requisições via sessão web
+    # API = requisições via chave de acesso
+    
+    sql = text("""
+        SELECT 
+            CASE 
+                WHEN ar.chave_acesso_id IS NOT NULL THEN 'API'
+                ELSE 'WEB'
+            END as tipo,
+            COUNT(*) as total
+        FROM auditoria_requisicoes ar
+        WHERE ar.usuario_id = :uid
+          AND DATE(ar.criado_em) >= :inicio_mes
+        GROUP BY tipo
+    """)
+    
+    inicio_mes = date(hoje.year, hoje.month, 1)
+    rows = db.execute(sql, {"uid": usuario_id, "inicio_mes": inicio_mes}).mappings().fetchall()
+    
+    resultado = {"WEB": 0, "API": 0}
+    for row in rows:
+        resultado[row['tipo']] = row['total']
+    
+    return resultado

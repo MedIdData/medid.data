@@ -508,6 +508,49 @@
     </div>
   </div>
 
+  <!-- Consumo por Tipo (WEB vs API) -->
+  <div class="secao-card">
+    <div class="secao-header">
+      <svg width="18" height="18" fill="currentColor" viewBox="0 0 24 24">
+        <path d="M20 4H4c-1.11 0-1.99.89-1.99 2L2 18c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V6c0-1.11-.89-2-2-2zm0 14H4V8l8 5 8-5v10zm-8-7L4 6h16l-8 5z"/>
+      </svg>
+      <h3>Consumo por Tipo</h3>
+    </div>
+    <div class="secao-body">
+      {% set total_tipo = consumo_tipo.WEB + consumo_tipo.API %}
+      {% if total_tipo > 0 %}
+        <div style="margin-bottom: 20px;">
+          <div style="display: flex; gap: 12px; margin-bottom: 12px;">
+            <div style="flex: 1; background: #E0E7FF; padding: 16px; border-radius: 8px; border-left: 4px solid #3730A3;">
+              <div style="font-size: .75rem; color: #3730A3; margin-bottom: 6px; font-weight: 600; text-transform: uppercase;">Interface WEB</div>
+              <div style="font-family: 'Syne', sans-serif; font-size: 1.75rem; font-weight: 700; color: #3730A3;">{{ consumo_tipo.WEB }}</div>
+              <div style="font-size: .7rem; color: #6366F1; margin-top: 4px;">{{ "%.1f"|format((consumo_tipo.WEB / total_tipo * 100) if total_tipo > 0 else 0) }}% do total</div>
+            </div>
+            <div style="flex: 1; background: #F3E8FF; padding: 16px; border-radius: 8px; border-left: 4px solid #6B21A8;">
+              <div style="font-size: .75rem; color: #6B21A8; margin-bottom: 6px; font-weight: 600; text-transform: uppercase;">API</div>
+              <div style="font-family: 'Syne', sans-serif; font-size: 1.75rem; font-weight: 700; color: #6B21A8;">{{ consumo_tipo.API }}</div>
+              <div style="font-size: .7rem; color: #A855F7; margin-top: 4px;">{{ "%.1f"|format((consumo_tipo.API / total_tipo * 100) if total_tipo > 0 else 0) }}% do total</div>
+            </div>
+          </div>
+          <!-- Barra de comparação visual -->
+          <div style="display: flex; height: 8px; border-radius: 4px; overflow: hidden; background: var(--fundo-sec);">
+            {% set pct_web = (consumo_tipo.WEB / total_tipo * 100) if total_tipo > 0 else 50 %}
+            <div style="width: {{ pct_web }}%; background: linear-gradient(90deg, #3730A3 0%, #6366F1 100%); transition: width .3s;"></div>
+            <div style="width: {{ 100 - pct_web }}%; background: linear-gradient(90deg, #6B21A8 0%, #A855F7 100%); transition: width .3s;"></div>
+          </div>
+          <div style="display: flex; justify-content: space-between; margin-top: 6px; font-size: .7rem; color: var(--texto-ter);">
+            <span>← WEB</span>
+            <span>API →</span>
+          </div>
+        </div>
+      {% else %}
+        <div class="empty-state">
+          <p>Nenhum consumo registrado este mês</p>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+
   <!-- Consumo por Módulo -->
   <div class="secao-card">
     <div class="secao-header">
