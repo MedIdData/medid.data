@@ -62,6 +62,31 @@
   }
   .btn-buscar:hover { background: var(--teal-claro); }
 
+  /* Loading indicator */
+  .busca-loading {
+    position: absolute; right: 14px; top: 50%;
+    transform: translateY(-50%);
+    color: var(--teal);
+  }
+  .busca-loading svg {
+    animation: spin 0.8s linear infinite;
+  }
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+
+  /* Hint de caracteres mínimos */
+  .busca-hint {
+    position: absolute; right: 14px; top: 50%;
+    transform: translateY(-50%);
+    font-size: 0.75rem;
+    color: var(--texto-ter);
+    background: var(--fundo-sec);
+    padding: 2px 8px;
+    border-radius: 4px;
+    pointer-events: none;
+  }
+
   /* ── Filtros ────────────────────────────────────────────────────────── */
   .busca-layout {
     display: flex; gap: 24px; align-items: flex-start;
@@ -237,10 +262,20 @@
         name="q"
         id="campo-busca"
         value="{{ q or '' }}"
-        placeholder="Digite para buscar em tempo real..."
+        placeholder="Digite para buscar em tempo real (mín. 2 caracteres)..."
         autocomplete="off"
         autofocus
+        spellcheck="false"
       >
+      <div class="busca-loading" id="busca-loading" style="display:none;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10" opacity="0.25"/>
+          <path d="M12 2 A10 10 0 0 1 22 12" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <div class="busca-hint" id="busca-hint" style="display:none;">
+        Digite mais <span id="hint-chars">1</span> caractere(s)
+      </div>
     </div>
     <button type="submit" class="btn-buscar">
       <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -449,18 +484,116 @@
 
 {% block scripts_extras %}
 <script>
-  // Foco automático no campo se vazio
   document.addEventListener('DOMContentLoaded', () => {
     const campo = document.getElementById('campo-busca');
+    const form = document.getElementById('form-busca');
+    const loading = document.getElementById('busca-loading');
+    const hint = document.getElementById('busca-hint');
+    const hintChars = document.getElementById('hint-chars');
+    const apenasAtivos = document.querySelector('input[name="apenas_ativos"]');
+
     if (!campo) return;
 
-    // Foca apenas se não houver valor (permite navegação com busca)
+    // Foca no campo se vazio
     if (!campo.value) {
       campo.focus();
     }
-  });
 
-  // Form é submetido normalmente ao clicar botão ou pressionar Enter
-  // Sem JavaScript interferindo na digitação ou auto-submit
+    // ─────────────────────────────────────────────────────────────────
+    // AUTOCOMPLETE EM TEMPO REAL COM DEBOUNCE
+    // ─────────────────────────────────────────────────────────────────
+
+    let timeoutId = null;
+    let ultimaBusca = campo.value.trim();
+    const DEBOUNCE_MS = 600; // 600ms de debounce
+    const MIN_CHARS = 2;     // Mínimo 2 caracteres para buscar
+
+    function mostrarLoading(mostrar) {
+      if (loading) {
+        loading.style.display = mostrar ? 'block' : 'none';
+      }
+    }
+
+    function buscarEmTempoReal() {
+      const termo = campo.value.trim();
+
+      // Ignora se não mudou ou está muito curto
+      if (termo === ultimaBusca) {
+        mostrarLoading(false);
+        return;
+      }
+      if (termo.length > 0 && termo.length < MIN_CHARS) {
+        mostrarLoading(false);
+        return;
+      }
+
+      ultimaBusca = termo;
+
+      // Mostra loading antes de navegar
+      mostrarLoading(true);
+
+      // Monta URL com filtros
+      const params = new URLSearchParams();
+      if (termo) params.set('q', termo);
+      if (apenasAtivos && apenasAtivos.checked) params.set('apenas_ativos', 'true');
+
+      // Navega para a nova URL (recarrega página com resultados)
+      window.location.href = '/buscar?' + params.toString();
+    }
+
+    // Event listener no input com debounce
+    campo.addEventListener('input', (e) => {
+      const termo = e.target.value.trim();
+
+      // Limpa timeout anterior
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+        mostrarLoading(false);
+      }
+
+      // Se vazio, reseta tudo
+      if (termo.length === 0) {
+        campo.style.borderColor = '';
+        if (hint) hint.style.display = 'none';
+        return;
+      }
+
+      // Se muito curto, mostra hint
+      if (termo.length < MIN_CHARS) {
+        campo.style.borderColor = '';
+        const faltam = MIN_CHARS - termo.length;
+        if (hint && hintChars) {
+          hintChars.textContent = faltam;
+          hint.style.display = 'block';
+        }
+        return;
+      }
+
+      // Esconde hint e mostra feedback de busca
+      if (hint) hint.style.display = 'none';
+      campo.style.borderColor = '#14B8A6';
+
+      // Agenda nova busca
+      timeoutId = setTimeout(() => {
+        buscarEmTempoReal();
+      }, DEBOUNCE_MS);
+    });
+
+    // Submit manual (botão ou Enter) cancela debounce e busca imediatamente
+    form.addEventListener('submit', (e) => {
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
+      mostrarLoading(true);
+      // Permite submit normal do form
+    });
+
+    // Limpa loading ao voltar para a página (back/forward)
+    window.addEventListener('pageshow', (e) => {
+      if (e.persisted) {
+        mostrarLoading(false);
+      }
+    });
+  });
 </script>
 {% endblock %}
