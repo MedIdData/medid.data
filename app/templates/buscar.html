@@ -214,8 +214,8 @@
 {% block conteudo %}
 <!-- Hero com busca -->
 <div class="busca-hero">
-  <h2>Busca de Medicamentos</h2>
-  <p>Encontre medicamentos por nome comercial ou princípio ativo com dados ANVISA e preços CMED atualizados.</p>
+  <h2>Base de Medicamentos ANVISA</h2>
+  <p>Consulte medicamentos por nome comercial ou princípio ativo · Base oficial sem filtros ou exclusões</p>
   <div class="busca-form">
     <div class="busca-input-wrap">
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -287,8 +287,8 @@
               <span class="etiq etiq-atencao" style="margin-left:6px;">incluindo inativos</span>
             {% endif %}
           </div>
-          <div style="font-size:.75rem;color:var(--texto-ter);">
-            Digite no campo acima para filtrar instantaneamente
+          <div style="font-size:.7rem;color:var(--texto-ter);max-width:600px;">
+            Base oficial ANVISA sem remoção de similares · Clique em um medicamento para ver detalhes e preços
           </div>
         </div>
 
@@ -310,50 +310,11 @@
             <div class="med-etiquetas">
               {% if med.situacao_anvisa %}
                 {% if med.situacao_anvisa | upper == 'ATIVO' %}
-                  <span class="etiq etiq-ativo">✓ Ativo</span>
+                  <span class="etiq etiq-ativo">✓ Registro Ativo</span>
                 {% else %}
-                  <span class="etiq etiq-inativo">Inativo</span>
+                  <span class="etiq etiq-inativo">✕ Registro Inativo</span>
                 {% endif %}
               {% endif %}
-              {% if med.categoria_regulatoria %}
-                <span class="etiq etiq-cinza">{{ med.categoria_regulatoria }}</span>
-              {% endif %}
-              {% if med.tarja %}
-                {% if 'PRETA' in med.tarja | upper %}
-                  <span class="etiq etiq-vermelho">{{ med.tarja }}</span>
-                {% elif 'VERMELHA' in med.tarja | upper %}
-                  <span class="etiq etiq-ambar">{{ med.tarja }}</span>
-                {% else %}
-                  <span class="etiq etiq-cinza">{{ med.tarja }}</span>
-                {% endif %}
-              {% endif %}
-            </div>
-
-            <div class="preco-grid">
-              <div class="preco-item">
-                <span class="preco-label">PF</span>
-                {% if med.pf %}
-                  <span class="preco-valor">R$ {{ "%.2f"|format(med.pf) }}</span>
-                {% else %}
-                  <span class="preco-valor sem-dado">—</span>
-                {% endif %}
-              </div>
-              <div class="preco-item">
-                <span class="preco-label">PMC</span>
-                {% if med.pmc %}
-                  <span class="preco-valor">R$ {{ "%.2f"|format(med.pmc) }}</span>
-                {% else %}
-                  <span class="preco-valor sem-dado">—</span>
-                {% endif %}
-              </div>
-              <div class="preco-item">
-                <span class="preco-label">PMVG</span>
-                {% if med.pmvg %}
-                  <span class="preco-valor">R$ {{ "%.2f"|format(med.pmvg) }}</span>
-                {% else %}
-                  <span class="preco-valor sem-dado">—</span>
-                {% endif %}
-              </div>
             </div>
           </a>
           {% endfor %}
