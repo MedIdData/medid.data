@@ -614,11 +614,26 @@ async def pagina_admin(
     # Lista de usuários com suas chaves
     usuarios = usuario_repo.listar_todos_usuarios(db)
 
-    # Mapear chaves por usuário
+    # Mapear chaves e consumo por usuário
     chaves_por_usuario = {}
+    consumo_por_usuario = {}
+
     for u in usuarios:
         chaves = usuario_repo.listar_chaves_usuario(db, u.id)
         chaves_por_usuario[u.id] = chaves
+
+        # Calcular % de consumo do dia
+        consumo_hoje = usuario_repo.obter_consumo_total_dia(db, u.id, date.today())
+
+        if u.limite_diario and u.limite_diario > 0:
+            percentual = (consumo_hoje / u.limite_diario) * 100
+        else:
+            percentual = 0  # Ilimitado
+
+        consumo_por_usuario[u.id] = {
+            "consumo_hoje": consumo_hoje,
+            "percentual": min(percentual, 100),  # Cap at 100%
+        }
 
     return templates.TemplateResponse(
         request, "admin.html",
@@ -631,6 +646,7 @@ async def pagina_admin(
             "requisicoes_hoje": requisicoes_hoje,
             "usuarios": usuarios,
             "chaves_por_usuario": chaves_por_usuario,
+            "consumo_por_usuario": consumo_por_usuario,
         },
     )
 

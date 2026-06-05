@@ -657,13 +657,240 @@
   </div>
 
 </div>
+<!-- Modal Editar Usuário -->
+<div id="modalEditar" class="modal">
+  <div class="modal-overlay" onclick="fecharModalEditar()"></div>
+  <div class="modal-conteudo">
+    <div class="modal-header">
+      <h2 class="modal-titulo">Editar Usuário</h2>
+      <button class="btn-fechar" onclick="fecharModalEditar()">×</button>
+    </div>
+    <form method="POST" action="/admin/usuarios/{{ usuario.id }}/editar">
+      <div class="modal-body">
+        <div class="form-group">
+          <label for="edit_nome">Nome completo</label>
+          <input type="text" id="edit_nome" name="nome" class="form-input" value="{{ usuario.nome }}" required>
+        </div>
+        <div class="form-group">
+          <label for="edit_email">Email</label>
+          <input type="email" id="edit_email" name="email" class="form-input" value="{{ usuario.email }}" required>
+        </div>
+        <div class="form-row" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px;">
+          <div class="form-group">
+            <label for="edit_perfil">Perfil</label>
+            <select id="edit_perfil" name="perfil" class="form-select" required>
+              <option value="USUARIO" {{ 'selected' if usuario.perfil == 'USUARIO' else '' }}>Usuário</option>
+              <option value="CLIENTE" {{ 'selected' if usuario.perfil == 'CLIENTE' else '' }}>Cliente</option>
+              <option value="ADMINISTRADOR" {{ 'selected' if usuario.perfil == 'ADMINISTRADOR' else '' }}>Administrador</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="edit_ativo">Status</label>
+            <select id="edit_ativo" name="ativo" class="form-select" required>
+              <option value="true" {{ 'selected' if usuario.ativo else '' }}>Ativo</option>
+              <option value="false" {{ 'selected' if not usuario.ativo else '' }}>Inativo</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px;">
+          <div class="form-group">
+            <label for="edit_limite_diario">Limite diário</label>
+            <input type="number" id="edit_limite_diario" name="limite_diario" class="form-input" value="{{ usuario.limite_diario or '' }}" placeholder="Deixe vazio para ilimitado">
+          </div>
+          <div class="form-group">
+            <label for="edit_limite_mensal">Limite mensal</label>
+            <input type="number" id="edit_limite_mensal" name="limite_mensal" class="form-input" value="{{ usuario.limite_mensal or '' }}" placeholder="Deixe vazio para ilimitado">
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer" style="display: flex; gap: 12px; justify-content: flex-end; padding: 16px 24px; border-top: 1px solid var(--borda);">
+        <button type="button" class="btn-secundario" onclick="fecharModalEditar()">Cancelar</button>
+        <button type="submit" class="btn-primario">Salvar Alterações</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Modal Resetar Senha -->
+<div id="modalSenha" class="modal">
+  <div class="modal-overlay" onclick="fecharModalSenha()"></div>
+  <div class="modal-conteudo" style="max-width: 440px;">
+    <div class="modal-header">
+      <h2 class="modal-titulo">Resetar Senha</h2>
+      <button class="btn-fechar" onclick="fecharModalSenha()">×</button>
+    </div>
+    <form method="POST" action="/admin/usuarios/{{ usuario.id }}/resetar-senha">
+      <div class="modal-body">
+        <p style="margin-bottom: 16px; color: var(--texto-sec);">
+          Definir nova senha para <strong>{{ usuario.nome }}</strong>?
+        </p>
+        <div class="form-group">
+          <label for="nova_senha">Nova senha</label>
+          <input type="password" id="nova_senha" name="senha" class="form-input" required minlength="6" placeholder="Mínimo 6 caracteres">
+        </div>
+      </div>
+      <div class="modal-footer" style="display: flex; gap: 12px; justify-content: flex-end; padding: 16px 24px; border-top: 1px solid var(--borda);">
+        <button type="button" class="btn-secundario" onclick="fecharModalSenha()">Cancelar</button>
+        <button type="submit" class="btn-perigo">Resetar Senha</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<style>
+  /* Modal styles */
+  .modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+  }
+  .modal.ativo {
+    display: flex;
+  }
+  .modal-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(2px);
+  }
+  .modal-conteudo {
+    position: relative;
+    background: var(--branco);
+    border-radius: var(--r-card);
+    width: 90%;
+    max-width: 600px;
+    max-height: 90vh;
+    overflow: auto;
+    box-shadow: 0 20px 60px rgba(0,0,0,.3);
+  }
+  .modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px 24px;
+    border-bottom: 1px solid var(--borda);
+  }
+  .modal-titulo {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: var(--azul-escuro);
+  }
+  .btn-fechar {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    border: none;
+    font-size: 28px;
+    color: var(--texto-ter);
+    cursor: pointer;
+    border-radius: 4px;
+    transition: all .2s;
+  }
+  .btn-fechar:hover {
+    background: var(--fundo);
+    color: var(--texto);
+  }
+  .modal-body {
+    padding: 24px;
+  }
+  .form-group {
+    margin-bottom: 16px;
+  }
+  .form-group label {
+    display: block;
+    font-size: .85rem;
+    font-weight: 500;
+    color: var(--texto-sec);
+    margin-bottom: 6px;
+  }
+  .form-input, .form-select {
+    width: 100%;
+    padding: 10px 14px;
+    border: 1px solid var(--borda);
+    border-radius: var(--r-campo);
+    font-size: .9rem;
+    color: var(--texto);
+    transition: all .15s;
+  }
+  .form-input:focus, .form-select:focus {
+    outline: none;
+    border-color: var(--teal);
+    box-shadow: 0 0 0 3px rgba(20,184,166,.1);
+  }
+  .btn-secundario {
+    padding: 10px 18px;
+    background: var(--fundo-sec);
+    color: var(--texto-sec);
+    border: 1px solid var(--borda);
+    border-radius: var(--r-botao);
+    font-size: .9rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all .15s;
+  }
+  .btn-secundario:hover {
+    background: var(--borda);
+  }
+  .btn-primario {
+    padding: 10px 18px;
+    background: var(--azul);
+    color: var(--branco);
+    border: none;
+    border-radius: var(--r-botao);
+    font-size: .9rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all .15s;
+  }
+  .btn-primario:hover {
+    background: var(--azul-medio);
+  }
+  .btn-perigo {
+    padding: 10px 18px;
+    background: var(--vermelho);
+    color: var(--branco);
+    border: none;
+    border-radius: var(--r-botao);
+    font-size: .9rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all .15s;
+  }
+  .btn-perigo:hover {
+    background: #DC2626;
+  }
+</style>
 {% endblock %}
 
 {% block scripts_extras %}
 <script>
 function abrirModalEditar() {
-  alert('Modal de edição em desenvolvimento');
-  // TODO: implementar modal
+  document.getElementById('modalEditar').classList.add('ativo');
+}
+
+function fecharModalEditar() {
+  document.getElementById('modalEditar').classList.remove('ativo');
+}
+
+function abrirModalSenha() {
+  document.getElementById('modalSenha').classList.add('ativo');
+}
+
+function fecharModalSenha() {
+  document.getElementById('modalSenha').classList.remove('ativo');
 }
 
 function confirmarDesativar() {

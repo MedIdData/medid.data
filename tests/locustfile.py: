@@ -1,0 +1,43 @@
+from locust import HttpUser, task, between
+
+API_KEY = "med_7f559930dcb1d8d8d3f413a1067a9c98ab67017d914275a2"
+
+class MedIDUser(HttpUser):
+    wait_time = between(1, 3)
+
+    headers = {
+        "Authorization": f"Bearer {API_KEY}",
+        "X-API-Key": API_KEY
+    }
+
+    @task(5)
+    def buscar_medicamento(self):
+        self.client.get(
+            "/medicamentos/buscar?q=dipirona",
+            headers=self.headers
+        )
+
+    @task(3)
+    def analise_risco(self):
+        self.client.post(
+            "/analise/risco",
+            headers=self.headers,
+            json={
+                "medicamento": "dipirona",
+                "preco_informado": 5.50,
+                "tratamento": "dor e febre",
+                "cid": "R50",
+                "quantidade": 1
+            }
+        )
+
+    @task(1)
+    def consumo(self):
+        self.client.get(
+            "/usuario/consumo",
+            headers=self.headers
+        )
+
+    @task(1)
+    def health(self):
+        self.client.get("/saude")
