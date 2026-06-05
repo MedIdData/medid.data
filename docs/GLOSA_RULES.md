@@ -303,33 +303,43 @@ Potencial de glosa: MEDIO (próximo de ALTO)
 
 ---
 
-## 🔧 Ajustes Pendentes
+## ✅ Correções Implementadas (Commit eafae63 + atual)
 
-### Problemas Identificados
+### 1. ✅ Gauge Invertido - RESOLVIDO
+**Problema**: Visual mostrava risco ao contrário  
+**Solução**: Corrigida fórmula `stroke-dashoffset = totalArco * (1 - valor / 100)`
 
-1. **Medicamento não encontrado**: Atualmente retorna NAO_ADERENTE (3 pontos), mas deveria penalizar mais fortemente.
-   
-2. **Falta de dados essenciais**: CID/Procedimento não informados não penalizam (NAO_INFORMADO = 0 pontos).
+### 2. ✅ Medicamento Não Encontrado - RESOLVIDO
+**Problema**: Penalidade insuficiente (aderência -5, risco +8)  
+**Solução**: Aumentado peso drástico quando med_row is None
 
-3. **Gauge invertido**: Visual do gauge está mostrando risco ao contrário (100% parece baixo risco).
-
-4. **Validação de campos**: Alguns valores numéricos geram erro 500.
-
-### Propostas de Correção
-
-**Opção 1**: Aumentar peso de NAO_ADERENTE quando medicamento não encontrado:
-```
-Medicamento não encontrado = 6 pontos (peso dobrado)
-```
-
-**Opção 2**: Criar peso especial para "dados essenciais ausentes":
-```
-CRITICO = 5 pontos (para medicamento não encontrado)
+**Pesos atualizados**:
+```python
+"inconsistencias": {
+    "ATENCAO": (aderência -2, risco +3),      # Problemas leves
+    "NAO_ADERENTE": (aderência -40, risco +60) # Medicamento não encontrado
+}
 ```
 
-**Opção 3**: Penalizar ausência de CID/Procedimento em cenários críticos:
-```
-Se medicamento não encontrado E CID ausente → +3 pontos
+**Resultado**:
+- Medicamento não encontrado sozinho → Risco 60% (MEDIO tendendo a ALTO)
+- Medicamento não encontrado + outro problema → Risco 70%+ (ALTO)
+
+### 3. ✅ Múltiplos Problemas - RESOLVIDO
+**Problema**: Múltiplos problemas tratados igual a 1 problema  
+**Solução**: Lógica refinada em `_d9_inconsistencias`:
+
+```python
+if med_row is None:
+    return NAO_ADERENTE  # Sempre crítico
+
+if len(problemas) >= 2:
+    return NAO_ADERENTE  # Múltiplos problemas = crítico
+
+if "não está ativo" in problema:
+    return NAO_ADERENTE  # Registro inativo = crítico
+
+return ATENCAO  # 1 problema leve (sem preço CMED, CID inválido, etc)
 ```
 
 ---

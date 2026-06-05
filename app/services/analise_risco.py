@@ -167,7 +167,9 @@ _PESOS = {
     "preco_pmc":       {"ATENCAO": (4, 7),   "NAO_ADERENTE": (10, 16)},
     "preco_pmvg":      {"ATENCAO": (3, 5),   "NAO_ADERENTE": (7,  10)},
     "quantidade":      {"ATENCAO": (3, 5),   "NAO_ADERENTE": (8,  12)},
-    "inconsistencias": {"ATENCAO": (2, 3),   "NAO_ADERENTE": (5,  8)},
+    # CRÍTICO: Medicamento não encontrado = ausência total de referência
+    # Penalidade alta para forçar risco ALTO quando não há como validar
+    "inconsistencias": {"ATENCAO": (2, 3),   "NAO_ADERENTE": (40, 60)},
 }
 
 
@@ -464,15 +466,27 @@ def _d9_inconsistencias(
     if codigo_proc.strip() and not proc_row:
         problemas.append(f'Procedimento "{codigo_proc}" não encontrado no SIGTAP  -  verifique o código.')
 
-    # CORREÇÃO: Medicamento não encontrado deve sempre ser NAO_ADERENTE (risco alto)
+    # CORREÇÃO: Medicamento não encontrado = RISCO ALTO CRÍTICO (sempre NAO_ADERENTE)
+    # Motivo: Sem referência ANVISA/CMED, impossível validar preço, classe, registro
     if med_row is None:
         return Situacao.NAO_ADERENTE, problemas
 
+    # Se medicamento encontrado mas múltiplos problemas = RISCO ALTO
+    # Se medicamento encontrado com 1 problema leve = ATENÇÃO
     if not problemas:
         return Situacao.ADERENTE, []
-    if len(problemas) == 1:
-        return Situacao.ATENCAO, problemas
-    return Situacao.NAO_ADERENTE, problemas
+
+    # Situação de registro inativa OU múltiplos problemas = NAO_ADERENTE
+    if len(problemas) >= 2:
+        return Situacao.NAO_ADERENTE, problemas
+
+    # CID/Procedimento inválido isoladamente = ATENCAO (não crítico se med OK)
+    # Medicamento sem preço CMED isoladamente = ATENCAO (pode ser importado)
+    # Registro inativo isoladamente = NAO_ADERENTE (mais crítico)
+    if "não está ativo" in problemas[0]:
+        return Situacao.NAO_ADERENTE, problemas
+
+    return Situacao.ATENCAO, problemas
 
 
 # ── Motor principal ────────────────────────────────────────────────────────
