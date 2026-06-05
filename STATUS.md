@@ -42,17 +42,43 @@
 
 ---
 
-## 📋 Backlog Identificado
+## 📋 Backlog Pendente
 
-### Prioridade ALTA
-1. **Validar sync completo** - Verificar 10.298 ativos no Railway
-2. **Testar busca em produção** - Resfenol, Gardenal devem retornar resultados
+### CORRECAO_05 - Chaves de Acesso
+- [ ] Padronizar layout (mesmo visual das demais telas)
+- [ ] Responsivo
+- [ ] Componentes reutilizáveis
+- [ ] Visual SaaS profissional
 
-### Prioridade MÉDIA
-- (nenhum item registrado ainda)
+### CORRECAO_06 - Histórico de Consumo
+- [ ] Padronizar layout
+- [ ] Dashboard moderno
+- [ ] Melhor visualização dos gráficos
+- [ ] Consistência com o restante do sistema
 
-### Prioridade BAIXA
-- (nenhum item registrado ainda)
+### CORRECAO_07 - Menu Usuário
+- [ ] Nome do usuário clicável no canto superior direito
+- [ ] Dropdown: Meu Perfil, Alterar Senha, Minhas Chaves, Meu Consumo, Sair
+
+### CORRECAO_08 - Admin
+- [ ] Área exclusiva para administrador
+- [ ] CRUD usuários (criar, editar, ativar/desativar)
+- [ ] Resetar senha, alterar perfil
+- [ ] Definir limites diários/mensais
+- [ ] Visualizar consumo e chaves API
+
+### CORRECAO_09 - Paridade API
+- [ ] Tudo da interface disponível via API
+- [ ] Mesmas regras, validações, limites, segurança
+
+### CORRECAO_10 - Testes
+- [ ] Autenticação, busca, análise
+- [ ] Consumo, admin, API, chaves
+
+### CORRECAO_11 - Documentação
+- [x] CLAUDE.md, STATUS.md, FILE_MAP.md, CHANGELOG.md, ROADMAP.md
+- [ ] Completar docs/specs (faltam 6 specs)
+- [ ] Criar docs/adrs conforme necessário
 
 ---
 
