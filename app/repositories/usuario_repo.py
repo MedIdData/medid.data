@@ -4,7 +4,7 @@ Repositório de usuários, tokens, consumo e auditoria.
 from datetime import date, datetime, timezone
 from typing import Optional
 
-from sqlalchemy import text
+from sqlalchemy import text, func
 from sqlalchemy.orm import Session
 
 from app.models.usuario import Usuario, RefreshToken
@@ -269,8 +269,8 @@ def contar_chaves_total(db: Session) -> int:
 
 def obter_consumo_sistema_dia(db: Session, data: date) -> int:
     """Obtém consumo total do sistema em um dia."""
-    result = db.query(func.sum(Consumo.quantidade)).filter(
-        Consumo.data == data
+    result = db.query(func.sum(ConsumoDiario.total_consultas)).filter(
+        ConsumoDiario.data_referencia == data
     ).scalar()
     return result or 0
 
