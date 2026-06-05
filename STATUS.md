@@ -65,11 +65,12 @@
 - **Status:** ✅ Concluído - Commit 5714fb8 (já estava implementado)
 
 ### CORRECAO_08 - Admin
-- [ ] Área exclusiva para administrador
-- [ ] CRUD usuários (criar, editar, ativar/desativar)
-- [ ] Resetar senha, alterar perfil
-- [ ] Definir limites diários/mensais
-- [ ] Visualizar consumo e chaves API
+- [x] Área exclusiva para administrador
+- [x] CRUD usuários (criar, editar, ativar/desativar)
+- [x] Resetar senha, alterar perfil
+- [x] Definir limites diários/mensais
+- [x] Visualizar consumo e chaves API (estatísticas dashboard)
+- **Status:** ✅ Concluído - Commit 30a494b
 
 ### CORRECAO_09 - Paridade API
 - [ ] Tudo da interface disponível via API
