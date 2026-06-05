@@ -2,7 +2,7 @@
 Rotas da interface web (HTML/Jinja2).
 Auth protege /buscar, /analise, /painel, /chaves, /consumo.
 """
-from fastapi import APIRouter, Depends, Form, Query, Request, status
+from fastapi import APIRouter, Depends, Form, HTTPException, Query, Request, status
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
@@ -582,3 +582,125 @@ async def processar_alterar_senha(
         url="/alterar-senha?sucesso=Senha alterada com sucesso",
         status_code=status.HTTP_302_FOUND
     )
+
+
+# ── Administração ──────────────────────────────────────────────────────────
+
+def requer_admin(usuario: Usuario = Depends(requer_usuario_web)):
+    """Middleware que valida se usuário é administrador."""
+    if usuario.perfil != 'ADMINISTRADOR':
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Acesso negado. Apenas administradores."
+        )
+    return usuario
+
+
+@router.get("/admin", response_class=HTMLResponse)
+async def pagina_admin(
+    request: Request,
+    usuario: Usuario = Depends(requer_admin),
+    db: Session = Depends(get_db),
+):
+    from datetime import date
+    
+    # Estatísticas
+    total_usuarios = usuario_repo.contar_usuarios(db)
+    usuarios_ativos = usuario_repo.contar_usuarios_ativos(db)
+    total_chaves = usuario_repo.contar_chaves_total(db)
+    requisicoes_hoje = usuario_repo.obter_consumo_sistema_dia(db, date.today())
+    
+    # Lista de usuários
+    usuarios = usuario_repo.listar_todos_usuarios(db)
+    
+    return templates.TemplateResponse(
+        request, "admin.html",
+        {
+            "pagina_ativa": "admin",
+            "usuario": usuario,
+            "total_usuarios": total_usuarios,
+            "usuarios_ativos": usuarios_ativos,
+            "total_chaves": total_chaves,
+            "requisicoes_hoje": requisicoes_hoje,
+            "usuarios": usuarios,
+        },
+    )
+
+
+@router.post("/admin/usuarios/criar")
+async def admin_criar_usuario(
+    nome: str = Form(...),
+    email: str = Form(...),
+    senha: str = Form(...),
+    perfil: str = Form(...),
+    limite_diario: int = Form(100),
+    limite_mensal: int = Form(2000),
+    usuario: Usuario = Depends(requer_admin),
+    db: Session = Depends(get_db),
+):
+    # Validações
+    email_normalizado = email.strip().lower()
+    if usuario_repo.buscar_por_email(db, email_normalizado):
+        return RedirectResponse(url="/admin?erro=Email já cadastrado", status_code=status.HTTP_302_FOUND)
+    
+    if len(senha) < 6:
+        return RedirectResponse(url="/admin?erro=Senha deve ter pelo menos 6 caracteres", status_code=status.HTTP_302_FOUND)
+    
+    # Criar usuário
+    senha_hash = auth_service.hash_senha(senha)
+    novo_usuario = usuario_repo.criar_usuario(db, nome, email_normalizado, senha_hash)
+    
+    # Atualizar perfil e limites
+    usuario_repo.atualizar_perfil_usuario(db, novo_usuario.id, perfil)
+    usuario_repo.atualizar_limites_usuario(db, novo_usuario.id, limite_diario, limite_mensal)
+    
+    return RedirectResponse(url="/admin", status_code=status.HTTP_302_FOUND)
+
+
+@router.post("/admin/usuarios/{usuario_id}/editar")
+async def admin_editar_usuario(
+    usuario_id: int,
+    nome: str = Form(...),
+    email: str = Form(...),
+    perfil: str = Form(...),
+    ativo: str = Form(...),
+    limite_diario: int = Form(None),
+    limite_mensal: int = Form(None),
+    usuario: Usuario = Depends(requer_admin),
+    db: Session = Depends(get_db),
+):
+    # Atualizar dados
+    ativo_bool = ativo == 'true'
+    usuario_repo.atualizar_usuario(db, usuario_id, nome, email, perfil, ativo_bool)
+    
+    if limite_diario is not None and limite_mensal is not None:
+        usuario_repo.atualizar_limites_usuario(db, usuario_id, limite_diario, limite_mensal)
+    
+    return RedirectResponse(url="/admin", status_code=status.HTTP_302_FOUND)
+
+
+@router.post("/admin/usuarios/{usuario_id}/resetar-senha")
+async def admin_resetar_senha(
+    usuario_id: int,
+    senha: str = Form(...),
+    usuario: Usuario = Depends(requer_admin),
+    db: Session = Depends(get_db),
+):
+    if len(senha) < 6:
+        return RedirectResponse(url="/admin?erro=Senha deve ter pelo menos 6 caracteres", status_code=status.HTTP_302_FOUND)
+    
+    senha_hash = auth_service.hash_senha(senha)
+    usuario_repo.atualizar_senha_usuario(db, usuario_id, senha_hash)
+    usuario_repo.revogar_refresh_tokens_usuario(db, usuario_id)
+    
+    return RedirectResponse(url="/admin", status_code=status.HTTP_302_FOUND)
+
+
+@router.post("/admin/usuarios/{usuario_id}/toggle-status")
+async def admin_toggle_status(
+    usuario_id: int,
+    usuario: Usuario = Depends(requer_admin),
+    db: Session = Depends(get_db),
+):
+    usuario_repo.toggle_status_usuario(db, usuario_id)
+    return RedirectResponse(url="/admin", status_code=status.HTTP_302_FOUND)

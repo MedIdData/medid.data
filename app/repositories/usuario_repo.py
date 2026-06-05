@@ -245,3 +245,84 @@ def atualizar_nome_usuario(db: Session, usuario_id: int, nome: str) -> None:
 def atualizar_senha_usuario(db: Session, usuario_id: int, senha_hash: str) -> None:
     db.query(Usuario).filter(Usuario.id == usuario_id).update({"senha_hash": senha_hash})
     db.commit()
+
+
+# ── Funções Admin ──────────────────────────────────────────────────────────
+
+def contar_usuarios(db: Session) -> int:
+    """Conta total de usuários no sistema."""
+    return db.query(Usuario).count()
+
+
+def contar_usuarios_ativos(db: Session) -> int:
+    """Conta usuários ativos."""
+    return db.query(Usuario).filter(Usuario.ativo == True).count()
+
+
+def contar_chaves_total(db: Session) -> int:
+    """Conta total de chaves API ativas no sistema."""
+    from datetime import datetime
+    return db.query(ChaveAcesso).filter(
+        ChaveAcesso.revogada_em.is_(None)
+    ).count()
+
+
+def obter_consumo_sistema_dia(db: Session, data: date) -> int:
+    """Obtém consumo total do sistema em um dia."""
+    result = db.query(func.sum(Consumo.quantidade)).filter(
+        Consumo.data == data
+    ).scalar()
+    return result or 0
+
+
+def listar_todos_usuarios(db: Session) -> list[Usuario]:
+    """Lista todos os usuários do sistema (admin)."""
+    return db.query(Usuario).order_by(Usuario.criado_em.desc()).all()
+
+
+def atualizar_usuario(
+    db: Session,
+    usuario_id: int,
+    nome: str,
+    email: str,
+    perfil: str,
+    ativo: bool
+) -> None:
+    """Atualiza dados de um usuário (admin)."""
+    usuario = db.query(Usuario).filter(Usuario.id == usuario_id).first()
+    if usuario:
+        usuario.nome = nome
+        usuario.email = email.strip().lower()
+        usuario.perfil = perfil
+        usuario.ativo = ativo
+        db.commit()
+
+
+def atualizar_perfil_usuario(db: Session, usuario_id: int, perfil: str) -> None:
+    """Atualiza perfil do usuário."""
+    usuario = db.query(Usuario).filter(Usuario.id == usuario_id).first()
+    if usuario:
+        usuario.perfil = perfil
+        db.commit()
+
+
+def atualizar_limites_usuario(
+    db: Session,
+    usuario_id: int,
+    limite_diario: int,
+    limite_mensal: int
+) -> None:
+    """Atualiza limites diários e mensais do usuário."""
+    usuario = db.query(Usuario).filter(Usuario.id == usuario_id).first()
+    if usuario:
+        usuario.limite_diario = limite_diario
+        usuario.limite_mensal = limite_mensal
+        db.commit()
+
+
+def toggle_status_usuario(db: Session, usuario_id: int) -> None:
+    """Ativa/desativa usuário."""
+    usuario = db.query(Usuario).filter(Usuario.id == usuario_id).first()
+    if usuario:
+        usuario.ativo = not usuario.ativo
+        db.commit()
