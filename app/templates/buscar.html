@@ -295,27 +295,17 @@
   <aside class="filtros-painel">
     <div class="card filtros-card">
       <div class="filtros-titulo">Filtros</div>
-      <form method="get" action="/buscar" id="form-filtros">
-        <input type="hidden" name="q" value="{{ q or '' }}">
+      <div>
         <div class="filtro-grupo">
           <label class="filtro-check">
             <input
-              type="checkbox" name="apenas_ativos" value="true"
+              type="checkbox"
+              id="checkbox-apenas-ativos"
               {% if apenas_ativos %}checked{% endif %}
-              onchange="document.getElementById('form-filtros').submit()"
             >
             Somente registros ativos
           </label>
         </div>
-        {% if q %}
-        <div class="filtro-grupo">
-          <a href="/buscar?q={{ q }}&apenas_ativos=false"
-             class="btn-aplicar-filtros"
-             style="display:block;text-align:center;text-decoration:none;">
-            Incluir inativos
-          </a>
-        </div>
-        {% endif %}
         <div class="filtro-grupo" style="margin-top:8px;padding-top:12px;border-top:1px solid var(--borda);">
           <div class="filtro-label">Fontes</div>
           <div style="font-size:.75rem;color:var(--texto-ter);line-height:1.6;">
@@ -324,7 +314,7 @@
             DCB — Denominações
           </div>
         </div>
-      </form>
+      </div>
     </div>
   </aside>
 
@@ -428,6 +418,7 @@
     const campo = document.getElementById('campo-busca');
     const grid = document.querySelector('.resultados-grid');
     const contagem = document.querySelector('.resultados-contagem');
+    const checkboxAtivos = document.getElementById('checkbox-apenas-ativos');
 
     if (!campo || !grid) return;
 
@@ -443,30 +434,34 @@
     const medicamentos = todosCards.map(card => {
       const nome = card.querySelector('.med-nome')?.textContent || '';
       const principio = card.querySelector('.med-principio')?.textContent || '';
+      const etiqAtivo = card.querySelector('.etiq-ativo');
+      const isAtivo = !!etiqAtivo; // true se tem badge "Registro Ativo"
+
       return {
         elemento: card,
         nome: nome.toLowerCase(),
         principio: principio.toLowerCase(),
-        textoCompleto: (nome + ' ' + principio).toLowerCase()
+        textoCompleto: (nome + ' ' + principio).toLowerCase(),
+        ativo: isAtivo
       };
     });
 
     function filtrar() {
       const termo = campo.value.trim().toLowerCase();
+      const apenasAtivos = checkboxAtivos ? checkboxAtivos.checked : true;
 
-      if (!termo) {
-        // Sem filtro: mostra todos
-        medicamentos.forEach(med => med.elemento.style.display = 'flex');
-        atualizarContagem(medicamentos.length);
-        return;
-      }
-
-      // Filtra por nome ou princípio
       let visiveis = 0;
       medicamentos.forEach(med => {
-        const match = med.textoCompleto.includes(termo);
-        med.elemento.style.display = match ? 'flex' : 'none';
-        if (match) visiveis++;
+        // Filtro por texto
+        const matchTexto = !termo || med.textoCompleto.includes(termo);
+
+        // Filtro por status
+        const matchStatus = !apenasAtivos || med.ativo;
+
+        // Mostra se passar nos dois filtros
+        const mostrar = matchTexto && matchStatus;
+        med.elemento.style.display = mostrar ? 'flex' : 'none';
+        if (mostrar) visiveis++;
       });
 
       atualizarContagem(visiveis);
@@ -483,8 +478,11 @@
       }
     }
 
-    // Event listener - filtro instantâneo
+    // Event listeners
     campo.addEventListener('input', filtrar);
+    if (checkboxAtivos) {
+      checkboxAtivos.addEventListener('change', filtrar);
+    }
 
     // Contagem inicial
     atualizarContagem(medicamentos.length);
