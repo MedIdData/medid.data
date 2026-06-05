@@ -165,7 +165,22 @@ def buscar_medicamentos(
                 c.apresentacao,
                 c.laboratorio
             FROM medicamentos_anvisa a
-            LEFT JOIN medicamentos_cmed c ON a.numero_registro = c.registro
+            LEFT JOIN LATERAL (
+                SELECT
+                    mc.pf_sem_impostos,
+                    mc.pmc_0,
+                    mc.pmvg_0,
+                    mc.tarja,
+                    mc.apresentacao,
+                    mc.laboratorio
+                FROM medicamentos_cmed mc
+                WHERE
+                    upper(trim(mc.substancia)) = upper(trim(split_part(coalesce(a.principio_ativo, ''), ',', 1)))
+                    OR mc.substancia ILIKE '%' || trim(split_part(coalesce(a.principio_ativo, ''), ',', 1)) || '%'
+                    OR similarity(upper(mc.produto), upper(a.nome_produto)) > 0.6
+                ORDER BY mc.pmc_0 ASC NULLS LAST
+                LIMIT 1
+            ) c ON TRUE
             WHERE (:apenas_ativos = FALSE OR upper(a.situacao_registro) = 'ATIVO')
             ORDER BY a.nome_produto ASC
             LIMIT :limite OFFSET :offset
