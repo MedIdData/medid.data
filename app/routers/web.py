@@ -920,7 +920,8 @@ async def admin_usuario_detalhes(
         request, "admin_usuario_detalhes.html",
         {
             "pagina_ativa": "admin",
-            "usuario": usuario,
+            "usuario": admin,  # Usuário logado (admin) para o menu
+            "usuario_detalhes": usuario,  # Usuário sendo visualizado
             "plano": plano,
             "ultimo_login": ultimo_login,
             "ultimo_uso_api": ultimo_uso_api,

@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block titulo %}Detalhes do Usuário - {{ usuario.nome }}{% endblock %}
+{% block titulo %}Detalhes do Usuário - {{ usuario_detalhes.nome }}{% endblock %}
 {% block titulo_pagina %}Administração{% endblock %}
 
 {% block estilos_extras %}
@@ -355,25 +355,25 @@
 <!-- Hero com informações do usuário -->
 <div class="usuario-hero">
   <div class="usuario-info">
-    <h1>{{ usuario.nome }}</h1>
+    <h1>{{ usuario_detalhes.nome }}</h1>
     <div class="usuario-meta">
       <div class="usuario-meta-item">
         <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
           <path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/>
         </svg>
-        {{ usuario.email }}
+        {{ usuario_detalhes.email }}
       </div>
       <div class="usuario-meta-item">
         <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
           <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/>
         </svg>
-        ID: {{ usuario.id }}
+        ID: {{ usuario_detalhes.id }}
       </div>
       <div class="usuario-meta-item">
         <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
           <path d="M9 11H7v2h2v-2zm4 0h-2v2h2v-2zm4 0h-2v2h2v-2zm2-7h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V9h14v11z"/>
         </svg>
-        Cadastro: {{ usuario.criado_em|data_br }}
+        Cadastro: {{ usuario_detalhes.criado_em|data_br }}
       </div>
     </div>
   </div>
@@ -419,7 +419,7 @@
           <span class="info-label">Perfil</span>
           <span class="info-value">
             <span class="badge {% if usuario.perfil == 'ADMINISTRADOR' %}badge-admin{% else %}badge-usuario{% endif %}">
-              {{ usuario.perfil }}
+              {{ usuario_detalhes.perfil }}
             </span>
           </span>
         </div>
@@ -479,7 +479,7 @@
       <div class="progresso">
         <div class="progresso-label">
           <span>Limite Diário</span>
-          <span>{{ stats.consumo_hoje }} / {{ usuario.limite_diario if usuario.limite_diario else '∞' }}</span>
+          <span>{{ stats.consumo_hoje }} / {{ usuario_detalhes.limite_diario if usuario.limite_diario else '∞' }}</span>
         </div>
         <div class="progresso-barra">
           {% if usuario.limite_diario %}
@@ -494,7 +494,7 @@
       <div class="progresso">
         <div class="progresso-label">
           <span>Limite Mensal</span>
-          <span>{{ stats.consumo_mes }} / {{ usuario.limite_mensal if usuario.limite_mensal else '∞' }}</span>
+          <span>{{ stats.consumo_mes }} / {{ usuario_detalhes.limite_mensal if usuario.limite_mensal else '∞' }}</span>
         </div>
         <div class="progresso-barra">
           {% if usuario.limite_mensal %}
@@ -599,7 +599,7 @@
               {% endif %}
             </div>
           </div>
-          <form method="POST" action="/admin/api/usuarios/{{ usuario.id }}/revogar-chave/{{ chave.id }}" style="margin: 0;">
+          <form method="POST" action="/admin/api/usuarios/{{ usuario_detalhes.id }}/revogar-chave/{{ chave.id }}" style="margin: 0;">
             <button type="submit" class="btn-revogar" onclick="return confirm('Revogar esta chave?')">
               Revogar
             </button>
@@ -708,15 +708,15 @@
       <h2 class="modal-titulo">Editar Usuário</h2>
       <button class="btn-fechar" onclick="fecharModalEditar()">×</button>
     </div>
-    <form method="POST" action="/admin/usuarios/{{ usuario.id }}/editar">
+    <form method="POST" action="/admin/usuarios/{{ usuario_detalhes.id }}/editar">
       <div class="modal-body">
         <div class="form-group">
           <label for="edit_nome">Nome completo</label>
-          <input type="text" id="edit_nome" name="nome" class="form-input" value="{{ usuario.nome }}" required>
+          <input type="text" id="edit_nome" name="nome" class="form-input" value="{{ usuario_detalhes.nome }}" required>
         </div>
         <div class="form-group">
           <label for="edit_email">Email</label>
-          <input type="email" id="edit_email" name="email" class="form-input" value="{{ usuario.email }}" required>
+          <input type="email" id="edit_email" name="email" class="form-input" value="{{ usuario_detalhes.email }}" required>
         </div>
         <div class="form-row" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px;">
           <div class="form-group">
@@ -738,11 +738,11 @@
         <div class="form-row" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px;">
           <div class="form-group">
             <label for="edit_limite_diario">Limite diário</label>
-            <input type="number" id="edit_limite_diario" name="limite_diario" class="form-input" value="{{ usuario.limite_diario or '' }}" placeholder="Deixe vazio para ilimitado">
+            <input type="number" id="edit_limite_diario" name="limite_diario" class="form-input" value="{{ usuario_detalhes.limite_diario or '' }}" placeholder="Deixe vazio para ilimitado">
           </div>
           <div class="form-group">
             <label for="edit_limite_mensal">Limite mensal</label>
-            <input type="number" id="edit_limite_mensal" name="limite_mensal" class="form-input" value="{{ usuario.limite_mensal or '' }}" placeholder="Deixe vazio para ilimitado">
+            <input type="number" id="edit_limite_mensal" name="limite_mensal" class="form-input" value="{{ usuario_detalhes.limite_mensal or '' }}" placeholder="Deixe vazio para ilimitado">
           </div>
         </div>
       </div>
@@ -762,10 +762,10 @@
       <h2 class="modal-titulo">Resetar Senha</h2>
       <button class="btn-fechar" onclick="fecharModalSenha()">×</button>
     </div>
-    <form method="POST" action="/admin/usuarios/{{ usuario.id }}/resetar-senha">
+    <form method="POST" action="/admin/usuarios/{{ usuario_detalhes.id }}/resetar-senha">
       <div class="modal-body">
         <p style="margin-bottom: 16px; color: var(--texto-sec);">
-          Definir nova senha para <strong>{{ usuario.nome }}</strong>?
+          Definir nova senha para <strong>{{ usuario_detalhes.nome }}</strong>?
         </p>
         <div class="form-group">
           <label for="nova_senha">Nova senha</label>
@@ -938,7 +938,7 @@ function fecharModalSenha() {
 
 function confirmarDesativar() {
   if (confirm('{{ "Ativar" if not usuario.ativo else "Desativar" }} este usuário?')) {
-    window.location.href = '/admin/usuarios/{{ usuario.id }}/toggle-status';
+    window.location.href = '/admin/usuarios/{{ usuario_detalhes.id }}/toggle-status';
   }
 }
 </script>
