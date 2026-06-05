@@ -18,7 +18,7 @@ from app.middleware.auth_middleware import (
     requer_usuario_web,
     RedirectParaLogin,
 )
-from app.repositories import usuario_repo
+from app.repositories import usuario_repo, convite_repo
 from app.services import auth_service
 from app.config import settings
 
@@ -637,9 +637,9 @@ async def pagina_admin(
 
 @router.post("/admin/usuarios/criar")
 async def admin_criar_usuario(
+    request: Request,
     nome: str = Form(...),
     email: str = Form(...),
-    senha: str = Form(...),
     perfil: str = Form(...),
     limite_diario: int = Form(100),
     limite_mensal: int = Form(2000),
@@ -650,19 +650,28 @@ async def admin_criar_usuario(
     email_normalizado = email.strip().lower()
     if usuario_repo.buscar_por_email(db, email_normalizado):
         return RedirectResponse(url="/admin?erro=Email já cadastrado", status_code=status.HTTP_302_FOUND)
-    
-    if len(senha) < 6:
-        return RedirectResponse(url="/admin?erro=Senha deve ter pelo menos 6 caracteres", status_code=status.HTTP_302_FOUND)
-    
-    # Criar usuário
-    senha_hash = auth_service.hash_senha(senha)
+
+    # Criar usuário com senha temporária (será alterada no primeiro acesso)
+    senha_temp = auth_service.gerar_senha_temporaria()
+    senha_hash = auth_service.hash_senha(senha_temp)
     novo_usuario = usuario_repo.criar_usuario(db, nome, email_normalizado, senha_hash)
-    
+
     # Atualizar perfil e limites
     usuario_repo.atualizar_perfil_usuario(db, novo_usuario.id, perfil)
     usuario_repo.atualizar_limites_usuario(db, novo_usuario.id, limite_diario, limite_mensal)
-    
-    return RedirectResponse(url="/admin", status_code=status.HTTP_302_FOUND)
+
+    # Gerar convite (válido por 72h)
+    convite = convite_repo.gerar_convite(db, novo_usuario.id, validade_horas=72)
+
+    # Construir link de ativação
+    base_url = str(request.base_url).rstrip('/')
+    link_ativacao = f"{base_url}/ativar-conta/{convite.token}"
+
+    # Redirecionar para página com o link
+    return RedirectResponse(
+        url=f"/admin/usuario-criado?link={link_ativacao}&nome={nome}&email={email_normalizado}",
+        status_code=status.HTTP_302_FOUND
+    )
 
 
 @router.post("/admin/usuarios/{usuario_id}/editar")
@@ -712,3 +721,112 @@ async def admin_toggle_status(
 ):
     usuario_repo.toggle_status_usuario(db, usuario_id)
     return RedirectResponse(url="/admin", status_code=status.HTTP_302_FOUND)
+
+
+# ── Convites e Ativação de Conta ──────────────────────────────────────────
+
+@router.get("/admin/usuario-criado", response_class=HTMLResponse)
+async def pagina_usuario_criado(
+    request: Request,
+    link: str = Query(...),
+    nome: str = Query(...),
+    email: str = Query(...),
+    usuario: Usuario = Depends(requer_admin),
+):
+    return templates.TemplateResponse(
+        request, "usuario_criado.html",
+        {
+            "pagina_ativa": "admin",
+            "usuario": usuario,
+            "link": link,
+            "nome": nome,
+            "email": email,
+        },
+    )
+
+
+@router.get("/ativar-conta/{token}", response_class=HTMLResponse)
+async def pagina_ativar_conta(
+    request: Request,
+    token: str,
+    db: Session = Depends(get_db),
+):
+    convite = convite_repo.buscar_convite_valido(db, token)
+
+    if not convite:
+        return templates.TemplateResponse(
+            request, "convite_expirado.html", {}
+        )
+
+    usuario = usuario_repo.buscar_por_id(db, convite.usuario_id)
+
+    return templates.TemplateResponse(
+        request, "ativar_conta.html",
+        {
+            "token": token,
+            "usuario": usuario,
+        },
+    )
+
+
+@router.post("/ativar-conta/{token}")
+async def ativar_conta(
+    request: Request,
+    token: str,
+    senha: str = Form(...),
+    confirmar_senha: str = Form(...),
+    db: Session = Depends(get_db),
+):
+    convite = convite_repo.buscar_convite_valido(db, token)
+
+    if not convite:
+        return templates.TemplateResponse(
+            request, "convite_expirado.html", {}
+        )
+
+    # Validações
+    if senha != confirmar_senha:
+        usuario = usuario_repo.buscar_por_id(db, convite.usuario_id)
+        return templates.TemplateResponse(
+            request, "ativar_conta.html",
+            {
+                "token": token,
+                "usuario": usuario,
+                "erro": "As senhas não coincidem",
+            },
+        )
+
+    if len(senha) < 6:
+        usuario = usuario_repo.buscar_por_id(db, convite.usuario_id)
+        return templates.TemplateResponse(
+            request, "ativar_conta.html",
+            {
+                "token": token,
+                "usuario": usuario,
+                "erro": "A senha deve ter pelo menos 6 caracteres",
+            },
+        )
+
+    # Atualizar senha do usuário
+    senha_hash = auth_service.hash_senha(senha)
+    usuario_repo.atualizar_senha_usuario(db, convite.usuario_id, senha_hash)
+
+    # Marcar convite como usado
+    convite_repo.marcar_convite_usado(db, convite.id)
+
+    # Fazer login automático
+    usuario = usuario_repo.buscar_por_id(db, convite.usuario_id)
+    access_token = auth_service.criar_access_token(
+        usuario.id, usuario.email, usuario.perfil
+    )
+
+    response = RedirectResponse(url="/buscar", status_code=status.HTTP_302_FOUND)
+    response.set_cookie(
+        key="access_token",
+        value=f"Bearer {access_token}",
+        httponly=True,
+        max_age=settings.access_token_expire_minutes * 60,
+        samesite="lax",
+    )
+
+    return response

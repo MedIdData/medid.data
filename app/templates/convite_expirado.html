@@ -1,0 +1,35 @@
+{% extends "base_auth.html" %}
+
+{% block titulo %}Link Expirado{% endblock %}
+
+{% block conteudo_auth %}
+<div class="auth-card">
+  <div class="auth-header">
+    <div class="auth-icone" style="background: #FEE2E2; color: var(--vermelho);">⏰</div>
+    <h2>Link de Ativação Expirado</h2>
+  </div>
+
+  <div class="auth-body">
+    <div class="alerta alerta-erro">
+      <strong>Este link de ativação expirou ou já foi utilizado.</strong>
+    </div>
+
+    <p style="margin: 20px 0; color: var(--texto-sec); line-height: 1.6;">
+      Os links de ativação são válidos por <strong>72 horas</strong> (3 dias) por segurança.
+    </p>
+
+    <div class="info-box" style="background: var(--fundo); padding: 16px; border-radius: 8px; border-left: 4px solid var(--azul);">
+      <p style="margin-bottom: 12px;"><strong>O que fazer?</strong></p>
+      <ul style="margin: 0; padding-left: 20px; line-height: 1.8;">
+        <li>Entre em contato com o administrador do sistema</li>
+        <li>Solicite um novo link de ativação</li>
+        <li>Verifique se você já ativou sua conta anteriormente</li>
+      </ul>
+    </div>
+
+    <a href="/login" class="btn-auth" style="display: block; text-align: center; text-decoration: none; margin-top: 20px;">
+      Ir para Login
+    </a>
+  </div>
+</div>
+{% endblock %}

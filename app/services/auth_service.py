@@ -36,6 +36,11 @@ def verificar_senha(senha: str, hash: str) -> bool:
         raise
 
 
+def gerar_senha_temporaria() -> str:
+    """Gera senha temporária aleatória (será substituída no primeiro acesso)."""
+    return secrets.token_urlsafe(16)
+
+
 # ── JWT ───────────────────────────────────────────────────────────────────
 
 def criar_access_token(usuario_id: int, email: str, perfil: str) -> str:

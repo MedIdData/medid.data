@@ -1,0 +1,200 @@
+{% extends "base.html" %}
+
+{% block titulo %}Usuário Criado{% endblock %}
+{% block titulo_pagina %}Painel Administrativo{% endblock %}
+
+{% block estilos_extras %}
+<style>
+  .sucesso-card {
+    max-width: 700px;
+    margin: 40px auto;
+    background: var(--branco);
+    border-radius: var(--r-card);
+    border: 1px solid var(--borda);
+    overflow: hidden;
+  }
+  .sucesso-header {
+    background: linear-gradient(135deg, #059669 0%, #10B981 100%);
+    padding: 32px;
+    text-align: center;
+    color: var(--branco);
+  }
+  .sucesso-icon {
+    width: 64px;
+    height: 64px;
+    background: rgba(255,255,255,0.2);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 32px;
+    margin: 0 auto 16px;
+  }
+  .sucesso-header h2 {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-bottom: 8px;
+  }
+  .sucesso-body {
+    padding: 32px;
+  }
+  .info-usuario {
+    background: var(--fundo);
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 24px;
+    border-left: 4px solid var(--azul);
+  }
+  .info-usuario p {
+    margin: 8px 0;
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+  }
+  .info-usuario strong {
+    color: var(--texto-sec);
+    min-width: 80px;
+  }
+  .link-box {
+    background: #F0F9FF;
+    border: 2px dashed var(--azul);
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 24px;
+  }
+  .link-box p {
+    margin-bottom: 12px;
+    color: var(--texto-sec);
+    font-size: .9rem;
+  }
+  .link-display {
+    background: var(--branco);
+    border: 1px solid var(--borda);
+    border-radius: 6px;
+    padding: 14px;
+    font-family: 'Monaco', 'Courier New', monospace;
+    font-size: .85rem;
+    color: var(--azul);
+    word-break: break-all;
+    margin-bottom: 12px;
+    position: relative;
+  }
+  .btn-copiar {
+    width: 100%;
+    padding: 12px;
+    background: var(--azul);
+    color: var(--branco);
+    border: none;
+    border-radius: var(--r-botao);
+    font-weight: 500;
+    cursor: pointer;
+    transition: all .15s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+  .btn-copiar:hover {
+    background: var(--azul-medio);
+  }
+  .btn-copiar.copiado {
+    background: #10B981;
+  }
+  .instrucoes {
+    background: #FEF3C7;
+    border-left: 4px solid #F59E0B;
+    padding: 16px;
+    border-radius: 6px;
+    margin-bottom: 24px;
+  }
+  .instrucoes h4 {
+    color: #92400E;
+    margin-bottom: 12px;
+    font-size: .95rem;
+  }
+  .instrucoes ol {
+    margin: 0;
+    padding-left: 20px;
+    color: #78350F;
+    line-height: 1.8;
+  }
+  .voltar-btn {
+    display: block;
+    width: 100%;
+    padding: 12px;
+    background: var(--fundo-sec);
+    color: var(--texto);
+    text-align: center;
+    text-decoration: none;
+    border-radius: var(--r-botao);
+    font-weight: 500;
+    transition: all .15s;
+  }
+  .voltar-btn:hover {
+    background: var(--borda);
+  }
+</style>
+{% endblock %}
+
+{% block conteudo %}
+<div class="sucesso-card">
+  <div class="sucesso-header">
+    <div class="sucesso-icon">✅</div>
+    <h2>Usuário Criado com Sucesso!</h2>
+    <p>Link de ativação gerado</p>
+  </div>
+
+  <div class="sucesso-body">
+    <div class="info-usuario">
+      <p><strong>Nome:</strong> <span>{{ nome }}</span></p>
+      <p><strong>Email:</strong> <span style="color: var(--azul);">{{ email }}</span></p>
+      <p><strong>Validade:</strong> <span>72 horas (3 dias)</span></p>
+    </div>
+
+    <div class="link-box">
+      <p><strong>🔗 Link de Ativação:</strong></p>
+      <div class="link-display" id="linkAtivacao">{{ link }}</div>
+      <button class="btn-copiar" onclick="copiarLink()">
+        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+          <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+        </svg>
+        <span id="btnTexto">Copiar Link</span>
+      </button>
+    </div>
+
+    <div class="instrucoes">
+      <h4>📧 Próximos Passos:</h4>
+      <ol>
+        <li>Copie o link de ativação acima</li>
+        <li>Envie para <strong>{{ email }}</strong> (por email, WhatsApp, etc.)</li>
+        <li>O usuário acessará o link e definirá sua própria senha</li>
+        <li>Após ativar, ele poderá fazer login normalmente</li>
+      </ol>
+    </div>
+
+    <a href="/admin" class="voltar-btn">
+      ← Voltar para Administração
+    </a>
+  </div>
+</div>
+
+<script>
+function copiarLink() {
+  const link = document.getElementById('linkAtivacao').textContent;
+  const btn = document.querySelector('.btn-copiar');
+  const btnTexto = document.getElementById('btnTexto');
+
+  navigator.clipboard.writeText(link).then(() => {
+    btn.classList.add('copiado');
+    btnTexto.textContent = '✓ Link Copiado!';
+
+    setTimeout(() => {
+      btn.classList.remove('copiado');
+      btnTexto.textContent = 'Copiar Link';
+    }, 3000);
+  });
+}
+</script>
+{% endblock %}
