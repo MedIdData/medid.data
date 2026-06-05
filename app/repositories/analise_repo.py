@@ -35,8 +35,8 @@ def buscar_medicamento_para_analise(db: Session, nome: str) -> Optional[dict]:
             upper(a.situacao_registro) = 'ATIVO'
             AND (
                 a.search_vector @@ websearch_to_tsquery('portuguese', :q)
-                OR word_similarity(unaccent(lower(:q)), unaccent(lower(coalesce(a.nome_produto, '')))) > 0.25
-                OR word_similarity(unaccent(lower(:q)), unaccent(lower(coalesce(a.principio_ativo, '')))) > 0.25
+                OR word_similarity(unaccent(lower(:q)), unaccent(lower(coalesce(a.nome_produto, '')))) > 0.7
+                OR word_similarity(unaccent(lower(:q)), unaccent(lower(coalesce(a.principio_ativo, '')))) > 0.7
             )
         ORDER BY score DESC
         LIMIT 1

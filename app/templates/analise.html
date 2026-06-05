@@ -271,6 +271,44 @@
         informados e as bases ANVISA, CMED, CID-10 e SIGTAP.
       </div>
     </div>
+
+    <!-- Legenda de Siglas -->
+    <div class="card" style="padding:16px;margin-top:16px;">
+      <div style="font-size:.8rem;font-weight:600;color:var(--azul-escuro);margin-bottom:10px;text-transform:uppercase;letter-spacing:.04em;">
+        📖 Glossário
+      </div>
+      <div style="font-size:.72rem;line-height:1.6;color:var(--texto-sec);">
+        <div style="margin-bottom:6px;"><strong>PMC</strong> - Preço Máximo ao Consumidor</div>
+        <div style="margin-bottom:6px;"><strong>PF</strong> - Preço Fábrica</div>
+        <div style="margin-bottom:6px;"><strong>PMVG</strong> - Preço Máximo Venda ao Governo</div>
+        <div style="margin-bottom:6px;"><strong>CID</strong> - Classificação Internacional de Doenças</div>
+        <div><strong>SIGTAP</strong> - Sistema de Gerenciamento da Tabela de Procedimentos (SUS)</div>
+      </div>
+    </div>
+
+    <!-- Dimensões de Validação -->
+    <div class="card" style="padding:16px;margin-top:16px;">
+      <div style="font-size:.8rem;font-weight:600;color:var(--azul-escuro);margin-bottom:10px;text-transform:uppercase;letter-spacing:.04em;">
+        🔍 Dimensões Validadas
+      </div>
+      <div style="font-size:.72rem;line-height:1.6;color:var(--texto-sec);">
+        <div style="margin-bottom:8px;">
+          <strong>D1 - Medicamento (ANVISA):</strong> Verifica se medicamento existe e se registro está ativo. Similaridade mínima de 70% para aceitar.
+        </div>
+        <div style="margin-bottom:8px;">
+          <strong>D2 - Preço (PMC/CMED):</strong> Compara preço informado com Preço Máximo ao Consumidor. Avalia desvios progressivos: +10%, +20%, +50%, +100%, +200%.
+        </div>
+        <div style="margin-bottom:8px;">
+          <strong>D3 - CID-10:</strong> Valida se código de diagnóstico existe na base oficial. Sem CID não é possível confirmar indicação clínica.
+        </div>
+        <div style="margin-bottom:8px;">
+          <strong>D4 - SIGTAP:</strong> Valida se código de procedimento SUS existe. Necessário para confirmar cobrança de procedimento.
+        </div>
+        <div>
+          <strong>D5 - Quantidade:</strong> Analisa se quantidade está dentro do padrão usual (5, 10, 20, 50, 100+ unidades).
+        </div>
+      </div>
+    </div>
   </div>
 
   <!-- ── Resultado ──────────────────────────────────────────────────── -->

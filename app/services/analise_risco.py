@@ -51,13 +51,21 @@ def analisar(db: Session, entrada: AnaliseEntrada) -> AnaliseResultado:
     - Começa com score 0 (sem risco)
     - Cada problema ADICIONA pontos ao score
     - Score máximo: 100
+
+    Dimensões avaliadas:
+    D1 - Medicamento (ANVISA): Verifica se medicamento existe e está ativo
+    D2 - Preço (CMED): Compara com PMC (Preço Máximo ao Consumidor)
+    D3 - CID-10: Valida código de diagnóstico
+    D4 - SIGTAP: Valida código de procedimento
+    D5 - Quantidade: Analisa se quantidade está dentro do padrão
     """
 
     motivos: List[str] = []
     score_total = 0
 
     # ──────────────────────────────────────────────────────────────
-    # DIMENSÃO 1: MEDICAMENTO (+40 pts se não encontrado)
+    # D1 - MEDICAMENTO (ANVISA)
+    # Similaridade rigorosa: 70% ou mais
     # ──────────────────────────────────────────────────────────────
 
     med_row = analise_repo.buscar_medicamento_para_analise(
@@ -65,14 +73,15 @@ def analisar(db: Session, entrada: AnaliseEntrada) -> AnaliseResultado:
     )
 
     if not med_row:
-        score_total += 40
-        motivos.append(f"⚠️ Medicamento '{entrada.medicamento}' não encontrado na base ANVISA")
+        score_total += 80  # CRÍTICO - sem medicamento não há como validar
+        motivos.append(f"🔴 CRÍTICO: Medicamento '{entrada.medicamento}' não encontrado na base ANVISA")
     elif med_row.get('situacao_registro', '').upper() != 'ATIVO':
-        score_total += 35
-        motivos.append(f"⚠️ Medicamento com registro INATIVO na ANVISA")
+        score_total += 70  # CRÍTICO - medicamento inativo
+        motivos.append(f"🔴 CRÍTICO: Medicamento '{med_row.get('nome_produto')}' com registro INATIVO na ANVISA")
 
     # ──────────────────────────────────────────────────────────────
-    # DIMENSÃO 2: PREÇO (+25 pts se muito acima)
+    # D2 - PREÇO (PMC = Preço Máximo ao Consumidor CMED)
+    # Valida se preço está dentro dos limites regulados
     # ──────────────────────────────────────────────────────────────
 
     if med_row:
@@ -84,52 +93,70 @@ def analisar(db: Session, entrada: AnaliseEntrada) -> AnaliseResultado:
         if pmc and entrada.preco_informado > pmc:
             variacao_pct = ((entrada.preco_informado - pmc) / pmc) * 100
 
-            if variacao_pct > 50:
-                score_total += 25
-                motivos.append(f"⚠️ Preço informado R$ {entrada.preco_informado:.2f} está {variacao_pct:.0f}% acima do PMC (R$ {pmc:.2f})")
+            if variacao_pct > 200:
+                score_total += 50
+                motivos.append(f"🔴 CRÍTICO: Preço R$ {entrada.preco_informado:.2f} está {variacao_pct:.0f}% acima do PMC (R$ {pmc:.2f})")
+            elif variacao_pct > 100:
+                score_total += 40
+                motivos.append(f"🔴 ALTO: Preço R$ {entrada.preco_informado:.2f} está {variacao_pct:.0f}% acima do PMC (R$ {pmc:.2f})")
+            elif variacao_pct > 50:
+                score_total += 30
+                motivos.append(f"🟠 ALTO: Preço R$ {entrada.preco_informado:.2f} está {variacao_pct:.0f}% acima do PMC (R$ {pmc:.2f})")
             elif variacao_pct > 20:
-                score_total += 15
-                motivos.append(f"⚠️ Preço informado R$ {entrada.preco_informado:.2f} está {variacao_pct:.0f}% acima do PMC (R$ {pmc:.2f})")
+                score_total += 20
+                motivos.append(f"🟡 MÉDIO: Preço R$ {entrada.preco_informado:.2f} está {variacao_pct:.0f}% acima do PMC (R$ {pmc:.2f})")
             elif variacao_pct > 10:
-                score_total += 8
-                motivos.append(f"ℹ️ Preço informado R$ {entrada.preco_informado:.2f} está {variacao_pct:.0f}% acima do PMC (R$ {pmc:.2f})")
+                score_total += 10
+                motivos.append(f"🟢 BAIXO: Preço R$ {entrada.preco_informado:.2f} está {variacao_pct:.0f}% acima do PMC (R$ {pmc:.2f})")
 
     # ──────────────────────────────────────────────────────────────
-    # DIMENSÃO 3: CID-10 (+15 pts se ausente, +10 se inválido)
+    # D3 - CID-10 (Classificação Internacional de Doenças)
+    # Valida código de diagnóstico
     # ──────────────────────────────────────────────────────────────
 
     if not entrada.cid or not entrada.cid.strip():
-        score_total += 15
-        motivos.append("⚠️ CID-10 não informado")
+        score_total += 70
+        motivos.append("🔴 CRÍTICO: CID-10 não informado - sem diagnóstico não há como validar prescrição")
     else:
         cid_row = analise_repo.buscar_cid(db, entrada.cid)
         if not cid_row:
-            score_total += 10
-            motivos.append(f"⚠️ CID-10 '{entrada.cid}' não encontrado na base")
+            score_total += 75
+            motivos.append(f"🔴 CRÍTICO: CID-10 '{entrada.cid}' não existe na base de dados")
 
     # ──────────────────────────────────────────────────────────────
-    # DIMENSÃO 4: PROCEDIMENTO SIGTAP (+10 pts se ausente)
+    # D4 - SIGTAP (Sistema de Gerenciamento da Tabela de Procedimentos)
+    # Valida código de procedimento SUS
     # ──────────────────────────────────────────────────────────────
 
     if not entrada.procedimento or not entrada.procedimento.strip():
-        score_total += 10
-        motivos.append("⚠️ Código SIGTAP não informado")
+        score_total += 70
+        motivos.append("🔴 CRÍTICO: Código SIGTAP não informado - sem procedimento não há como validar cobrança")
     else:
         proc_row = analise_repo.buscar_procedimento(db, entrada.procedimento)
         if not proc_row:
-            score_total += 8
-            motivos.append(f"⚠️ Procedimento SIGTAP '{entrada.procedimento}' não encontrado")
+            score_total += 75
+            motivos.append(f"🔴 CRÍTICO: Procedimento SIGTAP '{entrada.procedimento}' não existe na base")
 
     # ──────────────────────────────────────────────────────────────
-    # DIMENSÃO 5: QUANTIDADE (+10 pts se excessiva)
+    # D5 - QUANTIDADE
+    # Analisa se quantidade está dentro de padrões usuais
     # ──────────────────────────────────────────────────────────────
 
-    if entrada.quantidade > 10:
-        score_total += 10
-        motivos.append(f"⚠️ Quantidade informada ({entrada.quantidade}) acima do padrão (máx 10)")
+    if entrada.quantidade > 100:
+        score_total += 50
+        motivos.append(f"🔴 CRÍTICO: Quantidade {entrada.quantidade} extremamente alta (+200% do padrão)")
+    elif entrada.quantidade > 50:
+        score_total += 40
+        motivos.append(f"🔴 ALTO: Quantidade {entrada.quantidade} muito alta (+100% do padrão)")
+    elif entrada.quantidade > 20:
+        score_total += 30
+        motivos.append(f"🟠 ALTO: Quantidade {entrada.quantidade} elevada (+50% do padrão)")
+    elif entrada.quantidade > 10:
+        score_total += 20
+        motivos.append(f"🟡 MÉDIO: Quantidade {entrada.quantidade} acima do padrão (+20% do usual)")
     elif entrada.quantidade > 5:
-        score_total += 5
-        motivos.append(f"ℹ️ Quantidade informada ({entrada.quantidade}) acima do comum (padrão: 1-5)")
+        score_total += 10
+        motivos.append(f"🟢 BAIXO: Quantidade {entrada.quantidade} levemente acima do usual (+10%)")
 
     # ──────────────────────────────────────────────────────────────
     # SCORE FINAL
