@@ -1,439 +1,457 @@
 {% extends "base.html" %}
 
 {% block titulo %}Histórico de Consumo{% endblock %}
+{% block titulo_pagina %}Histórico de Consumo API{% endblock %}
+
+{% block estilos_extras %}
+<style>
+  /* ── Hero ────────────────────────────────────────────────────────────── */
+  .consumo-hero {
+    background: linear-gradient(135deg, var(--azul-escuro) 0%, var(--azul) 100%);
+    border-radius: var(--r-card);
+    padding: 32px;
+    margin-bottom: 28px;
+    color: var(--branco);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 20px;
+  }
+  .hero-info h2 {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 1.375rem;
+    margin-bottom: 6px;
+  }
+  .hero-info p {
+    font-size: .875rem;
+    color: rgba(255,255,255,.75);
+    font-weight: 300;
+  }
+  .hero-plano {
+    padding: 8px 16px;
+    background: rgba(255,255,255,.15);
+    border-radius: var(--r-etiq);
+    font-size: .85rem;
+    font-weight: 500;
+    backdrop-filter: blur(10px);
+  }
+
+  /* ── Grid de métricas ────────────────────────────────────────────────── */
+  .metricas-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 20px;
+    margin-bottom: 24px;
+  }
+  .metrica-card {
+    background: var(--branco);
+    border-radius: var(--r-card);
+    padding: 24px;
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--borda);
+  }
+  .metrica-topo {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    margin-bottom: 16px;
+  }
+  .metrica-icone {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .metrica-info {
+    flex: 1;
+  }
+  .metrica-label {
+    font-size: .75rem;
+    font-weight: 500;
+    color: var(--texto-ter);
+    text-transform: uppercase;
+    letter-spacing: .05em;
+    margin-bottom: 4px;
+  }
+  .metrica-valor {
+    font-family: 'Syne', sans-serif;
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--azul-escuro);
+    line-height: 1;
+  }
+  .metrica-limite {
+    font-size: .8rem;
+    color: var(--texto-sec);
+    margin-top: 4px;
+  }
+  .metrica-barra {
+    width: 100%;
+    height: 8px;
+    background: var(--fundo-sec);
+    border-radius: 4px;
+    overflow: hidden;
+    margin-top: 12px;
+  }
+  .metrica-barra-progresso {
+    height: 100%;
+    border-radius: 4px;
+    transition: width .3s ease;
+  }
+  .metrica-tendencia {
+    font-size: .75rem;
+    margin-top: 8px;
+  }
+
+  /* ── Gráfico de barras simples ───────────────────────────────────────── */
+  .modulo-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--fundo-sec);
+  }
+  .modulo-item:last-child {
+    border-bottom: none;
+  }
+  .modulo-nome {
+    flex: 0 0 140px;
+    font-size: .85rem;
+    font-weight: 500;
+    color: var(--texto);
+  }
+  .modulo-barra-wrapper {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .modulo-barra {
+    flex: 1;
+    height: 24px;
+    background: var(--fundo-sec);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+  .modulo-barra-fill {
+    height: 100%;
+    border-radius: 4px;
+    transition: width .3s ease;
+  }
+  .modulo-valor {
+    flex: 0 0 60px;
+    text-align: right;
+    font-size: .85rem;
+    font-weight: 600;
+    color: var(--azul);
+  }
+
+  /* ── Estado vazio ─────────────────────────────────────────────────────── */
+  .estado-vazio {
+    text-align: center;
+    padding: 48px 32px;
+  }
+  .estado-vazio svg {
+    color: var(--texto-ter);
+    margin-bottom: 16px;
+  }
+  .estado-vazio h3 {
+    font-size: 1rem;
+    font-weight: 500;
+    color: var(--texto-sec);
+    margin-bottom: 8px;
+  }
+  .estado-vazio p {
+    font-size: .875rem;
+    color: var(--texto-ter);
+  }
+
+  /* ── Tabela histórico ─────────────────────────────────────────────────── */
+  .tabela-wrapper {
+    overflow-x: auto;
+  }
+  .tabela {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: .875rem;
+  }
+  .tabela thead {
+    background: var(--fundo-sec);
+    border-bottom: 1px solid var(--borda);
+  }
+  .tabela th {
+    text-align: left;
+    padding: 12px 16px;
+    font-size: .75rem;
+    font-weight: 600;
+    color: var(--texto-sec);
+    text-transform: uppercase;
+    letter-spacing: .05em;
+  }
+  .tabela td {
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--fundo-sec);
+  }
+  .tabela tbody tr:hover {
+    background: var(--fundo);
+  }
+
+  /* ── Responsivo ───────────────────────────────────────────────────────── */
+  @media (max-width: 768px) {
+    .metricas-grid {
+      grid-template-columns: 1fr;
+    }
+    .consumo-hero {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+    .modulo-nome {
+      flex: 0 0 100px;
+      font-size: .8rem;
+    }
+    .tabela {
+      font-size: .8rem;
+    }
+  }
+</style>
+{% endblock %}
 
 {% block conteudo %}
-<div class="pagina-header">
-  <div>
-    <h1 class="pagina-titulo">Histórico de Consumo</h1>
-    <p class="pagina-descricao">Acompanhe o uso da API e os limites do seu plano</p>
+<!-- Hero -->
+<div class="consumo-hero">
+  <div class="hero-info">
+    <h2>Histórico de Consumo API</h2>
+    <p>Acompanhe o uso da API e os limites do seu plano em tempo real</p>
   </div>
-  <div class="badge badge-info">Plano {{ plano }}</div>
+  <div class="hero-plano">Plano {{ plano }}</div>
 </div>
 
-<!-- Resumo -->
-<div class="grid-3">
-  <div class="card-metrica">
-    <div class="metrica-icone" style="background: rgba(15, 76, 129, 0.1); color: var(--azul);">
-      <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-        <path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
-      </svg>
-    </div>
-    <div class="metrica-conteudo">
-      <div class="metrica-label">Hoje</div>
-      <div class="metrica-valor">{{ consumo_hoje }}</div>
-      <div class="metrica-limite">de {{ limite_diario }} requisições</div>
-      <div class="metrica-barra">
-        <div class="metrica-barra-progresso" style="width: {{ pct_dia }}%; background: var(--azul);"></div>
-      </div>
-    </div>
-  </div>
-
-  <div class="card-metrica">
-    <div class="metrica-icone" style="background: rgba(20, 184, 166, 0.1); color: var(--teal);">
-      <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-        <path d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-      </svg>
-    </div>
-    <div class="metrica-conteudo">
-      <div class="metrica-label">Este mês</div>
-      <div class="metrica-valor">{{ consumo_mes }}</div>
-      <div class="metrica-limite">de {{ limite_mensal }} requisições</div>
-      <div class="metrica-barra">
-        <div class="metrica-barra-progresso" style="width: {{ pct_mes }}%; background: var(--teal);"></div>
-      </div>
-    </div>
-  </div>
-
-  <div class="card-metrica">
-    <div class="metrica-icone" style="background: rgba(245, 158, 11, 0.1); color: var(--ambar);">
-      <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-        <path d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/>
-      </svg>
-    </div>
-    <div class="metrica-conteudo">
-      <div class="metrica-label">Média diária (mês)</div>
-      <div class="metrica-valor">{{ media_diaria }}</div>
-      <div class="metrica-limite">requisições/dia</div>
-      <div class="metrica-tendencia">
-        {% if tendencia > 0 %}
-        <span style="color: var(--teal);">↑ {{ tendencia }}%</span> vs. mês anterior
-        {% elif tendencia < 0 %}
-        <span style="color: var(--vermelho);">↓ {{ tendencia|abs }}%</span> vs. mês anterior
-        {% else %}
-        <span style="color: var(--texto-ter);">→ estável</span>
-        {% endif %}
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- Consumo por Módulo -->
-<div class="grid-2">
-  <div class="card">
-    <div class="card-header">
-      <h2 class="card-titulo">Consumo Hoje por Módulo</h2>
-      <span class="badge badge-neutral">{{ consumo_hoje }} total</span>
-    </div>
-    <div class="card-body">
-      {% if por_modulo_hoje %}
-      <div class="lista-modulos">
-        {% for item in por_modulo_hoje %}
-        <div class="modulo-item">
-          <div class="modulo-info">
-            <span class="modulo-icone">
-              {% if item.modulo == 'MEDICAMENTOS' %}
-              <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M10 2v20m-6-9h12M5.236 4.236l13.528 13.528"/>
-              </svg>
-              {% elif item.modulo == 'ANALISE' %}
-              <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
-              </svg>
-              {% endif %}
-            </span>
-            <span class="modulo-nome">{{ item.modulo }}</span>
-          </div>
-          <span class="modulo-total">{{ item.total }}</span>
-        </div>
-        {% endfor %}
-      </div>
-      {% else %}
-      <div class="vazio-sm">
-        <p>Nenhuma requisição hoje</p>
-      </div>
-      {% endif %}
-    </div>
-  </div>
-
-  <div class="card">
-    <div class="card-header">
-      <h2 class="card-titulo">Consumo Mensal por Módulo</h2>
-      <span class="badge badge-neutral">{{ consumo_mes }} total</span>
-    </div>
-    <div class="card-body">
-      {% if por_modulo_mes %}
-      <div class="lista-modulos">
-        {% for item in por_modulo_mes %}
-        <div class="modulo-item">
-          <div class="modulo-info">
-            <span class="modulo-icone">
-              {% if item.modulo == 'MEDICAMENTOS' %}
-              <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M10 2v20m-6-9h12M5.236 4.236l13.528 13.528"/>
-              </svg>
-              {% elif item.modulo == 'ANALISE' %}
-              <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
-              </svg>
-              {% endif %}
-            </span>
-            <span class="modulo-nome">{{ item.modulo }}</span>
-          </div>
-          <div class="modulo-stats">
-            <span class="modulo-total">{{ item.total }}</span>
-            <span class="modulo-percent">{{ ((item.total / consumo_mes) * 100)|round(1) }}%</span>
-          </div>
-        </div>
-        {% endfor %}
-      </div>
-      {% else %}
-      <div class="vazio-sm">
-        <p>Nenhuma requisição este mês</p>
-      </div>
-      {% endif %}
-    </div>
-  </div>
-</div>
-
-<!-- Gráfico de Histórico (últimos 30 dias) -->
-<div class="card">
-  <div class="card-header">
-    <h2 class="card-titulo">Histórico dos Últimos 30 Dias</h2>
-    <div class="legenda-grupo">
-      <span class="legenda-item"><span class="legenda-cor" style="background: var(--azul);"></span> MEDICAMENTOS</span>
-      <span class="legenda-item"><span class="legenda-cor" style="background: var(--teal);"></span> ANALISE</span>
-    </div>
-  </div>
-  <div class="card-body">
-    <div class="grafico-wrapper">
-      <canvas id="graficoHistorico" width="800" height="300"></canvas>
-    </div>
-  </div>
-</div>
-
-<!-- Informações do Plano -->
-<div class="card">
-  <div class="card-header">
-    <h2 class="card-titulo">Seu Plano</h2>
-    <span class="badge badge-teal">{{ plano }}</span>
-  </div>
-  <div class="card-body">
-    <div class="grid-2">
-      <div class="info-item">
-        <div class="info-label">Limite Diário</div>
-        <div class="info-valor">{{ limite_diario }} requisições/dia</div>
-      </div>
-      <div class="info-item">
-        <div class="info-label">Limite Mensal</div>
-        <div class="info-valor">{{ limite_mensal }} requisições/mês</div>
-      </div>
-    </div>
-    {% if pct_mes > 80 %}
-    <div class="alerta alerta-alerta" style="margin-top: 16px;">
-      <div class="alerta-icone">
+<!-- Métricas principais -->
+<div class="metricas-grid">
+  <!-- Consumo Hoje -->
+  <div class="metrica-card">
+    <div class="metrica-topo">
+      <div class="metrica-icone" style="background: rgba(15, 76, 129, 0.1); color: var(--azul);">
         <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-          <path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+          <path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
         </svg>
       </div>
-      <div class="alerta-conteudo">
-        <div class="alerta-titulo">Atenção: limite próximo</div>
-        <div class="alerta-texto">
-          Você já usou {{ pct_mes }}% do seu limite mensal. Considere fazer upgrade do plano.
-        </div>
+      <div class="metrica-info">
+        <div class="metrica-label">Consumo Hoje</div>
+        <div class="metrica-valor">{{ consumo_hoje }}</div>
+        <div class="metrica-limite">de {{ "{:,}".format(limite_diario) }} requisições</div>
       </div>
+    </div>
+    <div class="metrica-barra">
+      <div class="metrica-barra-progresso" style="width: {{ pct_dia }}%; background: var(--azul);"></div>
+    </div>
+  </div>
+
+  <!-- Consumo Mês -->
+  <div class="metrica-card">
+    <div class="metrica-topo">
+      <div class="metrica-icone" style="background: rgba(20, 184, 166, 0.1); color: var(--teal);">
+        <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+        </svg>
+      </div>
+      <div class="metrica-info">
+        <div class="metrica-label">Consumo Este Mês</div>
+        <div class="metrica-valor">{{ consumo_mes }}</div>
+        <div class="metrica-limite">de {{ "{:,}".format(limite_mensal) }} requisições</div>
+      </div>
+    </div>
+    <div class="metrica-barra">
+      <div class="metrica-barra-progresso" style="width: {{ pct_mes }}%; background: var(--teal);"></div>
+    </div>
+  </div>
+
+  <!-- Média Diária -->
+  <div class="metrica-card">
+    <div class="metrica-topo">
+      <div class="metrica-icone" style="background: rgba(245, 158, 11, 0.1); color: var(--ambar);">
+        <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/>
+        </svg>
+      </div>
+      <div class="metrica-info">
+        <div class="metrica-label">Média Diária (Mês)</div>
+        <div class="metrica-valor">{{ media_diaria }}</div>
+        <div class="metrica-limite">requisições/dia</div>
+      </div>
+    </div>
+    {% if tendencia is defined %}
+    <div class="metrica-tendencia">
+      {% if tendencia > 0 %}
+      <span style="color: var(--teal);">↑ +{{ tendencia }}%</span> vs. mês anterior
+      {% elif tendencia < 0 %}
+      <span style="color: var(--vermelho);">↓ {{ tendencia }}%</span> vs. mês anterior
+      {% else %}
+      <span style="color: var(--texto-ter);">→ estável</span>
+      {% endif %}
     </div>
     {% endif %}
   </div>
 </div>
 
-<style>
-.grid-3 {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 20px;
-  margin-bottom: 24px;
-}
+<!-- Consumo por Módulo -->
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(400px,1fr));gap:24px;margin-bottom:24px;">
+  <!-- Hoje por Módulo -->
+  <div class="card">
+    <div style="padding:20px 24px;border-bottom:1px solid var(--borda);">
+      <h2 style="font-family:'Syne',sans-serif;font-size:1.05rem;font-weight:700;color:var(--azul-escuro);">
+        Consumo Hoje por Módulo
+      </h2>
+    </div>
+    <div style="padding:24px;">
+      {% if por_modulo_hoje %}
+        {% for item in por_modulo_hoje %}
+        <div class="modulo-item">
+          <div class="modulo-nome">{{ item.modulo }}</div>
+          <div class="modulo-barra-wrapper">
+            <div class="modulo-barra">
+              <div class="modulo-barra-fill"
+                   style="width: {{ (item.total / consumo_hoje * 100) if consumo_hoje > 0 else 0 }}%;
+                          background: {% if item.modulo == 'MEDICAMENTOS' %}var(--azul){% elif item.modulo == 'ANALISE' %}var(--teal){% else %}var(--ambar){% endif %};"></div>
+            </div>
+            <div class="modulo-valor">{{ item.total }}</div>
+          </div>
+        </div>
+        {% endfor %}
+      {% else %}
+      <div class="estado-vazio">
+        <svg width="48" height="48" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+          <path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+        </svg>
+        <h3>Nenhum consumo hoje</h3>
+        <p>Faça sua primeira requisição</p>
+      </div>
+      {% endif %}
+    </div>
+  </div>
 
-.card-metrica {
-  background: white;
-  border: 1px solid var(--borda);
-  border-radius: var(--r-card);
-  padding: 20px;
-  display: flex;
-  gap: 16px;
-}
-.metrica-icone {
-  width: 48px;
-  height: 48px;
-  border-radius: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-.metrica-conteudo {
-  flex: 1;
-  min-width: 0;
-}
-.metrica-label {
-  font-size: 13px;
-  font-weight: 500;
-  color: var(--texto-sec);
-  text-transform: uppercase;
-  letter-spacing: 0.3px;
-  margin-bottom: 4px;
-}
-.metrica-valor {
-  font-family: 'Syne', sans-serif;
-  font-size: 32px;
-  font-weight: 800;
-  color: var(--azul-escuro);
-  line-height: 1.2;
-}
-.metrica-limite {
-  font-size: 13px;
-  color: var(--texto-ter);
-  margin-top: 2px;
-  margin-bottom: 8px;
-}
-.metrica-barra {
-  height: 6px;
-  background: var(--fundo-sec);
-  border-radius: 3px;
-  overflow: hidden;
-}
-.metrica-barra-progresso {
-  height: 100%;
-  border-radius: 3px;
-  transition: width 0.6s ease;
-}
-.metrica-tendencia {
-  font-size: 12px;
-  margin-top: 6px;
-  color: var(--texto-ter);
-}
+  <!-- Mês por Módulo -->
+  <div class="card">
+    <div style="padding:20px 24px;border-bottom:1px solid var(--borda);">
+      <h2 style="font-family:'Syne',sans-serif;font-size:1.05rem;font-weight:700;color:var(--azul-escuro);">
+        Consumo Este Mês por Módulo
+      </h2>
+    </div>
+    <div style="padding:24px;">
+      {% if por_modulo_mes %}
+        {% for item in por_modulo_mes %}
+        <div class="modulo-item">
+          <div class="modulo-nome">{{ item.modulo }}</div>
+          <div class="modulo-barra-wrapper">
+            <div class="modulo-barra">
+              <div class="modulo-barra-fill"
+                   style="width: {{ (item.total / consumo_mes * 100) if consumo_mes > 0 else 0 }}%;
+                          background: {% if item.modulo == 'MEDICAMENTOS' %}var(--azul){% elif item.modulo == 'ANALISE' %}var(--teal){% else %}var(--ambar){% endif %};"></div>
+            </div>
+            <div class="modulo-valor">{{ item.total }}</div>
+          </div>
+        </div>
+        {% endfor %}
+      {% else %}
+      <div class="estado-vazio">
+        <svg width="48" height="48" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+          <path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+        </svg>
+        <h3>Nenhum consumo este mês</h3>
+        <p>Dados aparecerão após o primeiro uso</p>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
 
-.lista-modulos {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-.modulo-item {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 12px;
-  background: var(--fundo);
-  border-radius: var(--r-botao);
-  transition: all .2s;
-}
-.modulo-item:hover {
-  background: var(--fundo-sec);
-}
-.modulo-info {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-.modulo-icone {
-  width: 36px;
-  height: 36px;
-  background: white;
-  border-radius: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--azul);
-  border: 1px solid var(--borda);
-}
-.modulo-nome {
-  font-weight: 500;
-  color: var(--texto);
-  font-size: 14px;
-}
-.modulo-total {
-  font-family: 'Syne', sans-serif;
-  font-size: 20px;
-  font-weight: 700;
-  color: var(--azul-escuro);
-}
-.modulo-stats {
-  display: flex;
-  align-items: baseline;
-  gap: 8px;
-}
-.modulo-percent {
-  font-size: 13px;
-  color: var(--texto-ter);
-}
+<!-- Gráfico de tendência (últimos 30 dias) -->
+{% if historico_json %}
+<div class="card">
+  <div style="padding:20px 24px;border-bottom:1px solid var(--borda);">
+    <h2 style="font-family:'Syne',sans-serif;font-size:1.05rem;font-weight:700;color:var(--azul-escuro);">
+      Tendência de Uso (Últimos 30 Dias)
+    </h2>
+  </div>
+  <div style="padding:32px 24px;">
+    <canvas id="graficoConsumo" width="400" height="120"></canvas>
+  </div>
+</div>
+{% endif %}
+{% endblock %}
 
-.vazio-sm {
-  text-align: center;
-  padding: 40px 20px;
-  color: var(--texto-ter);
-}
-
-.grafico-wrapper {
-  position: relative;
-  height: 300px;
-}
-
-.legenda-grupo {
-  display: flex;
-  gap: 16px;
-}
-.legenda-item {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 13px;
-  color: var(--texto-sec);
-}
-.legenda-cor {
-  width: 12px;
-  height: 12px;
-  border-radius: 3px;
-}
-
-.info-item {
-  padding: 16px;
-  background: var(--fundo);
-  border-radius: var(--r-botao);
-}
-.info-label {
-  font-size: 13px;
-  font-weight: 500;
-  color: var(--texto-sec);
-  margin-bottom: 6px;
-}
-.info-valor {
-  font-size: 18px;
-  font-weight: 600;
-  color: var(--azul-escuro);
-}
-</style>
-
+{% block scripts_extras %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script>
-const dados = {{ historico_json|safe }};
+{% if historico_json %}
+const dados = {{ historico_json | safe }};
 
-const ctx = document.getElementById('graficoHistorico').getContext('2d');
+const ctx = document.getElementById('graficoConsumo');
 new Chart(ctx, {
-  type: 'bar',
+  type: 'line',
   data: {
     labels: dados.labels,
     datasets: [
       {
-        label: 'MEDICAMENTOS',
+        label: 'Medicamentos',
         data: dados.medicamentos,
-        backgroundColor: 'rgba(15, 76, 129, 0.8)',
-        borderRadius: 6,
-        borderSkipped: false,
+        borderColor: 'rgb(15, 76, 129)',
+        backgroundColor: 'rgba(15, 76, 129, 0.1)',
+        tension: 0.3,
+        fill: true
       },
       {
-        label: 'ANALISE',
+        label: 'Análise de Risco',
         data: dados.analise,
-        backgroundColor: 'rgba(20, 184, 166, 0.8)',
-        borderRadius: 6,
-        borderSkipped: false,
+        borderColor: 'rgb(20, 184, 166)',
+        backgroundColor: 'rgba(20, 184, 166, 0.1)',
+        tension: 0.3,
+        fill: true
       }
     ]
   },
   options: {
     responsive: true,
-    maintainAspectRatio: false,
-    interaction: {
-      mode: 'index',
-      intersect: false,
-    },
-    scales: {
-      x: {
-        stacked: true,
-        grid: { display: false },
-        ticks: {
-          font: { family: 'DM Sans', size: 11 },
-          color: '#94A3B8'
-        }
-      },
-      y: {
-        stacked: true,
-        beginAtZero: true,
-        grid: { color: '#EFF4F9' },
-        ticks: {
-          font: { family: 'DM Sans', size: 11 },
-          color: '#94A3B8',
-          precision: 0
+    maintainAspectRatio: true,
+    plugins: {
+      legend: {
+        position: 'top',
+        labels: {
+          font: { family: 'DM Sans', size: 12 },
+          padding: 16,
+          usePointStyle: true
         }
       }
     },
-    plugins: {
-      legend: { display: false },
-      tooltip: {
-        backgroundColor: '#082D4D',
-        padding: 12,
-        cornerRadius: 8,
-        titleFont: { family: 'DM Sans', size: 13, weight: '600' },
-        bodyFont: { family: 'DM Sans', size: 12 },
-        callbacks: {
-          footer: function(items) {
-            const total = items.reduce((sum, item) => sum + item.parsed.y, 0);
-            return 'Total: ' + total;
-          }
+    scales: {
+      y: {
+        beginAtZero: true,
+        ticks: {
+          font: { family: 'DM Sans', size: 11 },
+          precision: 0
+        },
+        grid: {
+          color: 'rgba(0, 0, 0, 0.05)'
+        }
+      },
+      x: {
+        ticks: {
+          font: { family: 'DM Sans', size: 11 },
+          maxRotation: 45,
+          minRotation: 45
+        },
+        grid: {
+          display: false
         }
       }
     }
   }
 });
+{% endif %}
 </script>
 {% endblock %}
