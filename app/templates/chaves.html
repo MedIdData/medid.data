@@ -1,23 +1,425 @@
 {% extends "base.html" %}
 
 {% block titulo %}Chaves de Acesso{% endblock %}
+{% block titulo_pagina %}Chaves de Acesso API{% endblock %}
+
+{% block estilos_extras %}
+<style>
+  /* ── Hero com descrição ──────────────────────────────────────────────── */
+  .chaves-hero {
+    background: linear-gradient(135deg, var(--azul-escuro) 0%, var(--azul) 100%);
+    border-radius: var(--r-card);
+    padding: 32px;
+    margin-bottom: 28px;
+    color: var(--branco);
+  }
+  .chaves-hero h2 {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 1.375rem;
+    margin-bottom: 6px;
+  }
+  .chaves-hero p {
+    font-size: .875rem;
+    color: rgba(255,255,255,.75);
+    margin-bottom: 20px;
+    font-weight: 300;
+  }
+  .btn-nova-chave {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 20px;
+    background: var(--teal);
+    color: var(--branco);
+    border: none;
+    border-radius: var(--r-botao);
+    font-size: .9rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all .15s;
+  }
+  .btn-nova-chave:hover {
+    background: var(--teal-claro);
+    transform: translateY(-1px);
+  }
+
+  /* ── Alerta chave criada ─────────────────────────────────────────────── */
+  .alerta-sucesso {
+    background: #F0FDF4;
+    border: 1px solid #86EFAC;
+    border-radius: var(--r-card);
+    padding: 20px 24px;
+    margin-bottom: 24px;
+    display: flex;
+    gap: 16px;
+  }
+  .alerta-icone {
+    flex-shrink: 0;
+    color: #16A34A;
+  }
+  .alerta-conteudo {
+    flex: 1;
+  }
+  .alerta-titulo {
+    font-weight: 600;
+    color: #15803D;
+    margin-bottom: 6px;
+  }
+  .alerta-texto {
+    font-size: .875rem;
+    color: #166534;
+    margin-bottom: 12px;
+  }
+  .chave-completa-box {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    background: rgba(20, 184, 166, 0.1);
+    border: 1px solid var(--teal);
+    border-radius: var(--r-campo);
+  }
+  .chave-completa-box code {
+    flex: 1;
+    font-family: 'Monaco', 'Menlo', monospace;
+    font-size: .875rem;
+    color: var(--azul-escuro);
+    word-break: break-all;
+  }
+  .btn-copiar {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 14px;
+    background: var(--teal);
+    color: var(--branco);
+    border: none;
+    border-radius: var(--r-botao);
+    font-size: .85rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all .2s;
+    flex-shrink: 0;
+  }
+  .btn-copiar:hover {
+    background: var(--teal-claro);
+  }
+
+  /* ── Tabela de chaves ────────────────────────────────────────────────── */
+  .tabela-wrapper {
+    overflow-x: auto;
+  }
+  .tabela {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: .875rem;
+  }
+  .tabela thead {
+    background: var(--fundo-sec);
+    border-bottom: 1px solid var(--borda);
+  }
+  .tabela th {
+    text-align: left;
+    padding: 12px 16px;
+    font-size: .75rem;
+    font-weight: 600;
+    color: var(--texto-sec);
+    text-transform: uppercase;
+    letter-spacing: .05em;
+  }
+  .tabela td {
+    padding: 16px;
+    border-bottom: 1px solid var(--fundo-sec);
+  }
+  .tabela tbody tr:hover {
+    background: var(--fundo);
+  }
+  .chave-nome {
+    font-weight: 500;
+    color: var(--texto);
+  }
+  .chave-prefixo {
+    font-family: 'Monaco', 'Menlo', monospace;
+    font-size: .8rem;
+    padding: 4px 8px;
+    background: var(--fundo-sec);
+    border-radius: 4px;
+    color: var(--azul);
+  }
+  .texto-muted {
+    color: var(--texto-ter);
+    font-size: .8rem;
+  }
+  .btn-icone {
+    width: 32px;
+    height: 32px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    border: 1px solid var(--borda);
+    border-radius: var(--r-botao);
+    cursor: pointer;
+    transition: all .15s;
+    color: var(--texto-ter);
+  }
+  .btn-icone:hover {
+    background: var(--fundo);
+    border-color: var(--vermelho);
+    color: var(--vermelho);
+  }
+
+  /* ── Estado vazio ────────────────────────────────────────────────────── */
+  .estado-vazio {
+    text-align: center;
+    padding: 64px 32px;
+  }
+  .estado-vazio svg {
+    color: var(--texto-ter);
+    margin-bottom: 16px;
+  }
+  .estado-vazio h3 {
+    font-size: 1rem;
+    font-weight: 500;
+    color: var(--texto-sec);
+    margin-bottom: 8px;
+  }
+  .estado-vazio p {
+    font-size: .875rem;
+    color: var(--texto-ter);
+  }
+
+  /* ── Documentação ─────────────────────────────────────────────────────── */
+  .docs-secao {
+    margin-bottom: 24px;
+  }
+  .docs-secao:last-child {
+    margin-bottom: 0;
+  }
+  .docs-titulo {
+    font-size: .9rem;
+    font-weight: 600;
+    color: var(--azul-escuro);
+    margin-bottom: 8px;
+  }
+  .docs-texto {
+    font-size: .85rem;
+    color: var(--texto-sec);
+    margin: 8px 0;
+  }
+  .codigo-exemplo {
+    padding: 12px 16px;
+    background: var(--azul-escuro);
+    color: var(--teal-claro);
+    border-radius: var(--r-campo);
+    font-family: 'Monaco', 'Menlo', monospace;
+    font-size: .8rem;
+    overflow-x: auto;
+    margin: 8px 0;
+  }
+  .docs-lista {
+    list-style: none;
+    padding: 0;
+  }
+  .docs-lista li {
+    padding: 8px 0 8px 24px;
+    position: relative;
+    font-size: .85rem;
+    color: var(--texto-sec);
+  }
+  .docs-lista li::before {
+    content: '•';
+    position: absolute;
+    left: 8px;
+    color: var(--teal);
+    font-weight: 700;
+  }
+
+  /* ── Modal ────────────────────────────────────────────────────────────── */
+  .modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+  }
+  .modal.ativo {
+    display: flex;
+  }
+  .modal-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(2px);
+  }
+  .modal-conteudo {
+    position: relative;
+    background: var(--branco);
+    border-radius: var(--r-card);
+    width: 90%;
+    max-width: 600px;
+    max-height: 90vh;
+    overflow: auto;
+    box-shadow: var(--shadow-md);
+  }
+  .modal-sm {
+    max-width: 440px;
+  }
+  .modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px 24px;
+    border-bottom: 1px solid var(--borda);
+  }
+  .modal-titulo {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: var(--azul-escuro);
+  }
+  .btn-fechar {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    border: none;
+    font-size: 28px;
+    color: var(--texto-ter);
+    cursor: pointer;
+    border-radius: 4px;
+    transition: all .2s;
+  }
+  .btn-fechar:hover {
+    background: var(--fundo);
+    color: var(--texto);
+  }
+  .modal-body {
+    padding: 24px;
+  }
+  .modal-footer {
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
+    padding: 16px 24px;
+    border-top: 1px solid var(--borda);
+  }
+  .form-group {
+    margin-bottom: 16px;
+  }
+  .form-group label {
+    display: block;
+    font-size: .85rem;
+    font-weight: 500;
+    color: var(--texto-sec);
+    margin-bottom: 6px;
+  }
+  .form-input {
+    width: 100%;
+    padding: 10px 14px;
+    border: 1px solid var(--borda);
+    border-radius: var(--r-campo);
+    font-size: .9rem;
+    color: var(--texto);
+    transition: all .15s;
+  }
+  .form-input:focus {
+    outline: none;
+    border-color: var(--teal);
+    box-shadow: 0 0 0 3px rgba(20,184,166,.1);
+  }
+  .form-ajuda {
+    display: block;
+    font-size: .75rem;
+    color: var(--texto-ter);
+    margin-top: 4px;
+  }
+  .btn-secundario {
+    padding: 10px 18px;
+    background: var(--fundo-sec);
+    color: var(--texto-sec);
+    border: 1px solid var(--borda);
+    border-radius: var(--r-botao);
+    font-size: .9rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all .15s;
+  }
+  .btn-secundario:hover {
+    background: var(--borda);
+  }
+  .btn-primario {
+    padding: 10px 18px;
+    background: var(--azul);
+    color: var(--branco);
+    border: none;
+    border-radius: var(--r-botao);
+    font-size: .9rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all .15s;
+  }
+  .btn-primario:hover {
+    background: var(--azul-medio);
+  }
+  .btn-perigo {
+    padding: 10px 18px;
+    background: var(--vermelho);
+    color: var(--branco);
+    border: none;
+    border-radius: var(--r-botao);
+    font-size: .9rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all .15s;
+  }
+  .btn-perigo:hover {
+    background: #DC2626;
+  }
+  .texto-alerta {
+    font-size: .85rem;
+    color: var(--vermelho);
+    margin-top: 12px;
+  }
+
+  @media (max-width: 768px) {
+    .tabela {
+      font-size: .8rem;
+    }
+    .tabela th,
+    .tabela td {
+      padding: 10px;
+    }
+  }
+</style>
+{% endblock %}
 
 {% block conteudo %}
-<div class="pagina-header">
-  <div>
-    <h1 class="pagina-titulo">Chaves de Acesso</h1>
-    <p class="pagina-descricao">Gerencie chaves API para integrar o MedID Data em suas aplicações</p>
-  </div>
-  <button class="btn btn-primario" onclick="abrirModalNovaChave()">
+<!-- Hero -->
+<div class="chaves-hero">
+  <h2>Chaves de Acesso API</h2>
+  <p>Gerencie chaves para integrar o MedID Data em suas aplicações · Segurança e controle total</p>
+  <button class="btn-nova-chave" onclick="abrirModalNovaChave()">
     <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
       <path d="M12 5v14M5 12h14"/>
     </svg>
-    Nova Chave
+    Nova Chave API
   </button>
 </div>
 
+<!-- Alerta chave criada -->
 {% if chave_criada %}
-<div class="alerta alerta-sucesso">
+<div class="alerta-sucesso">
   <div class="alerta-icone">
     <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
       <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
@@ -41,12 +443,8 @@
 </div>
 {% endif %}
 
+<!-- Lista de chaves -->
 <div class="card">
-  <div class="card-header">
-    <h2 class="card-titulo">Chaves Ativas</h2>
-    <span class="badge badge-info">{{ chaves|length }} chave{% if chaves|length != 1 %}s{% endif %}</span>
-  </div>
-
   {% if chaves %}
   <div class="tabela-wrapper">
     <table class="tabela">
@@ -68,16 +466,18 @@
           <td>
             <code class="chave-prefixo">{{ chave.prefixo }}</code>
           </td>
-          <td>{{ chave.criado_em.strftime('%d/%m/%Y às %H:%M') }}</td>
+          <td style="font-size:.85rem;color:var(--texto-sec);">
+            {{ chave.criado_em.strftime('%d/%m/%Y às %H:%M') }}
+          </td>
           <td>
             {% if chave.ultimo_uso_em %}
-              {{ chave.ultimo_uso_em.strftime('%d/%m/%Y às %H:%M') }}
+              <span style="font-size:.85rem;color:var(--texto-sec);">{{ chave.ultimo_uso_em.strftime('%d/%m/%Y às %H:%M') }}</span>
             {% else %}
               <span class="texto-muted">Nunca usada</span>
             {% endif %}
           </td>
           <td style="text-align: right;">
-            <button class="btn-icone btn-perigo" onclick="confirmarRevogar({{ chave.id }}, '{{ chave.nome }}')" title="Revogar chave">
+            <button class="btn-icone" onclick="confirmarRevogar({{ chave.id }}, '{{ chave.nome }}')" title="Revogar chave">
               <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                 <path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
               </svg>
@@ -89,21 +489,22 @@
     </table>
   </div>
   {% else %}
-  <div class="vazio">
+  <div class="estado-vazio">
     <svg width="64" height="64" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
       <path d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"/>
     </svg>
-    <h3>Nenhuma chave de acesso</h3>
+    <h3>Nenhuma chave de acesso criada</h3>
     <p>Crie sua primeira chave API para começar a integrar o MedID Data</p>
   </div>
   {% endif %}
 </div>
 
-<div class="card">
-  <div class="card-header">
-    <h2 class="card-titulo">Como usar</h2>
+<!-- Documentação -->
+<div class="card" style="margin-top:24px;">
+  <div style="padding:24px;border-bottom:1px solid var(--borda);">
+    <h2 style="font-family:'Syne',sans-serif;font-size:1.1rem;font-weight:700;color:var(--azul-escuro);">Como usar suas chaves API</h2>
   </div>
-  <div class="card-body">
+  <div style="padding:24px;">
     <div class="docs-secao">
       <h3 class="docs-titulo">Autenticação via Header</h3>
       <pre class="codigo-exemplo">Authorization: Bearer med_abc123...</pre>
@@ -113,12 +514,12 @@
 
     <div class="docs-secao">
       <h3 class="docs-titulo">Exemplo de requisição</h3>
-      <pre class="codigo-exemplo">curl https://mediddata.com/medicamentos/buscar?q=dipirona \
+      <pre class="codigo-exemplo">curl https://mediddata.com/api/medicamentos?q=dipirona \
   -H "Authorization: Bearer med_abc123..."</pre>
     </div>
 
     <div class="docs-secao">
-      <h3 class="docs-titulo">Segurança</h3>
+      <h3 class="docs-titulo">Boas práticas de segurança</h3>
       <ul class="docs-lista">
         <li>Nunca compartilhe suas chaves de acesso</li>
         <li>Revogue imediatamente chaves comprometidas</li>
@@ -148,8 +549,8 @@
         </div>
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-secundario" onclick="fecharModalNovaChave()">Cancelar</button>
-        <button type="submit" class="btn btn-primario">Criar Chave</button>
+        <button type="button" class="btn-secundario" onclick="fecharModalNovaChave()">Cancelar</button>
+        <button type="submit" class="btn-primario">Criar Chave</button>
       </div>
     </form>
   </div>
@@ -165,197 +566,23 @@
     </div>
     <form method="POST" id="formRevogar">
       <div class="modal-body">
-        <p>Tem certeza que deseja revogar a chave <strong id="nomeChaveRevogar"></strong>?</p>
-        <p class="texto-alerta">Esta ação não pode ser desfeita. Aplicações usando esta chave deixarão de funcionar.</p>
+        <p style="font-size:.9rem;color:var(--texto);margin-bottom:12px;">
+          Tem certeza que deseja revogar a chave <strong id="nomeChaveRevogar"></strong>?
+        </p>
+        <p class="texto-alerta">
+          ⚠️ Esta ação não pode ser desfeita. Aplicações usando esta chave deixarão de funcionar.
+        </p>
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-secundario" onclick="fecharModalRevogar()">Cancelar</button>
-        <button type="submit" class="btn btn-perigo">Revogar Chave</button>
+        <button type="button" class="btn-secundario" onclick="fecharModalRevogar()">Cancelar</button>
+        <button type="submit" class="btn-perigo">Revogar Chave</button>
       </div>
     </form>
   </div>
 </div>
+{% endblock %}
 
-<style>
-.chave-completa-box {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-top: 12px;
-  padding: 12px 16px;
-  background: rgba(20, 184, 166, 0.05);
-  border: 1px solid var(--teal);
-  border-radius: var(--r-campo);
-}
-.chave-completa-box code {
-  flex: 1;
-  font-family: 'Monaco', 'Menlo', monospace;
-  font-size: 14px;
-  color: var(--azul-escuro);
-  word-break: break-all;
-}
-.btn-copiar {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 8px 14px;
-  background: var(--teal);
-  color: white;
-  border: none;
-  border-radius: var(--r-botao);
-  font-size: 14px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all .2s;
-}
-.btn-copiar:hover {
-  background: var(--teal-claro);
-  transform: translateY(-1px);
-}
-
-.chave-nome {
-  font-weight: 500;
-  color: var(--texto);
-}
-.chave-prefixo {
-  font-family: 'Monaco', 'Menlo', monospace;
-  font-size: 13px;
-  padding: 4px 8px;
-  background: var(--fundo-sec);
-  border-radius: 4px;
-  color: var(--azul);
-}
-
-.docs-secao {
-  margin-bottom: 24px;
-}
-.docs-secao:last-child {
-  margin-bottom: 0;
-}
-.docs-titulo {
-  font-size: 16px;
-  font-weight: 600;
-  color: var(--texto);
-  margin-bottom: 8px;
-}
-.docs-texto {
-  font-size: 14px;
-  color: var(--texto-sec);
-  margin: 8px 0;
-}
-.codigo-exemplo {
-  padding: 12px 16px;
-  background: var(--azul-escuro);
-  color: var(--teal-claro);
-  border-radius: var(--r-campo);
-  font-family: 'Monaco', 'Menlo', monospace;
-  font-size: 13px;
-  overflow-x: auto;
-  margin: 8px 0;
-}
-.docs-lista {
-  list-style: none;
-  padding: 0;
-}
-.docs-lista li {
-  padding: 8px 0;
-  padding-left: 24px;
-  position: relative;
-  font-size: 14px;
-  color: var(--texto-sec);
-}
-.docs-lista li::before {
-  content: '•';
-  position: absolute;
-  left: 8px;
-  color: var(--teal);
-  font-weight: 700;
-}
-
-.texto-alerta {
-  font-size: 14px;
-  color: var(--vermelho);
-  margin-top: 12px;
-}
-
-.modal {
-  display: none;
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  z-index: 1000;
-  align-items: center;
-  justify-content: center;
-}
-.modal.ativo {
-  display: flex;
-}
-.modal-overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
-}
-.modal-conteudo {
-  position: relative;
-  background: white;
-  border-radius: var(--r-card);
-  width: 90%;
-  max-width: 600px;
-  max-height: 90vh;
-  overflow: auto;
-  box-shadow: var(--shadow-md);
-}
-.modal-sm {
-  max-width: 440px;
-}
-.modal-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 20px 24px;
-  border-bottom: 1px solid var(--borda);
-}
-.modal-titulo {
-  font-family: 'Syne', sans-serif;
-  font-size: 20px;
-  font-weight: 700;
-  color: var(--azul-escuro);
-}
-.btn-fechar {
-  width: 32px;
-  height: 32px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: transparent;
-  border: none;
-  font-size: 28px;
-  color: var(--texto-ter);
-  cursor: pointer;
-  border-radius: 4px;
-  transition: all .2s;
-}
-.btn-fechar:hover {
-  background: var(--fundo);
-  color: var(--texto);
-}
-.modal-body {
-  padding: 24px;
-}
-.modal-footer {
-  display: flex;
-  gap: 12px;
-  justify-content: flex-end;
-  padding: 16px 24px;
-  border-top: 1px solid var(--borda);
-}
-</style>
-
+{% block scripts_extras %}
 <script>
 function abrirModalNovaChave() {
   document.getElementById('modalNovaChave').classList.add('ativo');
