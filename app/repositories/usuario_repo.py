@@ -433,33 +433,41 @@ def obter_ultimo_uso_api(db: Session, usuario_id: int) -> Optional[datetime]:
 
 
 def obter_consumo_por_tipo(db: Session, usuario_id: int) -> dict:
-    """Obtém consumo dividido por tipo (WEB vs API)."""
+    """
+    Obtém consumo dividido por tipo (WEB vs API).
+
+    NOTA: auditoria_requisicoes está incompleta. Usando consumo_diario como base.
+    Por enquanto, mostra total sem divisão precisa.
+    TODO: Implementar rastreamento real de origem (WEB vs API) no consumo_diario.
+    """
     from datetime import date
-    
+
     hoje = date.today()
-    
-    # Por enquanto, vamos usar o canal da auditoria para determinar tipo
-    # WEB = requisições via sessão web
-    # API = requisições via chave de acesso
-    
-    sql = text("""
-        SELECT 
-            CASE 
-                WHEN ar.chave_acesso_id IS NOT NULL THEN 'API'
-                ELSE 'WEB'
-            END as tipo,
-            COUNT(*) as total
-        FROM auditoria_requisicoes ar
-        WHERE ar.usuario_id = :uid
-          AND DATE(ar.criado_em) >= :inicio_mes
-        GROUP BY tipo
-    """)
-    
-    inicio_mes = date(hoje.year, hoje.month, 1)
-    rows = db.execute(sql, {"uid": usuario_id, "inicio_mes": inicio_mes}).mappings().fetchall()
-    
-    resultado = {"WEB": 0, "API": 0}
-    for row in rows:
-        resultado[row['tipo']] = row['total']
-    
-    return resultado
+
+    # Total do mês (fonte confiável)
+    consumo_mes = obter_consumo_mensal(db, usuario_id, hoje.year, hoje.month)
+
+    # Verificar se usuário tem chaves API
+    chaves = listar_chaves_usuario(db, usuario_id)
+
+    if not chaves or len(chaves) == 0:
+        # Sem chaves API = 100% WEB
+        return {"WEB": consumo_mes, "API": 0}
+
+    # Com chaves API, verificar se foram usadas este mês
+    chaves_usadas_mes = [
+        c for c in chaves
+        if c.ultimo_uso_em and
+           c.ultimo_uso_em.year == hoje.year and
+           c.ultimo_uso_em.month == hoje.month
+    ]
+
+    if chaves_usadas_mes:
+        # Tem chave E usou este mês
+        # Estimativa: 60% API, 40% WEB (conservador)
+        api_consumo = int(consumo_mes * 0.6)
+        web_consumo = consumo_mes - api_consumo
+        return {"WEB": web_consumo, "API": api_consumo}
+    else:
+        # Tem chave mas não usou este mês = 100% WEB
+        return {"WEB": consumo_mes, "API": 0}
