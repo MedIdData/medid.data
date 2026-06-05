@@ -25,9 +25,32 @@ class AnaliseEntrada(BaseModel):
         v = v.strip()
         if not v:
             raise ValueError('Medicamento não pode ser vazio')
+        if len(v) < 2:
+            raise ValueError('Medicamento deve ter pelo menos 2 caracteres')
         # Deve conter pelo menos uma letra
         if not any(c.isalpha() for c in v):
             raise ValueError('Medicamento deve conter texto, não apenas números')
+        return v
+
+    @field_validator('preco_informado')
+    @classmethod
+    def validar_preco(cls, v: float) -> float:
+        if v < 0:
+            raise ValueError('Preço não pode ser negativo')
+        if v > 999999.99:
+            raise ValueError('Preço muito alto (máximo R$ 999.999,99)')
+        # Valida que tem no máximo 2 casas decimais
+        if round(v, 2) != v:
+            raise ValueError('Preço deve ter no máximo 2 casas decimais')
+        return round(v, 2)
+
+    @field_validator('quantidade')
+    @classmethod
+    def validar_quantidade(cls, v: int) -> int:
+        if v < 1:
+            raise ValueError('Quantidade deve ser pelo menos 1')
+        if v > 9999:
+            raise ValueError('Quantidade muito alta (máximo 9999)')
         return v
 
     @field_validator('cid')
@@ -35,7 +58,7 @@ class AnaliseEntrada(BaseModel):
     def validar_cid(cls, v: str) -> str:
         v = v.strip().upper()
         if v and not re.match(r'^[A-Z]\d{2}(\.\d{1,2})?$', v):
-            raise ValueError('CID-10 deve estar no formato válido (ex: J18.9, A00, B20.1)')
+            raise ValueError('CID-10 inválido (formato: A00 ou A00.0)')
         return v
 
     @field_validator('procedimento')
@@ -43,7 +66,15 @@ class AnaliseEntrada(BaseModel):
     def validar_procedimento(cls, v: str) -> str:
         v = v.strip()
         if v and not re.match(r'^\d{2}\.\d{2}\.\d{2}\.\d{3}-\d$', v):
-            raise ValueError('Procedimento SIGTAP deve estar no formato válido (ex: 03.01.01.007-2)')
+            raise ValueError('Código SIGTAP inválido (formato: 00.00.00.000-0)')
+        return v
+
+    @field_validator('tratamento')
+    @classmethod
+    def validar_tratamento(cls, v: str) -> str:
+        v = v.strip()
+        if len(v) > 500:
+            raise ValueError('Descrição do tratamento muito longa (máximo 500 caracteres)')
         return v
 
 

@@ -7,6 +7,7 @@ from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
 from typing import Optional
+from pydantic import ValidationError
 
 from app.database import get_db
 from app.models.usuario import Usuario
@@ -240,11 +241,11 @@ async def pagina_painel(
 async def pagina_analise(
     request: Request,
     medicamento: str = Query(""),
-    preco_informado: float = Query(0),
+    preco_informado: str = Query("0"),  # Recebe como string para validar conversão
     tratamento: str = Query(""),
     cid: str = Query(""),
     procedimento: str = Query(""),
-    quantidade: int = Query(1, ge=1),
+    quantidade: str = Query("1"),  # Recebe como string para validar conversão
     usuario: Optional[Usuario] = Depends(get_usuario_atual),
     db: Session = Depends(get_db),
 ):
@@ -255,26 +256,82 @@ async def pagina_analise(
     entrada = None
     erro = None
 
-    if medicamento.strip() and preco_informado > 0:
+    # Converte e valida inputs numéricos antes de criar AnaliseEntrada
+    if medicamento.strip():
         try:
+            # Validação e conversão de preço
+            try:
+                preco_float = float(preco_informado.replace(',', '.'))
+                if preco_float < 0:
+                    raise ValueError("Preço não pode ser negativo")
+                if preco_float > 999999.99:
+                    raise ValueError("Preço muito alto (máximo R$ 999.999,99)")
+            except ValueError as e:
+                if "could not convert" in str(e):
+                    raise ValueError(f"Preço inválido: '{preco_informado}' não é um número válido")
+                raise
+
+            # Validação e conversão de quantidade
+            try:
+                quantidade_int = int(quantidade)
+                if quantidade_int < 1:
+                    raise ValueError("Quantidade deve ser pelo menos 1")
+                if quantidade_int > 9999:
+                    raise ValueError("Quantidade muito alta (máximo 9999)")
+            except ValueError as e:
+                if "invalid literal" in str(e):
+                    raise ValueError(f"Quantidade inválida: '{quantidade}' não é um número válido")
+                raise
+
+            # Valida e cria entrada
             entrada = AnaliseEntrada(
                 medicamento=medicamento,
-                preco_informado=preco_informado,
+                preco_informado=preco_float,
                 tratamento=tratamento,
                 cid=cid,
                 procedimento=procedimento,
-                quantidade=quantidade,
+                quantidade=quantidade_int,
             )
+
+            # Executa análise
             resultado = analise_risco.analisar(db, entrada)
 
             # Registra consumo
             from datetime import date
             usuario_repo.incrementar_consumo(db, usuario.id, date.today(), "ANALISE")
-        except Exception as e:
-            # Pydantic ValidationError ou erro de negócio
+
+        except ValidationError as e:
+            # Erro de validação Pydantic - extrai mensagens amigáveis
+            erros = []
+            for err in e.errors():
+                campo = err['loc'][-1] if err['loc'] else 'campo'
+                msg = err['msg']
+
+                # Traduz mensagens comuns
+                if 'String should match pattern' in msg:
+                    if campo == 'cid':
+                        erros.append('CID-10 inválido (formato: A00 ou A00.0)')
+                    elif campo == 'procedimento':
+                        erros.append('Código SIGTAP inválido (formato: 00.00.00.000-0)')
+                    else:
+                        erros.append(f'{campo.title()}: formato inválido')
+                elif 'should have at least' in msg:
+                    erros.append(f'{campo.title()} muito curto')
+                elif 'should have at most' in msg:
+                    erros.append(f'{campo.title()} muito longo')
+                else:
+                    # Usa mensagem original se não houver tradução
+                    erros.append(msg)
+
+            erro = ' | '.join(erros)
+
+        except ValueError as e:
+            # Erros de conversão ou validação customizada
             erro = str(e)
-            if "validation error" in str(e).lower():
-                erro = "Dados inválidos. Verifique os campos e tente novamente."
+
+        except Exception as e:
+            # Outros erros inesperados
+            erro = f"Erro ao processar análise: {str(e)}"
 
     return templates.TemplateResponse(
         request, "analise.html",
