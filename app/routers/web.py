@@ -21,9 +21,14 @@ from app.middleware.auth_middleware import (
 from app.repositories import usuario_repo, convite_repo
 from app.services import auth_service
 from app.config import settings
+from app.utils.timezone import formatar_data_br, formatar_data_hora_br
 
 router = APIRouter(include_in_schema=False)
 templates = Jinja2Templates(directory="app/templates")
+
+# Registrar filtros Jinja2 customizados
+templates.env.filters["data_br"] = formatar_data_br
+templates.env.filters["data_hora_br"] = formatar_data_hora_br
 
 
 def _redir_login(proxima: str = "") -> RedirectResponse:

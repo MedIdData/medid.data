@@ -15,7 +15,6 @@ from pythonjsonlogger import jsonlogger
 
 from app.config import settings
 from app.middleware.auth_middleware import RedirectParaLogin
-from app.utils.timezone import formatar_data_br, formatar_data_hora_br
 
 
 # ── Logging estruturado ────────────────────────────────────────────────────
@@ -116,13 +115,6 @@ def _seed_usuario_padrao():
 async def lifespan(app: FastAPI):
     _seed_plano_gratuito()
     _seed_usuario_padrao()
-
-    # Registrar filtros Jinja2 após app inicializar
-    from app.routers.web import templates
-    templates.env.filters["data_br"] = formatar_data_br
-    templates.env.filters["data_hora_br"] = formatar_data_hora_br
-    logger.info("Filtros Jinja2 registrados: data_br, data_hora_br")
-
     yield
 
 
