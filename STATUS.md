@@ -73,8 +73,10 @@
 - **Status:** ✅ Concluído - Commit 30a494b
 
 ### CORRECAO_09 - Paridade API
-- [ ] Tudo da interface disponível via API
-- [ ] Mesmas regras, validações, limites, segurança
+- [x] Tudo da interface disponível via API
+- [x] Mesmas regras, validações, limites, segurança
+- [x] Endpoints admin (/admin/api/*)
+- **Status:** ✅ Concluído - Commit 8c6768f
 
 ### CORRECAO_10 - Testes
 - [ ] Autenticação, busca, análise
