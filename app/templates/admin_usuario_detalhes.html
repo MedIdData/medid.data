@@ -373,7 +373,7 @@
         <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
           <path d="M9 11H7v2h2v-2zm4 0h-2v2h2v-2zm4 0h-2v2h2v-2zm2-7h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V9h14v11z"/>
         </svg>
-        Cadastro: {{ usuario.criado_em.strftime('%d/%m/%Y') if usuario.criado_em else '-' }}
+        Cadastro: {{ usuario.criado_em|data_br }}
       </div>
     </div>
   </div>
@@ -437,11 +437,11 @@
         </div>
         <div class="info-item">
           <span class="info-label">Último Login</span>
-          <span class="info-value">{{ ultimo_login.strftime('%d/%m/%Y %H:%M') if ultimo_login else 'Nunca' }}</span>
+          <span class="info-value">{{ ultimo_login|data_hora_br }}</span>
         </div>
         <div class="info-item">
           <span class="info-label">Último Uso API</span>
-          <span class="info-value">{{ ultimo_uso_api.strftime('%d/%m/%Y %H:%M') if ultimo_uso_api else 'Nunca' }}</span>
+          <span class="info-value">{{ ultimo_uso_api|data_hora_br }}</span>
         </div>
       </div>
     </div>
@@ -593,9 +593,9 @@
             <div><strong>{{ chave.nome }}</strong></div>
             <code>{{ chave.prefixo }}...</code>
             <div class="chave-meta">
-              Criada em {{ chave.criado_em.strftime('%d/%m/%Y') }}
+              Criada em {{ chave.criado_em|data_br }}
               {% if chave.ultimo_uso_em %}
-              · Último uso: {{ chave.ultimo_uso_em.strftime('%d/%m/%Y %H:%M') }}
+              · Último uso: {{ chave.ultimo_uso_em|data_hora_br }}
               {% endif %}
             </div>
           </div>
@@ -639,7 +639,7 @@
         <tbody>
           {% for item in historico %}
           <tr>
-            <td>{{ item.data_referencia.strftime('%d/%m/%Y') }}</td>
+            <td>{{ item.data_referencia|data_br }}</td>
             <td>{{ item.modulo }}</td>
             <td><strong>{{ item.total_consultas }}</strong></td>
             <td>
@@ -682,7 +682,7 @@
         <tbody>
           {% for item in auditoria %}
           <tr>
-            <td>{{ item.criado_em.strftime('%d/%m/%Y %H:%M') if item.criado_em else '-' }}</td>
+            <td>{{ item.criado_em|data_hora_br }}</td>
             <td><span class="badge badge-web">{{ item.canal or 'WEB' }}</span></td>
             <td>{{ item.modulo or '-' }}</td>
             <td style="font-family: monospace; font-size: .8rem;">{{ item.endpoint or '-' }}</td>

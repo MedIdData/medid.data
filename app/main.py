@@ -15,6 +15,7 @@ from pythonjsonlogger import jsonlogger
 
 from app.config import settings
 from app.middleware.auth_middleware import RedirectParaLogin
+from app.utils.timezone import formatar_data_br, formatar_data_hora_br
 
 
 # ── Logging estruturado ────────────────────────────────────────────────────
@@ -315,3 +316,14 @@ app.include_router(web.router)
 
 # Servir arquivos estáticos (para imagens OG, etc)
 app.mount("/static", StaticFiles(directory="app/static"), name="static")
+
+# ── Jinja2 Filters ─────────────────────────────────────────────────────────
+
+def registrar_filtros_jinja():
+    """Registra filtros customizados do Jinja2."""
+    from app.routers.web import templates
+
+    templates.env.filters["data_br"] = formatar_data_br
+    templates.env.filters["data_hora_br"] = formatar_data_hora_br
+
+registrar_filtros_jinja()
