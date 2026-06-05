@@ -433,7 +433,34 @@ RATE_LIMIT_ENABLED=true
 LOG_FORMAT=json
 ```
 
-6. Deploy automático ✅
+6. **⚠️ IMPORTANTE**: Instalar extensões PostgreSQL (OBRIGATÓRIO)
+
+   **Opção A - Via Railway Dashboard**:
+   - Acesse PostgreSQL → Query
+   - Cole e execute:
+   ```sql
+   CREATE EXTENSION IF NOT EXISTS pg_trgm;
+   CREATE EXTENSION IF NOT EXISTS unaccent;
+   ```
+
+   **Opção B - Via psql**:
+   ```bash
+   # Copie DATABASE_URL do Railway
+   psql $DATABASE_URL -f migrations/add_extensions.sql
+   ```
+
+7. Executar setup inicial:
+
+```bash
+# Via Railway CLI ou shell do container
+python setup_prod.py
+```
+
+8. Deploy automático ✅
+
+**🔍 Verificar**: Acesse `/buscar` e confirme que medicamentos aparecem. Se retornar vazio, extensões não estão instaladas.
+
+**Troubleshooting**: Veja `migrations/README.md` para detalhes.
 
 ### Docker
 
@@ -448,6 +475,15 @@ docker run -d \
   -e SECRET_KEY="..." \
   -e ENVIRONMENT="production" \
   mediddata-api
+
+# Setup inicial (executar UMA VEZ)
+docker exec -it <container_id> python setup_prod.py
+```
+
+**⚠️ PostgreSQL externo**: Se usar banco externo, instale extensões primeiro:
+```sql
+CREATE EXTENSION IF NOT EXISTS pg_trgm;
+CREATE EXTENSION IF NOT EXISTS unaccent;
 ```
 
 ### Docker Compose
@@ -475,6 +511,7 @@ services:
       - POSTGRES_PASSWORD=postgres
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      - ./migrations/add_extensions.sql:/docker-entrypoint-initdb.d/01_extensions.sql
 
 volumes:
   postgres_data:
