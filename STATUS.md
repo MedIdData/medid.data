@@ -59,8 +59,10 @@
 - **Status:** ✅ Concluído - Commit 575d338
 
 ### CORRECAO_07 - Menu Usuário
-- [ ] Nome do usuário clicável no canto superior direito
-- [ ] Dropdown: Meu Perfil, Alterar Senha, Minhas Chaves, Meu Consumo, Sair
+- [x] Nome do usuário clicável no canto superior direito
+- [x] Dropdown: Meu Perfil, Alterar Senha, Minhas Chaves, Meu Consumo, Sair
+- [x] Item Administração (apenas para perfil ADMINISTRADOR)
+- **Status:** ✅ Concluído - Commit 5714fb8 (já estava implementado)
 
 ### CORRECAO_08 - Admin
 - [ ] Área exclusiva para administrador
