@@ -76,9 +76,9 @@ def analisar(db: Session, entrada: AnaliseEntrada) -> AnaliseResultado:
     # ──────────────────────────────────────────────────────────────
 
     if med_row:
-        pf = med_row.get('pf')
-        pmc = med_row.get('pmc')
-        pmvg = med_row.get('pmvg')
+        pf = float(med_row.get('pf')) if med_row.get('pf') else None
+        pmc = float(med_row.get('pmc')) if med_row.get('pmc') else None
+        pmvg = float(med_row.get('pmvg')) if med_row.get('pmvg') else None
 
         # Compara com PMC (preço máximo ao consumidor)
         if pmc and entrada.preco_informado > pmc:
