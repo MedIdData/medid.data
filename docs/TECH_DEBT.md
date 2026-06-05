@@ -18,12 +18,13 @@
 **Esforço**: 2h  
 **Status**: ✅ Resolvido no commit `1bac73d` (M1)
 
-### 3. Potencial de Glosa Incorreto
+### 3. ~~Potencial de Glosa Incorreto~~ ✅ RESOLVIDO
 **Problema**: Falta de dados confiáveis gera risco BAIXO (deveria ser ALTO)  
 **Localização**: `app/services/analise_risco.py` (scoring e pesos)  
 **Impacto**: Análise clínica incorreta, risco de glosas não detectadas  
-**Solução**: Aumentar peso de NAO_ADERENTE quando medicamento não encontrado  
-**Esforço**: 4h (incluindo testes)
+**Solução**: Peso D9 NAO_ADERENTE aumentado de (5,8) para (40,60)  
+**Esforço**: 4h (incluindo testes)  
+**Status**: ✅ Resolvido no commit `f8eb672` (M2.3)
 
 ---
 

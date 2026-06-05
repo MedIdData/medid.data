@@ -12,9 +12,10 @@
 - **Rotas de perfil**: Criadas rotas /perfil e /alterar-senha com validações
 - **M1 - Busca travada**: Letra "A" removida, cursor não volta ao início, lista inicial carregada (commit 1bac73d)
 - **M2.1 - Gauge invertido**: Fórmula stroke-dashoffset corrigida (commit eafae63)
+- **M2.3 - Regras de glosa**: Ausência de dados agora gera risco ALTO (commit f8eb672)
 
 #### ⚠️ Problemas Identificados (não corrigidos ainda)
-- **Potencial glosa baixo**: Sistema retorna glosa baixa quando deveria ser alta (falta de dados)
+- **M2.2 - Validação de campos**: Alguns valores numéricos geram erro 500
 
 ---
 

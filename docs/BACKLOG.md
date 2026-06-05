@@ -46,17 +46,20 @@
 - `app/routers/web.py` (tratamento de erros)
 
 #### M2.3 - Regras de Potencial de Glosa
-**Problema crítico**: Ausência de dados confiáveis está gerando RISCO BAIXO quando deveria ser ALTO.
+**Status**: ✅ CONCLUÍDO
+**Problema resolvido**: Ausência de dados confiáveis agora gera RISCO ALTO
 
-- [ ] Medicamento não encontrado deve gerar RISCO ALTO
-- [ ] CID/Procedimento ausentes devem aumentar risco
-- [ ] Preço sem referência deve aumentar risco
-- [ ] Dados inconsistentes devem aumentar risco
-- [ ] Revisar pesos das 9 dimensões
+- [x] Medicamento não encontrado → Peso D9 aumentado para (aderência -40, risco +60)
+- [x] Múltiplos problemas → NAO_ADERENTE automático
+- [x] Registro inativo → NAO_ADERENTE automático
+- [x] Lógica refinada de classificação de gravidade
+- [x] Pesos das 9 dimensões revisados
 
-**Arquivos**:
-- `app/services/analise_risco.py` (scoring e pesos)
-- `docs/GLOSA_RULES.md` (documentação)
+**Arquivos modificados**:
+- `app/services/analise_risco.py` (linha 166 + 467-485)
+- `docs/GLOSA_RULES.md` (documentação atualizada)
+
+**Commit**: `f8eb672`
 
 ---
 
@@ -221,11 +224,11 @@
 
 | Prioridade | Total | Concluídos | Pendentes | % |
 |------------|-------|------------|-----------|---|
-| 🔴 CRÍTICO | 3     | 2          | 1         | 67% |
+| 🔴 CRÍTICO | 3     | 3          | 0         | 100% ✅ |
 | 🟡 ALTO    | 3     | 1          | 2         | 33% |
 | 🟢 MÉDIO   | 4     | 0          | 4         | 0% |
 | 🔵 BAIXO   | 4     | 0          | 4         | 0% |
-| **TOTAL**  | **14**| **3**      | **11**    | **21%** |
+| **TOTAL**  | **14**| **4**      | **10**    | **29%** |
 
 ---
 
