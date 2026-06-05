@@ -397,7 +397,7 @@
         <circle cx="12" cy="12" r="10"/>
         <line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/>
       </svg>
-      {{ 'Ativar' if not usuario.ativo else 'Desativar' }}
+      {{ 'Ativar' if not usuario_detalhes.ativo else 'Desativar' }}
     </button>
   </div>
 </div>
@@ -418,7 +418,7 @@
         <div class="info-item">
           <span class="info-label">Perfil</span>
           <span class="info-value">
-            <span class="badge {% if usuario.perfil == 'ADMINISTRADOR' %}badge-admin{% else %}badge-usuario{% endif %}">
+            <span class="badge {% if usuario_detalhes.perfil == 'ADMINISTRADOR' %}badge-admin{% else %}badge-usuario{% endif %}">
               {{ usuario_detalhes.perfil }}
             </span>
           </span>
@@ -426,8 +426,8 @@
         <div class="info-item">
           <span class="info-label">Status</span>
           <span class="info-value">
-            <span class="badge {% if usuario.ativo %}badge-ativo{% else %}badge-inativo{% endif %}">
-              {{ 'Ativo' if usuario.ativo else 'Inativo' }}
+            <span class="badge {% if usuario_detalhes.ativo %}badge-ativo{% else %}badge-inativo{% endif %}">
+              {{ 'Ativo' if usuario_detalhes.ativo else 'Inativo' }}
             </span>
           </span>
         </div>
@@ -479,11 +479,11 @@
       <div class="progresso">
         <div class="progresso-label">
           <span>Limite Diário</span>
-          <span>{{ stats.consumo_hoje }} / {{ usuario_detalhes.limite_diario if usuario.limite_diario else '∞' }}</span>
+          <span>{{ stats.consumo_hoje }} / {{ usuario_detalhes.limite_diario if usuario_detalhes.limite_diario else '∞' }}</span>
         </div>
         <div class="progresso-barra">
-          {% if usuario.limite_diario %}
-            {% set percentual = (stats.consumo_hoje / usuario.limite_diario * 100) if usuario.limite_diario > 0 else 0 %}
+          {% if usuario_detalhes.limite_diario %}
+            {% set percentual = (stats.consumo_hoje / usuario_detalhes.limite_diario * 100) if usuario_detalhes.limite_diario > 0 else 0 %}
             <div class="progresso-fill {% if percentual > 80 %}alerta{% endif %}" style="width: {{ [percentual, 100]|min }}%"></div>
           {% else %}
             <div class="progresso-fill" style="width: 0%"></div>
@@ -494,11 +494,11 @@
       <div class="progresso">
         <div class="progresso-label">
           <span>Limite Mensal</span>
-          <span>{{ stats.consumo_mes }} / {{ usuario_detalhes.limite_mensal if usuario.limite_mensal else '∞' }}</span>
+          <span>{{ stats.consumo_mes }} / {{ usuario_detalhes.limite_mensal if usuario_detalhes.limite_mensal else '∞' }}</span>
         </div>
         <div class="progresso-barra">
-          {% if usuario.limite_mensal %}
-            {% set percentual_mes = (stats.consumo_mes / usuario.limite_mensal * 100) if usuario.limite_mensal > 0 else 0 %}
+          {% if usuario_detalhes.limite_mensal %}
+            {% set percentual_mes = (stats.consumo_mes / usuario_detalhes.limite_mensal * 100) if usuario_detalhes.limite_mensal > 0 else 0 %}
             <div class="progresso-fill {% if percentual_mes > 80 %}alerta{% endif %}" style="width: {{ [percentual_mes, 100]|min }}%"></div>
           {% else %}
             <div class="progresso-fill" style="width: 0%"></div>
@@ -722,16 +722,16 @@
           <div class="form-group">
             <label for="edit_perfil">Perfil</label>
             <select id="edit_perfil" name="perfil" class="form-select" required>
-              <option value="USUARIO" {{ 'selected' if usuario.perfil == 'USUARIO' else '' }}>Usuário</option>
-              <option value="CLIENTE" {{ 'selected' if usuario.perfil == 'CLIENTE' else '' }}>Cliente</option>
-              <option value="ADMINISTRADOR" {{ 'selected' if usuario.perfil == 'ADMINISTRADOR' else '' }}>Administrador</option>
+              <option value="USUARIO" {{ 'selected' if usuario_detalhes.perfil == 'USUARIO' else '' }}>Usuário</option>
+              <option value="CLIENTE" {{ 'selected' if usuario_detalhes.perfil == 'CLIENTE' else '' }}>Cliente</option>
+              <option value="ADMINISTRADOR" {{ 'selected' if usuario_detalhes.perfil == 'ADMINISTRADOR' else '' }}>Administrador</option>
             </select>
           </div>
           <div class="form-group">
             <label for="edit_ativo">Status</label>
             <select id="edit_ativo" name="ativo" class="form-select" required>
-              <option value="true" {{ 'selected' if usuario.ativo else '' }}>Ativo</option>
-              <option value="false" {{ 'selected' if not usuario.ativo else '' }}>Inativo</option>
+              <option value="true" {{ 'selected' if usuario_detalhes.ativo else '' }}>Ativo</option>
+              <option value="false" {{ 'selected' if not usuario_detalhes.ativo else '' }}>Inativo</option>
             </select>
           </div>
         </div>
@@ -937,7 +937,7 @@ function fecharModalSenha() {
 }
 
 function confirmarDesativar() {
-  if (confirm('{{ "Ativar" if not usuario.ativo else "Desativar" }} este usuário?')) {
+  if (confirm('{{ "Ativar" if not usuario_detalhes.ativo else "Desativar" }} este usuário?')) {
     window.location.href = '/admin/usuarios/{{ usuario_detalhes.id }}/toggle-status';
   }
 }
