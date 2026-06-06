@@ -1066,7 +1066,7 @@ async def limpar_consumo_usuario(
     from sqlalchemy import text
 
     # Buscar usuário
-    usuario = usuario_repo.obter_por_email(db, email)
+    usuario = usuario_repo.buscar_por_email(db, email)
     if not usuario:
         return {"erro": f"Usuário com email '{email}' não encontrado"}
 
