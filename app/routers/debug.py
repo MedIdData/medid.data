@@ -131,3 +131,66 @@ async def check_imports():
             "traceback": traceback.format_exc(),
         }
         return JSONResponse(content=error_info, status_code=500)
+
+
+@router.get("/check-data-counts")
+async def check_data_counts(db: Session = Depends(get_db)):
+    """Verifica a quantidade de dados em todas as tabelas."""
+    from sqlalchemy import text
+    try:
+        resultado = {}
+
+        # Medicamentos
+        anvisa_total = db.execute(text("SELECT COUNT(*) FROM medicamentos_anvisa")).scalar()
+        anvisa_ativos = db.execute(text("SELECT COUNT(*) FROM medicamentos_anvisa WHERE situacao_registro = 'Ativo'")).scalar()
+        cmed_total = db.execute(text("SELECT COUNT(*) FROM medicamentos_cmed")).scalar()
+        dcb_total = db.execute(text("SELECT COUNT(*) FROM dcb")).scalar()
+
+        resultado["medicamentos"] = {
+            "anvisa_total": anvisa_total,
+            "anvisa_ativos": anvisa_ativos,
+            "cmed_total": cmed_total,
+            "dcb_total": dcb_total
+        }
+
+        # CID-10
+        cid_cat = db.execute(text("SELECT COUNT(*) FROM cid10_categorias")).scalar()
+        cid_sub = db.execute(text("SELECT COUNT(*) FROM cid10_subcategorias")).scalar()
+
+        resultado["cid10"] = {
+            "categorias": cid_cat,
+            "subcategorias": cid_sub
+        }
+
+        # SIGTAP
+        sigtap_proc = db.execute(text("SELECT COUNT(*) FROM sigtap_procedimentos")).scalar()
+        sigtap_grupos = db.execute(text("SELECT COUNT(*) FROM sigtap_grupos")).scalar()
+        sigtap_cid = db.execute(text("SELECT COUNT(*) FROM sigtap_procedimento_cid")).scalar()
+
+        resultado["sigtap"] = {
+            "procedimentos": sigtap_proc,
+            "grupos": sigtap_grupos,
+            "procedimento_cid": sigtap_cid
+        }
+
+        # Análise
+        resultado["analise"] = {
+            "anvisa_ok": anvisa_total >= 30000,
+            "cmed_ok": cmed_total >= 20000,
+            "cid_ok": cid_cat >= 2000 and cid_sub >= 12000,
+            "sigtap_ok": sigtap_proc >= 4000 and sigtap_cid >= 160000
+        }
+
+        resultado["status"] = "SUCCESS"
+
+        return JSONResponse(content=resultado, status_code=200)
+
+    except Exception as e:
+        import traceback
+        error_info = {
+            "status": "ERROR",
+            "error_type": type(e).__name__,
+            "error_message": str(e),
+            "traceback": traceback.format_exc(),
+        }
+        return JSONResponse(content=error_info, status_code=500)
