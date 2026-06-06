@@ -619,11 +619,6 @@ async def pagina_admin(
     # Lista de usuários com suas chaves
     usuarios = usuario_repo.listar_todos_usuarios(db)
 
-    # Buscar todos os planos
-    from app.repositories import plano_repo
-    todos_planos = plano_repo.listar_todos(db)
-    planos_dict = {p.id: p for p in todos_planos}
-
     # Mapear chaves e consumo por usuário
     chaves_por_usuario = {}
     consumo_por_usuario = {}
