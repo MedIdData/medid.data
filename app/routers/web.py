@@ -1051,3 +1051,43 @@ async def fix_consumo_modules(
         "depois": [dict(r) for r in after],
         "deletados": result.rowcount
     }
+
+
+@router.get("/migrate/limpar-consumo-usuario")
+async def limpar_consumo_usuario(
+    email: str = Query(..., description="Email do usuário"),
+    admin: Usuario = Depends(requer_admin),
+    db: Session = Depends(get_db),
+):
+    """
+    Limpa TODO o histórico de consumo de um usuário específico.
+    Zera consumo para recomeçar contabilização do zero.
+    """
+    from sqlalchemy import text
+
+    # Buscar usuário
+    usuario = usuario_repo.obter_por_email(db, email)
+    if not usuario:
+        return {"erro": f"Usuário com email '{email}' não encontrado"}
+
+    # Ver consumo atual
+    sql_check = text("""
+        SELECT modulo, COUNT(*) as qtd, SUM(total_consultas) as total
+        FROM consumo_diario
+        WHERE usuario_id = :uid
+        GROUP BY modulo
+        ORDER BY modulo
+    """)
+    before = db.execute(sql_check, {"uid": usuario.id}).mappings().fetchall()
+
+    # Deletar TODO o consumo do usuário
+    sql_delete = text("DELETE FROM consumo_diario WHERE usuario_id = :uid")
+    result = db.execute(sql_delete, {"uid": usuario.id})
+    db.commit()
+
+    return {
+        "usuario": {"id": usuario.id, "nome": usuario.nome, "email": usuario.email},
+        "antes": [dict(r) for r in before],
+        "deletados": result.rowcount,
+        "status": "Consumo zerado - pronto para nova contabilização"
+    }
