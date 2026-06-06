@@ -144,27 +144,26 @@ def requer_acesso(modulo: str):
         db: Session = Depends(get_db),
     ) -> Usuario:
         hoje = date.today()
-        plano = usuario_repo.obter_plano_usuario(db, usuario)
-        limite_diario = plano.limite_diario if plano else 100
-        limite_mensal = plano.limite_mensal if plano else 2000
+        limite_diario = usuario.limite_diario
+        limite_mensal = usuario.limite_mensal
 
-        consumo_hoje = usuario_repo.obter_consumo_total_dia(db, usuario.id, hoje)
-        if consumo_hoje >= limite_diario:
-            raise HTTPException(
-                status_code=status.HTTP_429_TOO_MANY_REQUESTS,
-                detail=f"Limite diário de {limite_diario} consultas atingido. "
-                       "Aguarde o próximo dia ou faça upgrade do plano.",
-            )
+        # Administradores não têm limites (0 = ilimitado)
+        if limite_diario > 0 or limite_mensal > 0:
+            consumo_hoje = usuario_repo.obter_consumo_total_dia(db, usuario.id, hoje)
+            if limite_diario > 0 and consumo_hoje >= limite_diario:
+                raise HTTPException(
+                    status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+                    detail="Limite diário atingido. Verifique seus limites no painel de uso.",
+                )
 
-        consumo_mes = usuario_repo.obter_consumo_mensal(
-            db, usuario.id, hoje.year, hoje.month
-        )
-        if consumo_mes >= limite_mensal:
-            raise HTTPException(
-                status_code=status.HTTP_429_TOO_MANY_REQUESTS,
-                detail=f"Limite mensal de {limite_mensal} consultas atingido. "
-                       "Aguarde o próximo mês ou faça upgrade do plano.",
+            consumo_mes = usuario_repo.obter_consumo_mensal(
+                db, usuario.id, hoje.year, hoje.month
             )
+            if limite_mensal > 0 and consumo_mes >= limite_mensal:
+                raise HTTPException(
+                    status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+                    detail="Limite mensal atingido. Verifique seus limites no painel de uso.",
+                )
 
         # Incrementa consumo
         usuario_repo.incrementar_consumo(db, usuario.id, hoje, modulo)

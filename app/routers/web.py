@@ -266,7 +266,7 @@ async def pagina_analise(
         try:
             # Verificar limites ANTES de processar
             from app.middleware.rate_limit import verificar_limite_usuario, registrar_consumo
-            verificar_limite_usuario(db, usuario, "WEB")
+            verificar_limite_usuario(db, usuario)
 
             # Validação e conversão de preço
             try:
@@ -305,8 +305,8 @@ async def pagina_analise(
             # Executa análise
             resultado = analise_risco.analisar(db, entrada)
 
-            # Registra consumo (só se passou na verificação)
-            registrar_consumo(db, usuario, "WEB", "ANALISE")
+            # Registra consumo no módulo ANALISE
+            registrar_consumo(db, usuario, "ANALISE")
 
         except ValidationError as e:
             # Erro de validação Pydantic - extrai mensagens amigáveis
@@ -381,7 +381,7 @@ async def pagina_buscar(
         try:
             # Verificar limites ANTES de fazer a busca
             from app.middleware.rate_limit import verificar_limite_usuario, registrar_consumo
-            verificar_limite_usuario(db, usuario, "WEB")
+            verificar_limite_usuario(db, usuario)
 
             # Busca na BASE COMPLETA
             resposta = busca_medicamento.buscar(db, termo_busca, apenas_ativos, pagina, limite)
@@ -389,8 +389,8 @@ async def pagina_buscar(
             total = resposta.total
             sugestao = resposta.sugestao
 
-            # Registra consumo (só se passou na verificação)
-            registrar_consumo(db, usuario, "WEB", "BUSCA")
+            # Registra consumo no módulo MEDICAMENTOS
+            registrar_consumo(db, usuario, "MEDICAMENTOS")
 
         except Exception as e:
             # Se for erro de limite, mostra mensagem amigável

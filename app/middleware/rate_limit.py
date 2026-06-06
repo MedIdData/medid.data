@@ -20,15 +20,15 @@ class LimiteExcedidoException(HTTPException):
         self.tipo = tipo
 
 
-def verificar_limite_usuario(db: Session, usuario: Usuario, modulo: str = "WEB") -> None:
+def verificar_limite_usuario(db: Session, usuario: Usuario) -> None:
     """
-    Verifica se o usuário atingiu o limite diário ou mensal.
+    Verifica se o usuário atingiu o limite diário ou mensal TOTAL.
+    Os limites são globais (somam MEDICAMENTOS + ANALISE).
     Lança LimiteExcedidoException se limite atingido.
 
     Args:
         db: Sessão do banco
         usuario: Usuário atual
-        modulo: Módulo sendo acessado (WEB ou API)
 
     Raises:
         LimiteExcedidoException: Se limite diário ou mensal foi atingido
@@ -56,18 +56,14 @@ def verificar_limite_usuario(db: Session, usuario: Usuario, modulo: str = "WEB")
         )
 
 
-def registrar_consumo(db: Session, usuario: Usuario, modulo: str = "WEB", tipo: str = "BUSCA") -> None:
+def registrar_consumo(db: Session, usuario: Usuario, modulo: str) -> None:
     """
     Registra consumo do usuário.
 
     Args:
         db: Sessão do banco
         usuario: Usuário atual
-        modulo: Módulo (WEB ou API)
-        tipo: Tipo de operação (BUSCA, ANALISE, etc)
+        modulo: Módulo (MEDICAMENTOS ou ANALISE)
     """
     hoje = date.today()
     usuario_repo.incrementar_consumo(db, usuario.id, hoje, modulo)
-
-    # Registrar auditoria (opcional, para tracking detalhado)
-    # usuario_repo.registrar_auditoria(db, usuario.id, tipo, modulo)
