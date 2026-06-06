@@ -75,6 +75,14 @@
       padding: 24px 20px 20px;
       border-bottom: 1px solid rgba(255,255,255,.08);
     }
+    .sidebar-logo a {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+      transition: opacity .2s;
+    }
+    .sidebar-logo a:hover { opacity: .8; }
     .sidebar-logo svg { flex-shrink: 0; }
     .logo-nome {
       display: flex;
@@ -421,26 +429,28 @@
   <!-- ── Sidebar ───────────────────────────────────────────────────────── -->
   <aside class="sidebar" id="sidebar">
     <div class="sidebar-logo">
-      <!-- Ícone escudo com rede neural -->
-      <svg width="34" height="38" viewBox="0 0 34 38" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M17 2L3 8.5V21C3 29.5 17 36 17 36C17 36 31 29.5 31 21V8.5L17 2Z"
-              fill="#14B8A6" fill-opacity=".15" stroke="#14B8A6" stroke-width="1.5" stroke-linejoin="round"/>
-        <circle cx="17" cy="19" r="3.5" fill="#14B8A6"/>
-        <circle cx="9"  cy="13" r="2"   fill="#14B8A6" fill-opacity=".7"/>
-        <circle cx="25" cy="13" r="2"   fill="#14B8A6" fill-opacity=".7"/>
-        <circle cx="9"  cy="25" r="2"   fill="#14B8A6" fill-opacity=".7"/>
-        <circle cx="25" cy="25" r="2"   fill="#14B8A6" fill-opacity=".7"/>
-        <line x1="9"  y1="13" x2="17" y2="19" stroke="#14B8A6" stroke-width="1" stroke-opacity=".5"/>
-        <line x1="25" y1="13" x2="17" y2="19" stroke="#14B8A6" stroke-width="1" stroke-opacity=".5"/>
-        <line x1="9"  y1="25" x2="17" y2="19" stroke="#14B8A6" stroke-width="1" stroke-opacity=".5"/>
-        <line x1="25" y1="25" x2="17" y2="19" stroke="#14B8A6" stroke-width="1" stroke-opacity=".5"/>
-        <line x1="9"  y1="13" x2="9"  y2="25" stroke="#14B8A6" stroke-width="1" stroke-opacity=".4"/>
-        <line x1="25" y1="13" x2="25" y2="25" stroke="#14B8A6" stroke-width="1" stroke-opacity=".4"/>
-      </svg>
-      <div class="logo-nome">
-        <div class="logo-titulo">MedID<span> Data</span></div>
-        <div class="logo-sub">Inteligência em Saúde</div>
-      </div>
+      <a href="/painel">
+        <!-- Ícone escudo com rede neural -->
+        <svg width="34" height="38" viewBox="0 0 34 38" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M17 2L3 8.5V21C3 29.5 17 36 17 36C17 36 31 29.5 31 21V8.5L17 2Z"
+                fill="#14B8A6" fill-opacity=".15" stroke="#14B8A6" stroke-width="1.5" stroke-linejoin="round"/>
+          <circle cx="17" cy="19" r="3.5" fill="#14B8A6"/>
+          <circle cx="9"  cy="13" r="2"   fill="#14B8A6" fill-opacity=".7"/>
+          <circle cx="25" cy="13" r="2"   fill="#14B8A6" fill-opacity=".7"/>
+          <circle cx="9"  cy="25" r="2"   fill="#14B8A6" fill-opacity=".7"/>
+          <circle cx="25" cy="25" r="2"   fill="#14B8A6" fill-opacity=".7"/>
+          <line x1="9"  y1="13" x2="17" y2="19" stroke="#14B8A6" stroke-width="1" stroke-opacity=".5"/>
+          <line x1="25" y1="13" x2="17" y2="19" stroke="#14B8A6" stroke-width="1" stroke-opacity=".5"/>
+          <line x1="9"  y1="25" x2="17" y2="19" stroke="#14B8A6" stroke-width="1" stroke-opacity=".5"/>
+          <line x1="25" y1="25" x2="17" y2="19" stroke="#14B8A6" stroke-width="1" stroke-opacity=".5"/>
+          <line x1="9"  y1="13" x2="9"  y2="25" stroke="#14B8A6" stroke-width="1" stroke-opacity=".4"/>
+          <line x1="25" y1="13" x2="25" y2="25" stroke="#14B8A6" stroke-width="1" stroke-opacity=".4"/>
+        </svg>
+        <div class="logo-nome">
+          <div class="logo-titulo">MedID<span> Data</span></div>
+          <div class="logo-sub">Inteligência em Saúde</div>
+        </div>
+      </a>
     </div>
 
     <nav class="sidebar-nav">

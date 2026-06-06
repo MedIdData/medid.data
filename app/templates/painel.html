@@ -57,13 +57,6 @@
   .bv-btn-sec { background: rgba(255,255,255,.12); color: var(--branco); }
   .bv-btn-sec:hover { background: rgba(255,255,255,.2); }
 
-  .plano-badge {
-    display: inline-flex; align-items: center;
-    background: rgba(20,184,166,.15);
-    color: var(--teal-claro); padding: 3px 10px;
-    border-radius: var(--r-etiq); font-size: .72rem; font-weight: 500;
-    margin-bottom: 8px;
-  }
   .modulo-lista { list-style: none; }
   .modulo-item {
     display: flex; align-items: center; justify-content: space-between;
@@ -80,9 +73,11 @@
 
 <!-- Boas-vindas -->
 <div class="boas-vindas">
-  <div class="plano-badge">Plano {{ plano }}</div>
   <h2>Olá, {{ usuario.nome.split()[0] if usuario else 'usuário' }}!</h2>
   <p>Bem-vindo ao MedID Data. Use os módulos abaixo para análise de medicamentos e risco clínico.</p>
+  <p style="font-size: .8rem; color: rgba(255,255,255,.65); margin-top: 8px;">
+    Dados: ANVISA, CMED, CID-10 e SIGTAP (bases públicas oficiais)
+  </p>
   <div class="bv-botoes">
     <a href="/buscar" class="bv-btn bv-btn-prim">Buscar Medicamentos</a>
     <a href="/analise" class="bv-btn bv-btn-sec">Análise de Risco</a>
