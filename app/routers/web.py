@@ -489,10 +489,8 @@ async def pagina_consumo(
     import json
 
     hoje = date.today()
-    plano = usuario_repo.obter_plano_usuario(db, usuario)
-    limite_diario = plano.limite_diario if plano else 20
-    limite_mensal = plano.limite_mensal if plano else 100
-    nome_plano = plano.nome if plano else "Gratuito"
+    limite_diario = usuario.limite_diario
+    limite_mensal = usuario.limite_mensal
 
     consumo_hoje = usuario_repo.obter_consumo_total_dia(db, usuario.id, hoje)
     consumo_mes = usuario_repo.obter_consumo_mensal(db, usuario.id, hoje.year, hoje.month)
@@ -528,7 +526,6 @@ async def pagina_consumo(
         {
             "pagina_ativa": "consumo",
             "usuario": usuario,
-            "plano": nome_plano,
             "limite_diario": limite_diario,
             "limite_mensal": limite_mensal,
             "consumo_hoje": consumo_hoje,
