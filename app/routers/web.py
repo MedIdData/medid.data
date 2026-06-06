@@ -687,11 +687,12 @@ async def admin_criar_usuario(
     # Criar usuário com senha temporária (será alterada no primeiro acesso)
     senha_temp = auth_service.gerar_senha_temporaria()
     senha_hash = auth_service.hash_senha(senha_temp)
-    novo_usuario = usuario_repo.criar_usuario(db, nome, email_normalizado, senha_hash)
-
-    # Atualizar perfil e limites
-    usuario_repo.atualizar_perfil_usuario(db, novo_usuario.id, perfil)
-    usuario_repo.atualizar_limites_usuario(db, novo_usuario.id, limite_diario, limite_mensal)
+    novo_usuario = usuario_repo.criar_usuario(
+        db, nome, email_normalizado, senha_hash,
+        perfil=perfil,
+        limite_diario=limite_diario,
+        limite_mensal=limite_mensal
+    )
 
     # Gerar convite (válido por 72h)
     convite = convite_repo.gerar_convite(db, novo_usuario.id, validade_horas=72)

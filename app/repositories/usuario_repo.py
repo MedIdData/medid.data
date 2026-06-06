@@ -25,13 +25,15 @@ def buscar_por_id(db: Session, usuario_id: int) -> Optional[Usuario]:
     return db.query(Usuario).filter(Usuario.id == usuario_id).first()
 
 
-def criar_usuario(db: Session, nome: str, email: str, senha_hash: str) -> Usuario:
+def criar_usuario(db: Session, nome: str, email: str, senha_hash: str, perfil: str = "USUARIO", limite_diario: int = 20, limite_mensal: int = 100) -> Usuario:
     usuario = Usuario(
         nome=nome.strip(),
         email=email.strip().lower(),
         senha_hash=senha_hash,
-        perfil="CLIENTE",
+        perfil=perfil,
         ativo=True,
+        limite_diario=limite_diario,
+        limite_mensal=limite_mensal,
     )
     db.add(usuario)
     db.commit()
