@@ -1006,8 +1006,8 @@ async def admin_atualizar_limites(
 ):
     """Atualiza limites de um usuário."""
     try:
-        # Validar que limite mensal >= limite diário
-        if limite_mensal < limite_diario:
+        # Validar que limite mensal >= limite diário (exceto se ambos = 0, que é ilimitado)
+        if limite_diario > 0 and limite_mensal > 0 and limite_mensal < limite_diario:
             return RedirectResponse(
                 url=f"/admin/usuarios/{usuario_id}/detalhes?erro=Limite mensal não pode ser menor que limite diário",
                 status_code=status.HTTP_302_FOUND

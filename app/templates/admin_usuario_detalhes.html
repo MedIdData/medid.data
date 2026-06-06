@@ -352,6 +352,30 @@
 {% endblock %}
 
 {% block conteudo %}
+
+<!-- Alertas de sucesso/erro -->
+{% if request.query_params.get('sucesso') %}
+<div style="margin-bottom: 20px; padding: 14px 18px; background: #F0FDF4; border-left: 4px solid #22C55E; border-radius: 8px;">
+  <div style="display: flex; align-items: center; gap: 12px;">
+    <svg width="20" height="20" fill="#22C55E" viewBox="0 0 24 24">
+      <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+    </svg>
+    <div style="color: #166534; font-weight: 600; font-size: .9rem;">{{ request.query_params.get('sucesso') }}</div>
+  </div>
+</div>
+{% endif %}
+
+{% if request.query_params.get('erro') %}
+<div style="margin-bottom: 20px; padding: 14px 18px; background: #FEF2F2; border-left: 4px solid #EF4444; border-radius: 8px;">
+  <div style="display: flex; align-items: center; gap: 12px;">
+    <svg width="20" height="20" fill="#EF4444" viewBox="0 0 24 24">
+      <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
+    </svg>
+    <div style="color: #991B1B; font-weight: 600; font-size: .9rem;">{{ request.query_params.get('erro') }}</div>
+  </div>
+</div>
+{% endif %}
+
 <!-- Hero com informações do usuário -->
 <div class="usuario-hero">
   <div class="usuario-info">
