@@ -13,7 +13,7 @@ class Usuario(Base):
     nome: Mapped[str] = mapped_column(String(200), nullable=False)
     email: Mapped[str] = mapped_column(String(200), unique=True, nullable=False, index=True)
     senha_hash: Mapped[str] = mapped_column(String(200), nullable=False)
-    perfil: Mapped[str] = mapped_column(String(20), nullable=False, default="CLIENTE")  # ADMINISTRADOR | CLIENTE
+    perfil: Mapped[str] = mapped_column(String(20), nullable=False, default="USUARIO")  # ADMINISTRADOR | USUARIO
     ativo: Mapped[bool] = mapped_column(Boolean, default=True)
     limite_diario: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)  # NULL = ilimitado ou usa plano
     limite_mensal: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)  # NULL = ilimitado ou usa plano

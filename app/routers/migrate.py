@@ -180,3 +180,93 @@ async def limpar_usuarios(db: Session = Depends(get_db)):
             "traceback": traceback.format_exc(),
         }
         return JSONResponse(content=error_info, status_code=500)
+
+
+@router.post("/reimportar-medicamentos")
+async def reimportar_medicamentos(db: Session = Depends(get_db)):
+    """
+    Reimporta todos os medicamentos ANVISA e CMED.
+    ATENÇÃO: Pode levar alguns minutos!
+    """
+    try:
+        from sqlalchemy import text
+        import subprocess
+        import os
+        
+        resultado = {"steps": []}
+        
+        # Verificar se arquivos existem
+        arquivos_necessarios = [
+            "dados/anvisa_medicamentos.csv",
+            "dados/anvisa_consulta_medicamentos.csv",
+            "dados/CMED_PF.csv",
+            "dados/CMED_PMVG.csv"
+        ]
+        
+        for arq in arquivos_necessarios:
+            if not os.path.exists(arq):
+                return JSONResponse(
+                    content={
+                        "status": "ERROR",
+                        "message": f"Arquivo não encontrado: {arq}",
+                        "sugestao": "Faça upload dos arquivos para a pasta dados/"
+                    },
+                    status_code=404
+                )
+        
+        resultado["steps"].append("Arquivos verificados - OK")
+        
+        # Executar scripts de importação
+        resultado["steps"].append("Executando importação ANVISA...")
+        try:
+            result = subprocess.run(
+                ["python3", "scripts/importar_anvisa.py"],
+                capture_output=True,
+                text=True,
+                timeout=300
+            )
+            if result.returncode == 0:
+                resultado["anvisa_import"] = "SUCCESS"
+            else:
+                resultado["anvisa_import"] = f"ERROR: {result.stderr}"
+        except Exception as e:
+            resultado["anvisa_import"] = f"ERROR: {str(e)}"
+        
+        resultado["steps"].append("Executando importação CMED...")
+        try:
+            result = subprocess.run(
+                ["python3", "scripts/importar_cmed.py"],
+                capture_output=True,
+                text=True,
+                timeout=300
+            )
+            if result.returncode == 0:
+                resultado["cmed_import"] = "SUCCESS"
+            else:
+                resultado["cmed_import"] = f"ERROR: {result.stderr}"
+        except Exception as e:
+            resultado["cmed_import"] = f"ERROR: {str(e)}"
+        
+        # Contar registros finais
+        anvisa_total = db.execute(text("SELECT COUNT(*) FROM medicamentos_anvisa")).scalar()
+        cmed_total = db.execute(text("SELECT COUNT(*) FROM medicamentos_cmed")).scalar()
+        
+        resultado["contagem_final"] = {
+            "anvisa": anvisa_total,
+            "cmed": cmed_total
+        }
+        
+        resultado["status"] = "SUCCESS"
+        resultado["message"] = "Reimportação concluída!"
+        
+        return JSONResponse(content=resultado, status_code=200)
+        
+    except Exception as e:
+        import traceback
+        error_info = {
+            "status": "ERROR",
+            "error_type": type(e).__name__,
+            "error_message": str(e),
+            "traceback": traceback.format_exc(),
+        }
+        return JSONResponse(content=error_info, status_code=500)
