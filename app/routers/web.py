@@ -376,7 +376,7 @@ async def pagina_buscar(
     termo_busca = q.strip() if q else ""
     erro_limite = None
 
-    # Só busca e contabiliza se houver termo de busca
+    # Se houver termo de busca, verifica limites e contabiliza
     if termo_busca:
         try:
             # Verificar limites ANTES de fazer a busca
@@ -395,10 +395,15 @@ async def pagina_buscar(
         except Exception as e:
             # Se for erro de limite, mostra mensagem amigável
             if hasattr(e, 'status_code') and e.status_code == 429:
-                erro_limite = str(e.detail)
+                erro_limite = "Você atingiu seu limite de uso. Verifique seus limites e consumo no painel de uso."
             else:
                 # Outros erros, re-lança
                 raise
+    else:
+        # Sem termo de busca: mostra primeiros resultados (não conta consumo)
+        resposta = busca_medicamento.buscar(db, "", apenas_ativos, pagina, limite)
+        resultados = resposta.resultados
+        total = resposta.total
 
     # Calcula paginação
     total_paginas = (total + limite - 1) // limite if total > 0 else 0

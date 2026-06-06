@@ -43,8 +43,7 @@ def verificar_limite_usuario(db: Session, usuario: Usuario, modulo: str = "WEB")
     consumo_hoje = usuario_repo.obter_consumo_total_dia(db, usuario.id, hoje)
     if consumo_hoje >= usuario.limite_diario:
         raise LimiteExcedidoException(
-            mensagem=f"Limite diário atingido ({consumo_hoje}/{usuario.limite_diario}). "
-                    f"Seus limites serão renovados amanhã às 00:00.",
+            mensagem="Você atingiu seu limite de uso. Verifique seus limites e consumo no painel de uso.",
             tipo="diario"
         )
 
@@ -52,8 +51,7 @@ def verificar_limite_usuario(db: Session, usuario: Usuario, modulo: str = "WEB")
     consumo_mes = usuario_repo.obter_consumo_mensal(db, usuario.id, hoje.year, hoje.month)
     if consumo_mes >= usuario.limite_mensal:
         raise LimiteExcedidoException(
-            mensagem=f"Limite mensal atingido ({consumo_mes}/{usuario.limite_mensal}). "
-                    f"Seus limites serão renovados no próximo mês.",
+            mensagem="Você atingiu seu limite de uso. Verifique seus limites e consumo no painel de uso.",
             tipo="mensal"
         )
 
