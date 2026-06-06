@@ -1019,3 +1019,35 @@ async def admin_atualizar_limites(
             url=f"/admin/usuarios/{usuario_id}/detalhes?erro={str(e)}",
             status_code=status.HTTP_302_FOUND
         )
+
+
+# ── Limpeza de Dados (Temporário) ─────────────────────────────────────────
+
+@router.get("/migrate/fix-consumo-modules")
+async def fix_consumo_modules(
+    admin: Usuario = Depends(requer_admin),
+    db: Session = Depends(get_db),
+):
+    """
+    Limpa módulos inválidos (WEB) da tabela consumo_diario.
+    Deleta registros com módulo WEB pois não conseguimos saber se eram MEDICAMENTOS ou ANALISE.
+    """
+    from sqlalchemy import text
+
+    # Ver situação atual
+    sql_check = text("SELECT modulo, COUNT(*) as qtd FROM consumo_diario GROUP BY modulo ORDER BY modulo")
+    before = db.execute(sql_check).mappings().fetchall()
+
+    # Deletar registros WEB
+    sql_delete = text("DELETE FROM consumo_diario WHERE modulo = 'WEB'")
+    result = db.execute(sql_delete)
+    db.commit()
+
+    # Ver situação depois
+    after = db.execute(sql_check).mappings().fetchall()
+
+    return {
+        "antes": [dict(r) for r in before],
+        "depois": [dict(r) for r in after],
+        "deletados": result.rowcount
+    }
