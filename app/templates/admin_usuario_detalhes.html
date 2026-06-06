@@ -1139,7 +1139,11 @@ document.getElementById('formEditarLimites')?.addEventListener('submit', functio
   const limiteMensal = parseInt(document.getElementById('inputLimiteMensal').value);
   const erroDiv = document.getElementById('erroValidacao');
 
-  if (limiteMensal < limiteDiario) {
+  // Permitir somente se ambos são 0 (ilimitado) OU se mensal >= diário
+  const isIlimitado = (limiteDiario === 0 && limiteMensal === 0);
+  const isValido = isIlimitado || (limiteMensal >= limiteDiario);
+
+  if (!isValido) {
     e.preventDefault();
     erroDiv.style.display = 'block';
     document.getElementById('inputLimiteMensal').focus();
@@ -1155,7 +1159,26 @@ document.getElementById('inputLimiteMensal')?.addEventListener('input', function
   const limiteMensal = parseInt(this.value) || 0;
   const erroDiv = document.getElementById('erroValidacao');
 
-  if (limiteMensal > 0 && limiteMensal < limiteDiario) {
+  const isIlimitado = (limiteDiario === 0 && limiteMensal === 0);
+  const isValido = isIlimitado || (limiteMensal >= limiteDiario);
+
+  if (!isValido) {
+    erroDiv.style.display = 'block';
+  } else {
+    erroDiv.style.display = 'none';
+  }
+});
+
+// Validar também quando limite diário muda
+document.getElementById('inputLimiteDiario')?.addEventListener('input', function() {
+  const limiteDiario = parseInt(this.value) || 0;
+  const limiteMensal = parseInt(document.getElementById('inputLimiteMensal').value) || 0;
+  const erroDiv = document.getElementById('erroValidacao');
+
+  const isIlimitado = (limiteDiario === 0 && limiteMensal === 0);
+  const isValido = isIlimitado || (limiteMensal >= limiteDiario);
+
+  if (!isValido) {
     erroDiv.style.display = 'block';
   } else {
     erroDiv.style.display = 'none';

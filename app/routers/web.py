@@ -550,13 +550,11 @@ async def pagina_perfil(
     usuario: Usuario = Depends(requer_usuario_web),
     db: Session = Depends(get_db),
 ):
-    plano = usuario_repo.obter_plano_usuario(db, usuario)
     return templates.TemplateResponse(
         request, "perfil.html",
         {
             "pagina_ativa": "perfil",
             "usuario": usuario,
-            "plano": plano.nome if plano else "Gratuito",
         },
     )
 
@@ -1007,11 +1005,12 @@ async def admin_atualizar_limites(
     """Atualiza limites de um usuário."""
     try:
         # Validar que limite mensal >= limite diário (exceto se ambos = 0, que é ilimitado)
-        if limite_diario > 0 and limite_mensal > 0 and limite_mensal < limite_diario:
-            return RedirectResponse(
-                url=f"/admin/usuarios/{usuario_id}/detalhes?erro=Limite mensal não pode ser menor que limite diário",
-                status_code=status.HTTP_302_FOUND
-            )
+        if not (limite_diario == 0 and limite_mensal == 0):  # Se não for ilimitado (0/0)
+            if limite_mensal < limite_diario:
+                return RedirectResponse(
+                    url=f"/admin/usuarios/{usuario_id}/detalhes?erro=Limite mensal não pode ser menor que limite diário",
+                    status_code=status.HTTP_302_FOUND
+                )
 
         usuario_repo.atualizar_limites(db, usuario_id, limite_diario, limite_mensal)
         return RedirectResponse(
