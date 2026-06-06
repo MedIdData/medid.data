@@ -264,6 +264,10 @@ async def pagina_analise(
     # Converte e valida inputs numéricos antes de criar AnaliseEntrada
     if medicamento.strip():
         try:
+            # Verificar limites ANTES de processar
+            from app.middleware.rate_limit import verificar_limite_usuario, registrar_consumo
+            verificar_limite_usuario(db, usuario, "WEB")
+
             # Validação e conversão de preço
             try:
                 preco_float = float(preco_informado.replace(',', '.'))
@@ -301,9 +305,8 @@ async def pagina_analise(
             # Executa análise
             resultado = analise_risco.analisar(db, entrada)
 
-            # Registra consumo
-            from datetime import date
-            usuario_repo.incrementar_consumo(db, usuario.id, date.today(), "ANALISE")
+            # Registra consumo (só se passou na verificação)
+            registrar_consumo(db, usuario, "WEB", "ANALISE")
 
         except ValidationError as e:
             # Erro de validação Pydantic - extrai mensagens amigáveis
@@ -335,8 +338,12 @@ async def pagina_analise(
             erro = str(e)
 
         except Exception as e:
-            # Outros erros inesperados
-            erro = f"Erro ao processar análise: {str(e)}"
+            # Verificar se é erro de limite
+            if hasattr(e, 'status_code') and e.status_code == 429:
+                erro = str(e.detail)
+            else:
+                # Outros erros inesperados
+                erro = f"Erro ao processar análise: {str(e)}"
 
     return templates.TemplateResponse(
         request, "analise.html",
@@ -367,17 +374,31 @@ async def pagina_buscar(
     total = 0
     sugestao = None
     termo_busca = q.strip() if q else ""
+    erro_limite = None
 
-    # Busca na BASE COMPLETA (não apenas primeiros 500)
-    resposta = busca_medicamento.buscar(db, termo_busca, apenas_ativos, pagina, limite)
-    resultados = resposta.resultados
-    total = resposta.total
-    sugestao = resposta.sugestao
+    # Só busca e contabiliza se houver termo de busca
+    if termo_busca:
+        try:
+            # Verificar limites ANTES de fazer a busca
+            from app.middleware.rate_limit import verificar_limite_usuario, registrar_consumo
+            verificar_limite_usuario(db, usuario, "WEB")
 
-    # Registra consumo se houve resultados
-    if resultados:
-        from datetime import date
-        usuario_repo.incrementar_consumo(db, usuario.id, date.today(), "MEDICAMENTOS")
+            # Busca na BASE COMPLETA
+            resposta = busca_medicamento.buscar(db, termo_busca, apenas_ativos, pagina, limite)
+            resultados = resposta.resultados
+            total = resposta.total
+            sugestao = resposta.sugestao
+
+            # Registra consumo (só se passou na verificação)
+            registrar_consumo(db, usuario, "WEB", "BUSCA")
+
+        except Exception as e:
+            # Se for erro de limite, mostra mensagem amigável
+            if hasattr(e, 'status_code') and e.status_code == 429:
+                erro_limite = str(e.detail)
+            else:
+                # Outros erros, re-lança
+                raise
 
     # Calcula paginação
     total_paginas = (total + limite - 1) // limite if total > 0 else 0
@@ -395,6 +416,7 @@ async def pagina_buscar(
             "total": total,
             "total_paginas": total_paginas,
             "sugestao": sugestao,
+            "erro_limite": erro_limite,
         },
     )
 
