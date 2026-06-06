@@ -518,7 +518,7 @@
       <pre class="codigo-exemplo">GET https://mediddata.com/medicamentos/buscar?q=dipirona
 
 curl "https://mediddata.com/medicamentos/buscar?q=dipirona" \
-  -H "Authorization: Bearer med_abc123..."</pre>
+  -H "X-API-Key: med_abc123..."</pre>
       <p class="docs-texto"><strong>Resposta:</strong> Lista de medicamentos com nome, fabricante, registro ANVISA, preços (PMC/PF/PMVG) e status.</p>
     </div>
 
@@ -528,7 +528,7 @@ curl "https://mediddata.com/medicamentos/buscar?q=dipirona" \
       <pre class="codigo-exemplo">GET https://mediddata.com/medicamentos/{id}
 
 curl "https://mediddata.com/medicamentos/12345" \
-  -H "Authorization: Bearer med_abc123..."</pre>
+  -H "X-API-Key: med_abc123..."</pre>
       <p class="docs-texto"><strong>Resposta:</strong> Dados detalhados incluindo apresentação, via de administração, classe terapêutica, restrições e preços atualizados.</p>
     </div>
 
@@ -539,27 +539,19 @@ curl "https://mediddata.com/medicamentos/12345" \
 Content-Type: application/json
 
 {
-  "paciente": {
-    "idade_anos": 65,
-    "sexo": "M",
-    "peso_kg": 75.5
-  },
-  "medicamentos": [
-    {
-      "id": 12345,
-      "quantidade": 2,
-      "via_administracao": "ORAL"
-    }
-  ],
-  "diagnostico_cid10": "I10",
-  "procedimento_sigtap": "0301060029"
+  "medicamento": "Dipirona Sódica 500mg",
+  "preco_informado": 15.50,
+  "tratamento": "Dor pós-operatória",
+  "cid": "R52.9",
+  "procedimento": "0301060029",
+  "quantidade": 2
 }
 
 curl -X POST "https://mediddata.com/analise/risco" \
-  -H "Authorization: Bearer med_abc123..." \
+  -H "X-API-Key: med_abc123..." \
   -H "Content-Type: application/json" \
-  -d '{...}'</pre>
-      <p class="docs-texto"><strong>Dimensões analisadas:</strong> Registro ANVISA, compatibilidade com CID-10, compatibilidade com SIGTAP, dose por idade/peso, contraindicações, interações medicamentosas, via de administração, custo-efetividade, disponibilidade no mercado.</p>
+  -d '{"medicamento": "Dipirona 500mg", "preco_informado": 15.50, "quantidade": 1}'</pre>
+      <p class="docs-texto"><strong>Dimensões analisadas:</strong> Registro ANVISA, compatibilidade com CID-10, compatibilidade com SIGTAP, preço vs tabela CMED, quantidade, disponibilidade, validade do registro, restrições regulatórias, custo-efetividade.</p>
       <p class="docs-texto"><strong>Resposta:</strong> Score de risco (0-100), alertas por dimensão, recomendações e justificativas técnicas.</p>
     </div>
 
@@ -569,7 +561,7 @@ curl -X POST "https://mediddata.com/analise/risco" \
       <pre class="codigo-exemplo">GET https://mediddata.com/usuario/consumo
 
 curl "https://mediddata.com/usuario/consumo" \
-  -H "Authorization: Bearer med_abc123..."</pre>
+  -H "X-API-Key: med_abc123..."</pre>
       <p class="docs-texto"><strong>Resposta:</strong> Consumo diário, semanal, mensal e total + limites do plano.</p>
     </div>
 
@@ -582,7 +574,7 @@ curl "https://mediddata.com/usuario/consumo" \
 API_KEY = "med_abc123..."
 BASE_URL = "https://mediddata.com"
 
-headers = {"Authorization": f"Bearer {API_KEY}"}
+headers = {"X-API-Key": API_KEY}
 
 # Buscar medicamento
 resp = requests.get(
@@ -596,9 +588,12 @@ medicamentos = resp.json()
 analise = requests.post(
     f"{BASE_URL}/analise/risco",
     json={
-        "paciente": {"idade_anos": 65, "sexo": "M"},
-        "medicamentos": [{"id": 12345, "quantidade": 1}],
-        "diagnostico_cid10": "I10"
+        "medicamento": "Dipirona Sódica 500mg",
+        "preco_informado": 15.50,
+        "tratamento": "Dor pós-operatória",
+        "cid": "R52.9",
+        "procedimento": "0301060029",
+        "quantidade": 1
     },
     headers=headers
 ).json()</pre>
@@ -611,7 +606,7 @@ const BASE_URL = "https://mediddata.com";
 const response = await fetch(
   `${BASE_URL}/medicamentos/buscar?q=dipirona`,
   {
-    headers: { "Authorization": `Bearer ${API_KEY}` }
+    headers: { "X-API-Key": API_KEY }
   }
 );
 const medicamentos = await response.json();
@@ -620,13 +615,16 @@ const medicamentos = await response.json();
 const analise = await fetch(`${BASE_URL}/analise/risco`, {
   method: "POST",
   headers: {
-    "Authorization": `Bearer ${API_KEY}`,
+    "X-API-Key": API_KEY,
     "Content-Type": "application/json"
   },
   body: JSON.stringify({
-    paciente: { idade_anos: 65, sexo: "M" },
-    medicamentos: [{ id: 12345, quantidade: 1 }],
-    diagnostico_cid10: "I10"
+    medicamento: "Dipirona Sódica 500mg",
+    preco_informado: 15.50,
+    tratamento: "Dor pós-operatória",
+    cid: "R52.9",
+    procedimento: "0301060029",
+    quantidade: 1
   })
 }).then(r => r.json());</pre>
 
@@ -641,9 +639,27 @@ $headers = [
 
 // Buscar medicamento
 $ch = curl_init("$baseUrl/medicamentos/buscar?q=dipirona");
-curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+curl_setopt($ch, CURLOPT_HTTPHEADER, ["X-API-Key: $apiKey"]);
 curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-$medicamentos = json_decode(curl_exec($ch), true);</pre>
+$medicamentos = json_decode(curl_exec($ch), true);
+
+// Análise de risco
+$analise_data = [
+    "medicamento" => "Dipirona Sódica 500mg",
+    "preco_informado" => 15.50,
+    "quantidade" => 1,
+    "cid" => "R52.9"
+];
+
+$ch = curl_init("$baseUrl/analise/risco");
+curl_setopt($ch, CURLOPT_HTTPHEADER, [
+    "X-API-Key: $apiKey",
+    "Content-Type: application/json"
+]);
+curl_setopt($ch, CURLOPT_POST, true);
+curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($analise_data));
+curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+$analise = json_decode(curl_exec($ch), true);</pre>
     </div>
 
     <div class="docs-secao">
@@ -653,7 +669,7 @@ $medicamentos = json_decode(curl_exec($ch), true);</pre>
         <li><strong>Revogue imediatamente chaves comprometidas</strong> e crie novas</li>
         <li><strong>Use chaves diferentes para cada ambiente</strong> (desenvolvimento, homologação, produção)</li>
         <li><strong>Armazene chaves em variáveis de ambiente</strong>, nunca no código-fonte</li>
-        <li><strong>As chaves respeitam os limites do seu plano</strong> - monitore seu consumo regularmente</li>
+        <li><strong>As chaves respeitam seus limites de consumo</strong> - monitore seu uso regularmente</li>
         <li><strong>Implemente tratamento de erros</strong> para códigos 429 (limite excedido) e 401 (chave inválida)</li>
       </ul>
     </div>
