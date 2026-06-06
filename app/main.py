@@ -348,8 +348,9 @@ async def saude():
 
 # ── Routers ────────────────────────────────────────────────────────────────
 
-from app.routers import medicamentos, analise, auth, usuario, admin, web
+from app.routers import medicamentos, analise, auth, usuario, admin, web, debug
 
+app.include_router(debug.router)  # Debug temporário
 app.include_router(auth.router, prefix="/auth", tags=["Autenticação"])
 app.include_router(
     medicamentos.router,
