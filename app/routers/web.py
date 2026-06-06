@@ -902,7 +902,6 @@ async def admin_usuario_detalhes(
         return RedirectResponse(url="/admin?erro=Usuário não encontrado", status_code=status.HTTP_302_FOUND)
     
     # Dados gerais
-    plano = usuario_repo.obter_plano_usuario(db, usuario)
     ultimo_login = usuario_repo.obter_ultimo_login(db, usuario_id)
     ultimo_uso_api = usuario_repo.obter_ultimo_uso_api(db, usuario_id)
     
@@ -940,7 +939,6 @@ async def admin_usuario_detalhes(
             "pagina_ativa": "admin",
             "usuario": admin,  # Usuário logado (admin) para o menu
             "usuario_detalhes": usuario,  # Usuário sendo visualizado
-            "plano": plano,
             "ultimo_login": ultimo_login,
             "ultimo_uso_api": ultimo_uso_api,
             "stats": stats,
