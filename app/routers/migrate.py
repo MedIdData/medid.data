@@ -94,3 +94,89 @@ async def apply_migration_010(db: Session = Depends(get_db)):
             "traceback": traceback.format_exc(),
         }
         return JSONResponse(content=error_info, status_code=500)
+
+
+@router.post("/limpar-usuarios")
+async def limpar_usuarios(db: Session = Depends(get_db)):
+    """
+    Remove todos os usuários exceto admin@mediddata.com.
+    ATENÇÃO: Este endpoint deve ser removido após uso!
+    """
+    try:
+        resultado = {"steps": []}
+
+        # 1. Identificar admin principal
+        admin = db.execute(text("""
+            SELECT id, email FROM usuarios
+            WHERE email = 'admin@mediddata.com'
+            LIMIT 1
+        """)).fetchone()
+
+        if not admin:
+            return JSONResponse(
+                content={"status": "ERROR", "message": "Admin principal não encontrado!"},
+                status_code=404
+            )
+
+        admin_id = admin[0]
+        resultado["admin_email"] = admin[1]
+        resultado["admin_id"] = admin_id
+
+        # 2. Listar usuários que serão removidos
+        usuarios_remover = db.execute(text("""
+            SELECT id, email, perfil FROM usuarios
+            WHERE id != :admin_id
+            ORDER BY id
+        """), {"admin_id": admin_id}).fetchall()
+
+        resultado["usuarios_a_remover"] = [
+            {"id": u[0], "email": u[1], "perfil": u[2]}
+            for u in usuarios_remover
+        ]
+        resultado["total_usuarios_a_remover"] = len(usuarios_remover)
+
+        # 3. Remover dados relacionados
+        resultado["steps"].append("Removendo consumo diário...")
+        result = db.execute(text("DELETE FROM consumo_diario WHERE usuario_id != :admin_id"), {"admin_id": admin_id})
+        resultado["consumo_diario_removido"] = result.rowcount
+
+        resultado["steps"].append("Removendo auditoria...")
+        result = db.execute(text("DELETE FROM auditoria_requisicoes"))
+        resultado["auditoria_removida"] = result.rowcount
+
+        resultado["steps"].append("Removendo chaves API...")
+        result = db.execute(text("DELETE FROM chaves_acesso"))
+        resultado["chaves_removidas"] = result.rowcount
+
+        resultado["steps"].append("Removendo refresh tokens...")
+        result = db.execute(text("DELETE FROM refresh_tokens WHERE usuario_id != :admin_id"), {"admin_id": admin_id})
+        resultado["tokens_removidos"] = result.rowcount
+
+        resultado["steps"].append("Removendo convites...")
+        result = db.execute(text("DELETE FROM convites_usuario"))
+        resultado["convites_removidos"] = result.rowcount
+
+        resultado["steps"].append("Removendo usuários...")
+        result = db.execute(text("DELETE FROM usuarios WHERE id != :admin_id"), {"admin_id": admin_id})
+        resultado["usuarios_removidos"] = result.rowcount
+
+        db.commit()
+        resultado["status"] = "SUCCESS"
+        resultado["message"] = f"Limpeza concluída! Apenas {admin[1]} permanece."
+
+        # Verificar estado final
+        total = db.execute(text("SELECT COUNT(*) FROM usuarios")).scalar()
+        resultado["usuarios_restantes"] = total
+
+        return JSONResponse(content=resultado, status_code=200)
+
+    except Exception as e:
+        db.rollback()
+        import traceback
+        error_info = {
+            "status": "ERROR",
+            "error_type": type(e).__name__,
+            "error_message": str(e),
+            "traceback": traceback.format_exc(),
+        }
+        return JSONResponse(content=error_info, status_code=500)
