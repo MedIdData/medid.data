@@ -624,10 +624,9 @@ async def pagina_admin(
     todos_planos = plano_repo.listar_todos(db)
     planos_dict = {p.id: p for p in todos_planos}
 
-    # Mapear chaves, consumo e planos por usuário
+    # Mapear chaves e consumo por usuário
     chaves_por_usuario = {}
     consumo_por_usuario = {}
-    plano_por_usuario = {}
 
     hoje = date.today()
 
@@ -658,26 +657,6 @@ async def pagina_admin(
             "percentual_mes": min(percentual_mes, 100),  # Cap at 100%
         }
 
-        # Determinar o plano do usuário
-        limite_d = u.limite_diario or 0
-        limite_m = u.limite_mensal or 0
-
-        # Mapear limites para planos conhecidos
-        if u.perfil in ('ADMINISTRADOR', 'ADMIN'):
-            # Administradores têm plano Admin (ilimitado)
-            plano_por_usuario[u.id] = "Admin"
-        elif limite_d == 20 and limite_m == 100:
-            plano_por_usuario[u.id] = "Gratuito"
-        elif limite_d == 500 and limite_m == 10000:
-            plano_por_usuario[u.id] = "Básico"
-        elif limite_d == 2000 and limite_m == 50000:
-            plano_por_usuario[u.id] = "Profissional"
-        elif limite_d == 0 and limite_m == 0:
-            plano_por_usuario[u.id] = "Enterprise"
-        else:
-            # Qualquer outro limite → forçar para Gratuito
-            plano_por_usuario[u.id] = "Gratuito"
-
     return templates.TemplateResponse(
         request, "admin.html",
         {
@@ -690,7 +669,6 @@ async def pagina_admin(
             "usuarios": usuarios,
             "chaves_por_usuario": chaves_por_usuario,
             "consumo_por_usuario": consumo_por_usuario,
-            "plano_por_usuario": plano_por_usuario,
         },
     )
 
@@ -995,116 +973,25 @@ async def admin_revogar_chave(
     )
 
 
-# ── Gestão de Planos (Admin) ──────────────────────────────────────────────
+# ── Gestão de Limites (Admin) ──────────────────────────────────────────────
 
-@router.get("/admin/planos", response_class=HTMLResponse)
-async def admin_planos(
-    request: Request,
-    admin: Usuario = Depends(requer_admin),
-    db: Session = Depends(get_db),
-):
-    """Página de gestão de planos."""
-    from app.repositories import plano_repo
-
-    planos = plano_repo.listar_todos(db)
-
-    # Contar usuários por plano
-    usuarios_por_plano = {}
-    for plano in planos:
-        usuarios_por_plano[plano.id] = plano_repo.contar_usuarios_por_plano(db, plano.id)
-
-    return templates.TemplateResponse(
-        request, "admin_planos.html",
-        {
-            "pagina_ativa": "admin",
-            "usuario": admin,
-            "planos": planos,
-            "usuarios_por_plano": usuarios_por_plano,
-        },
-    )
-
-
-@router.post("/admin/planos/criar")
-async def admin_criar_plano(
-    nome: str = Form(...),
-    descricao: str = Form(...),
+@router.post("/admin/usuarios/{usuario_id}/atualizar-limites")
+async def admin_atualizar_limites(
+    usuario_id: int,
     limite_diario: int = Form(...),
     limite_mensal: int = Form(...),
-    valor_mensal_centavos: int = Form(...),
     admin: Usuario = Depends(requer_admin),
     db: Session = Depends(get_db),
 ):
-    """Cria um novo plano."""
-    from app.repositories import plano_repo
-
+    """Atualiza limites de um usuário."""
     try:
-        plano_repo.criar(
-            db,
-            nome=nome,
-            descricao=descricao,
-            limite_diario=limite_diario,
-            limite_mensal=limite_mensal,
-            valor_mensal_centavos=valor_mensal_centavos,
-        )
+        usuario_repo.atualizar_limites(db, usuario_id, limite_diario, limite_mensal)
         return RedirectResponse(
-            url="/admin/planos?sucesso=Plano criado com sucesso",
+            url=f"/admin/usuarios/{usuario_id}/detalhes?sucesso=Limites atualizados",
             status_code=status.HTTP_302_FOUND
         )
     except Exception as e:
         return RedirectResponse(
-            url=f"/admin/planos?erro={str(e)}",
+            url=f"/admin/usuarios/{usuario_id}/detalhes?erro={str(e)}",
             status_code=status.HTTP_302_FOUND
         )
-
-
-@router.post("/admin/planos/{plano_id}/editar")
-async def admin_editar_plano(
-    plano_id: int,
-    nome: str = Form(...),
-    descricao: str = Form(...),
-    limite_diario: int = Form(...),
-    limite_mensal: int = Form(...),
-    valor_mensal_centavos: int = Form(...),
-    ativo: str = Form(...),
-    admin: Usuario = Depends(requer_admin),
-    db: Session = Depends(get_db),
-):
-    """Edita um plano existente."""
-    from app.repositories import plano_repo
-
-    try:
-        plano_repo.atualizar(
-            db,
-            plano_id=plano_id,
-            nome=nome,
-            descricao=descricao,
-            limite_diario=limite_diario,
-            limite_mensal=limite_mensal,
-            valor_mensal_centavos=valor_mensal_centavos,
-            ativo=(ativo == "true"),
-        )
-        return RedirectResponse(
-            url="/admin/planos?sucesso=Plano atualizado com sucesso",
-            status_code=status.HTTP_302_FOUND
-        )
-    except Exception as e:
-        return RedirectResponse(
-            url=f"/admin/planos?erro={str(e)}",
-            status_code=status.HTTP_302_FOUND
-        )
-
-
-@router.post("/admin/planos/{plano_id}/toggle")
-async def admin_toggle_plano(
-    plano_id: int,
-    admin: Usuario = Depends(requer_admin),
-    db: Session = Depends(get_db),
-):
-    """Ativa/desativa um plano."""
-    from app.repositories import plano_repo
-
-    plano_repo.toggle_ativo(db, plano_id)
-    return RedirectResponse(
-        url="/admin/planos",
-        status_code=status.HTTP_302_FOUND
-    )

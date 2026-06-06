@@ -505,6 +505,15 @@
           {% endif %}
         </div>
       </div>
+
+      <!-- Botão Editar Limites -->
+      {% if usuario_detalhes.perfil not in ('ADMINISTRADOR', 'ADMIN') %}
+      <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid var(--borda);">
+        <button onclick="abrirModalEditarLimites()" style="width: 100%; padding: 12px; background: var(--azul); color: var(--branco); border: none; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: .95rem; transition: all .15s;">
+          ✏️ Editar Limites de Consumo
+        </button>
+      </div>
+      {% endif %}
     </div>
   </div>
 
@@ -1039,4 +1048,66 @@ function confirmarDesativar() {
 
 <!-- Chart.js -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+<!-- Modal Editar Limites -->
+<div id="modalEditarLimites" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 9999; padding: 20px; overflow-y: auto;">
+  <div style="max-width: 500px; margin: 40px auto; background: var(--branco); border-radius: 16px; box-shadow: 0 20px 60px rgba(0,0,0,0.3);">
+    <form method="POST" action="/admin/usuarios/{{ usuario_detalhes.id }}/atualizar-limites">
+      <div style="padding: 24px; border-bottom: 1px solid var(--borda);">
+        <h3 style="font-family: 'Syne', sans-serif; font-size: 1.3rem; color: var(--azul-escuro); margin: 0;">✏️ Editar Limites</h3>
+        <p style="margin: 8px 0 0 0; font-size: .9rem; color: var(--texto-sec);">Configure os limites diários e mensais para {{ usuario_detalhes.nome }}</p>
+      </div>
+
+      <div style="padding: 24px;">
+        <div style="margin-bottom: 20px;">
+          <label style="display: block; font-weight: 600; margin-bottom: 8px; font-size: .9rem; color: var(--texto);">Limite Diário</label>
+          <input type="number" name="limite_diario" value="{{ usuario_detalhes.limite_diario }}" min="1" required style="width: 100%; padding: 12px; border: 2px solid var(--borda); border-radius: 8px; font-size: 1rem;">
+          <div style="margin-top: 6px; font-size: .8rem; color: var(--texto-ter);">Número máximo de requisições por dia</div>
+        </div>
+
+        <div style="margin-bottom: 20px;">
+          <label style="display: block; font-weight: 600; margin-bottom: 8px; font-size: .9rem; color: var(--texto);">Limite Mensal</label>
+          <input type="number" name="limite_mensal" value="{{ usuario_detalhes.limite_mensal }}" min="1" required style="width: 100%; padding: 12px; border: 2px solid var(--borda); border-radius: 8px; font-size: 1rem;">
+          <div style="margin-top: 6px; font-size: .8rem; color: var(--texto-ter);">Número máximo de requisições por mês</div>
+        </div>
+
+        <div style="padding: 16px; background: rgba(20, 184, 166, 0.05); border-left: 4px solid var(--verde); border-radius: 8px; margin-bottom: 20px;">
+          <div style="font-size: .85rem; color: var(--texto-sec); line-height: 1.6;">
+            <strong>Dica:</strong> Configurações comuns:<br>
+            • <strong>20/dia, 100/mês</strong> — uso básico/gratuito<br>
+            • <strong>500/dia, 10.000/mês</strong> — uso moderado<br>
+            • <strong>2.000/dia, 50.000/mês</strong> — uso intensivo
+          </div>
+        </div>
+
+        <div style="display: flex; gap: 12px;">
+          <button type="button" onclick="fecharModalEditarLimites()" style="flex: 1; padding: 12px; background: var(--cinza-claro); color: var(--texto); border: none; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all .15s;">
+            Cancelar
+          </button>
+          <button type="submit" style="flex: 1; padding: 12px; background: var(--azul); color: var(--branco); border: none; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all .15s;">
+            Salvar Limites
+          </button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+function abrirModalEditarLimites() {
+  document.getElementById('modalEditarLimites').style.display = 'block';
+}
+
+function fecharModalEditarLimites() {
+  document.getElementById('modalEditarLimites').style.display = 'none';
+}
+
+// Fechar modal ao clicar fora
+document.getElementById('modalEditarLimites')?.addEventListener('click', function(e) {
+  if (e.target === this) {
+    fecharModalEditarLimites();
+  }
+});
+</script>
+
 {% endblock %}

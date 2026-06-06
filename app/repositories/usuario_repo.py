@@ -247,6 +247,15 @@ def atualizar_senha_usuario(db: Session, usuario_id: int, senha_hash: str) -> No
     db.commit()
 
 
+def atualizar_limites(db: Session, usuario_id: int, limite_diario: int, limite_mensal: int) -> None:
+    """Atualiza os limites de consumo de um usuário."""
+    db.query(Usuario).filter(Usuario.id == usuario_id).update({
+        "limite_diario": limite_diario,
+        "limite_mensal": limite_mensal
+    })
+    db.commit()
+
+
 # ── Funções Admin ──────────────────────────────────────────────────────────
 
 def contar_usuarios(db: Session) -> int:

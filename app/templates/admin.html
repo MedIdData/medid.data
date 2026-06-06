@@ -306,7 +306,7 @@
 <!-- Hero -->
 <div class="admin-hero">
   <h2>⚙️ Painel Administrativo</h2>
-  <p>Gestão completa de usuários, planos e configurações do sistema</p>
+  <p>Gestão completa de usuários, limites de consumo e configurações do sistema</p>
 </div>
 
 <!-- Estatísticas -->
@@ -364,26 +364,24 @@
   </div>
 </div>
 
-<!-- Link para Gestão de Planos -->
-<a href="/admin/planos" style="text-decoration: none; display: block; margin-bottom: 24px;">
-  <div class="card" style="padding: 20px 24px; display: flex; justify-content: space-between; align-items: center; background: linear-gradient(135deg, rgba(15, 76, 129, 0.05) 0%, rgba(20, 184, 166, 0.05) 100%); border: 2px dashed var(--azul); transition: all .15s; cursor: pointer;">
-    <div style="display: flex; align-items: center; gap: 16px;">
-      <div style="width: 48px; height: 48px; border-radius: 50%; background: var(--azul); color: var(--branco); display: flex; align-items: center; justify-content: center;">
-        <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-          <rect x="2" y="5" width="20" height="14" rx="2"/>
-          <line x1="2" y1="10" x2="22" y2="10"/>
-        </svg>
-      </div>
-      <div>
-        <div style="font-family: 'Syne', sans-serif; font-weight: 700; font-size: 1.1rem; color: var(--azul-escuro); margin-bottom: 4px;">💳 Gestão de Planos</div>
-        <div style="font-size: .85rem; color: var(--texto-sec);">Configure planos, limites diários/mensais e valores de assinatura</div>
+<!-- Informação sobre dados públicos -->
+<div class="card" style="padding: 20px 24px; margin-bottom: 24px; background: linear-gradient(135deg, rgba(15, 76, 129, 0.03) 0%, rgba(20, 184, 166, 0.03) 100%); border-left: 4px solid var(--verde);">
+  <div style="display: flex; align-items: flex-start; gap: 16px;">
+    <div style="width: 40px; height: 40px; border-radius: 50%; background: rgba(20, 184, 166, 0.1); color: var(--verde); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+      <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <circle cx="12" cy="12" r="10"/>
+        <line x1="12" y1="16" x2="12" y2="12"/>
+        <line x1="12" y1="8" x2="12.01" y2="8"/>
+      </svg>
+    </div>
+    <div style="flex: 1;">
+      <div style="font-family: 'Syne', sans-serif; font-weight: 600; font-size: .95rem; color: var(--azul-escuro); margin-bottom: 6px;">📋 Dados Públicos Oficiais</div>
+      <div style="font-size: .85rem; color: var(--texto-sec); line-height: 1.6;">
+        Todos os dados disponibilizados pela plataforma são provenientes de bases públicas oficiais: <strong>ANVISA</strong> (medicamentos), <strong>CMED</strong> (preços), <strong>CID-10</strong> (diagnósticos) e <strong>SIGTAP</strong> (procedimentos SUS).
       </div>
     </div>
-    <svg width="24" height="24" fill="none" stroke="var(--azul)" stroke-width="2" viewBox="0 0 24 24">
-      <path d="M5 12h14M12 5l7 7-7 7"/>
-    </svg>
   </div>
-</a>
+</div>
 
 <!-- Lista de Usuários -->
 <div class="card">
@@ -407,7 +405,7 @@
           <th>Nome</th>
           <th>Email</th>
           <th>Perfil</th>
-          <th>Plano</th>
+          <th>Limites</th>
           <th>Status</th>
           <th>Chaves API</th>
           <th>Consumo Diário</th>
@@ -461,17 +459,12 @@
             </span>
           </td>
           <td style="font-size:.85rem;">
-            {% set nome_plano = plano_por_usuario.get(u.id, 'Gratuito') %}
-            <div style="font-weight:500;color:var(--texto);">{{ nome_plano }}</div>
-            <div style="font-size:.75rem;color:var(--texto-ter);">
-              {% if nome_plano == 'Admin' or (u.limite_diario == 0 and u.limite_mensal == 0) %}
-                ∞/dia · ∞/mês
-              {% elif u.limite_diario and u.limite_mensal %}
-                {{ "{:,}".format(u.limite_diario) }}/dia · {{ "{:,}".format(u.limite_mensal) }}/mês
-              {% else %}
-                20/dia · 100/mês
-              {% endif %}
-            </div>
+            {% if u.limite_diario == 0 and u.limite_mensal == 0 %}
+              <div style="font-weight:600;color:var(--verde);font-size:.95rem;">∞ ilimitado</div>
+            {% else %}
+              <div style="font-weight:500;color:var(--texto);">{{ "{:,}".format(u.limite_diario) }}/dia</div>
+              <div style="font-size:.75rem;color:var(--texto-ter);">{{ "{:,}".format(u.limite_mensal) }}/mês</div>
+            {% endif %}
           </td>
           <td>
             <span class="badge {% if u.ativo %}badge-ativo{% else %}badge-inativo{% endif %}">
